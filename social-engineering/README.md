@@ -63,7 +63,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
 ------------------------------------------------------------------------------------
 ```
     
-    **minimized**
+**minimized**
     
 ```
 C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     Show-Msgbox.ps1 -m                     

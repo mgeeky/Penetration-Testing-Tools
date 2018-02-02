@@ -28,7 +28,7 @@ Using sample: "4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4
 (3) ENCODED FORM: "526b39504a544977534756736247386c4d6a423362334a735a4355794d5355794d43557a5153306c4d6a6b6c4d6a42435156493d"
 ```
 
-    When `DEBUG` is turned on, the output may also look like:
+When `DEBUG` is turned on, the output may also look like:
 
 ```
 $ ./reencode.py JTQxJTQxJTQxJTQx
