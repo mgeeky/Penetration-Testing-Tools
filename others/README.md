@@ -1,7 +1,6 @@
 ## Other Penetration-Testing related scripts and tools
 
 
-
 - **`bluetoothObexSpam.py`** - Script intended to flood bluetooth enabled devices with incoming OBEX Object Push requests containing attacker-specified file. ([gist](https://gist.github.com/mgeeky/5b35453cd46837a01200a0eca4aa1e41))
 
 - **`encrypt.rb`** - Simple File Encryption utility (with support for Blowfish, GOST, IDEA, AES) capable of encrypting directories. ([gist](https://gist.github.com/mgeeky/751c01c4dac99871f4da))

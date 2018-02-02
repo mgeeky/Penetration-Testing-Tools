@@ -1,7 +1,58 @@
 ## Web Applications penetration testing related scripts, tools and Cheatsheets
 
+- **`ajax_crawl.js`** - AJAX Crawling bookmarklet - useful bookmarklet for fetching accessible, in-scope URLs from the webpage (and it's sitemap.xml) in order to let them be captured in local proxy like Burp. This in turn is useful for populating local proxy's history and it's website resources tree. Must-have during website pentesting. ([gist](https://gist.github.com/mgeeky/db809bec7460707693f2ed3548ea6a43))
 
-- **`xml-attacks.md`** - XML Vulnerabilities and Attacks cheatsheet. ([gist](https://gist.github.com/mgeeky/4f726d3b374f0a34267d4f19c9004870))
+- [**`arachni-launching-script`**](https://github.com/mgeeky/arachni-launching-script) - Script intended to make launching of Arachni scanner a little bit more comfortable.
+
+- **`blindxxe.py`** - Blind XXE (External XML Entity) attacker's server - to be used in blind XXE data exfiltration (like in Play Framework or Ruby on Rails). ([gist](https://gist.github.com/mgeeky/7f45c82e8d3097cbbbb250e37bc68573))
+
+- **`blind-xxe-payload-1.txt`** - Simplest Blind XXE Payload to test within HTML request. ([gist](https://gist.github.com/mgeeky/cf677de6e7fdc05803f6935de1ee0882))
+
+- **`burpCookieToUrl.py`** - Example BurpSuite extension copying specified Cookie's value (ticket) into URL parameters set under different name. ([gist](https://gist.github.com/mgeeky/61407112d6d09eaafd542e25590e1d35))
+
+- [**`burpContextAwareFuzzer`**](https://github.com/mgeeky/burpContextAwareFuzzer) - BurpSuite's payload-generation extension aiming at applying fuzzed test-cases depending on the type of payload (basic like integer, string, path; json; GWT; binary) and following encoding-scheme applied.
+
+- **`burp-curl-beautifier.py`** - Simple script for making "Copy as curl command" output in system's clipboard a little nicer, at least for me. ([gist](https://gist.github.com/mgeeky/3a5060e54004ca597241d6752b482675))
+
+- **`create_mitm_certificate.sh`** - Simple SSL/TLS self-signed CA Certificate generator for MITM purposes. ([gist](https://gist.github.com/mgeeky/5e36d6482e73ab85c161c35bfd50c465))
+
+- [**`dirbuster`**](https://github.com/mgeeky/dirbuster) - wfuzz, SecLists and john -based dirbusting / forceful browsing script intended to be used during web pentest assingments.
+
+- **`dummy-web-server.py`** - a minimal http server in python. Responds to GET, HEAD, POST requests, but will fail on anything else. Forked from: [bradmontgomery/dummy-web-server.py](https://gist.github.com/bradmontgomery/2219997) ([gist](https://gist.github.com/mgeeky/c0675b2cf65bad6171edcb8f3bb2af6d))
+
+- **`http-auth-timing.py`** - HTTP Auth Timing attack tool as presented at Ruxcon CTF 2012 simple web challange. The tools tries to use every letter for auth password and construct the entire password upon the longest took authentication request. ([gist](https://gist.github.com/mgeeky/57e866604942f1824da310982c46da84))
+
+- **`java-XMLDecoder-RCE.md`** - Java Beans XMLDecoder XML-deserialization Remote Code Execution payloads. ([gist](https://gist.github.com/mgeeky/5eb48b17c9d282ad3170ef91cfb6fe4c))
+
+- **`pickle-payload.py`** - Python's Pickle Remote Code Execution payload template. ([gist](https://gist.github.com/mgeeky/cbc7017986b2ec3e247aab0b01a9edcd))
+
+- **`struts-cheatsheet.md`** - Apache Struts devMode Remote Code Execution cheatsheet. ([gist](https://gist.github.com/mgeeky/5ba0170a5fd0171eb91bc1fd0f2618b7))
+- [**`tomcatWarDeployer`**](https://github.com/mgeeky/tomcatWarDeployer) - Apache Tomcat auto WAR deployment & pwning penetration testing tool.
+
+- **`padding-oracle-tests.py`** - Padding Oracle test-cases generator utility aiding process of manual inspection of cryptosystem's responses. ([gist](https://gist.github.com/mgeeky/5dfa475af2c970197a62ad070ba5deee))
+
+```
+#   Simple utility that aids the penetration tester when manually testing Padding Oracle condition
+#   of a target cryptosystem, by generating set of test cases to fed the cryptosystem with.
+#
+# Script that takes from input an encoded cipher text, tries to detect applied encoding, decodes the cipher
+# and then generates all the possible, reasonable cipher text transformations to be used while manually
+# testing for Padding Oracle condition of cryptosystem. The output of this script will be hundreds of
+# encoded values to be used in manual application testing approaches, like sending requests.
+#
+# One of possible scenarios and ways to use the below script could be the following:
+#   - clone the following repo: https://github.com/GDSSecurity/PaddingOracleDemos
+#   - launch pador.py which is an example of application vulnerable to Padding Oracle
+#   - then by using `curl http://localhost:5000/echo?cipher=<ciphertext>` we are going to manually
+#       test for Padding Oracle outcomes. The case of returning something not being a 'decryption error'
+#       result would be considered padding-hit, therefore vulnerability proof.
+#
+#   This script could be then launched to generate every possible test case of second to the last block
+#   being filled with specially tailored values (like vector of zeros with last byte ranging from 0-255)
+#   and then used in some kind of local http proxy (burp/zap) or http client like (curl/wget).
+```
+
+- **`post.php`** - (GIST discontinued, for recent version check: https://github.com/mgeeky/PhishingPost ) PHP Credentials Harversting script to be used during Social Engineering Phishing campaigns/projects. ([gist](https://gist.github.com/mgeeky/32375178621a5920e8c810d2d7e3b2e5))
 
 - **`reencode.py`** - ReEncoder.py - script allowing for recursive encoding detection, decoding and then re-encoding. To be used for instance in fuzzing purposes. Requires: jwt (pip install pyjwt). ([gist](https://gist.github.com/mgeeky/1052681318a8164b112edfcdcb30798f))
 
@@ -83,57 +134,10 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 (3) ENCODED FORM: "Rk9PJTIwQUFBQSUyMEJBUg=="
 ```
 
-
 - **`oRTC-leak-internal-ip.js`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/03f0871fb88c64b3d6d3a725c3ba38bf))
+
+
+- **`xml-attacks.md`** - XML Vulnerabilities and Attacks cheatsheet. ([gist](https://gist.github.com/mgeeky/4f726d3b374f0a34267d4f19c9004870))
 
 - **`XXE Payloads`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/181c6836488e35fcbf70290a048cd51d))
 
-- **`blind-xxe-payload-1.txt`** - Simplest Blind XXE Payload to test within HTML request. ([gist](https://gist.github.com/mgeeky/cf677de6e7fdc05803f6935de1ee0882))
-
-- **`burpCookieToUrl.py`** - Example BurpSuite extension copying specified Cookie's value (ticket) into URL parameters set under different name. ([gist](https://gist.github.com/mgeeky/61407112d6d09eaafd542e25590e1d35))
-
-- **`post.php`** - (GIST discontinued, for recent version check: https://github.com/mgeeky/PhishingPost ) PHP Credentials Harversting script to be used during Social Engineering Phishing campaigns/projects. ([gist](https://gist.github.com/mgeeky/32375178621a5920e8c810d2d7e3b2e5))
-
-
-- [**`PhishingPost`**](https://github.com/mgeeky/PhishingPost) - (PHP Script intdended to be used during Phishing campaigns as a credentials collector linked to backdoored HTML <form> action parameter.
-
-- **`burp-curl-beautifier.py`** - Simple script for making "Copy as curl command" output in system's clipboard a little nicer, at least for me. ([gist](https://gist.github.com/mgeeky/3a5060e54004ca597241d6752b482675))
-
-- **`padding-oracle-tests.py`** - Padding Oracle test-cases generator utility aiding process of manual inspection of cryptosystem's responses. ([gist](https://gist.github.com/mgeeky/5dfa475af2c970197a62ad070ba5deee))
-
-```
-#   Simple utility that aids the penetration tester when manually testing Padding Oracle condition
-#   of a target cryptosystem, by generating set of test cases to fed the cryptosystem with.
-#
-# Script that takes from input an encoded cipher text, tries to detect applied encoding, decodes the cipher
-# and then generates all the possible, reasonable cipher text transformations to be used while manually
-# testing for Padding Oracle condition of cryptosystem. The output of this script will be hundreds of
-# encoded values to be used in manual application testing approaches, like sending requests.
-#
-# One of possible scenarios and ways to use the below script could be the following:
-#   - clone the following repo: https://github.com/GDSSecurity/PaddingOracleDemos
-#   - launch pador.py which is an example of application vulnerable to Padding Oracle
-#   - then by using `curl http://localhost:5000/echo?cipher=<ciphertext>` we are going to manually
-#       test for Padding Oracle outcomes. The case of returning something not being a 'decryption error'
-#       result would be considered padding-hit, therefore vulnerability proof.
-#
-#   This script could be then launched to generate every possible test case of second to the last block
-#   being filled with specially tailored values (like vector of zeros with last byte ranging from 0-255)
-#   and then used in some kind of local http proxy (burp/zap) or http client like (curl/wget).
-```
-
-- **`create_mitm_certificate.sh`** - Simple SSL/TLS self-signed CA Certificate generator for MITM purposes. ([gist](https://gist.github.com/mgeeky/5e36d6482e73ab85c161c35bfd50c465))
-
-- **`java-XMLDecoder-RCE.md`** - Java Beans XMLDecoder XML-deserialization Remote Code Execution payloads. ([gist](https://gist.github.com/mgeeky/5eb48b17c9d282ad3170ef91cfb6fe4c))
-
-- **`struts-cheatsheet.md`** - Apache Struts devMode Remote Code Execution cheatsheet. ([gist](https://gist.github.com/mgeeky/5ba0170a5fd0171eb91bc1fd0f2618b7))
-
-- **`pickle-payload.py`** - Python's Pickle Remote Code Execution payload template. ([gist](https://gist.github.com/mgeeky/cbc7017986b2ec3e247aab0b01a9edcd))
-
-- **`http-auth-timing.py`** - HTTP Auth Timing attack tool as presented at Ruxcon CTF 2012 simple web challange. The tools tries to use every letter for auth password and construct the entire password upon the longest took authentication request. ([gist](https://gist.github.com/mgeeky/57e866604942f1824da310982c46da84))
-
-- **`blindxxe.py`** - Blind XXE (External XML Entity) attacker's server - to be used in blind XXE data exfiltration (like in Play Framework or Ruby on Rails). ([gist](https://gist.github.com/mgeeky/7f45c82e8d3097cbbbb250e37bc68573))
-
-- **`ajax_crawl.js`** - AJAX Crawling bookmarklet - useful bookmarklet for fetching accessible, in-scope URLs from the webpage (and it's sitemap.xml) in order to let them be captured in local proxy like Burp. This in turn is useful for populating local proxy's history and it's website resources tree. Must-have during website pentesting. ([gist](https://gist.github.com/mgeeky/db809bec7460707693f2ed3548ea6a43))
-
-- **`dummy-web-server.py`** - a minimal http server in python. Responds to GET, HEAD, POST requests, but will fail on anything else. Forked from: [bradmontgomery/dummy-web-server.py](https://gist.github.com/bradmontgomery/2219997) ([gist](https://gist.github.com/mgeeky/c0675b2cf65bad6171edcb8f3bb2af6d))
