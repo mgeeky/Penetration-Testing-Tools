@@ -21,6 +21,8 @@
 
 - **`smtpvrfy.py`** - SMTP VRFY python tool intended to check whether SMTP server is leaking usernames. ([gist](https://gist.github.com/mgeeky/1df141b18082b6f424df98fa6a630435))
 
+- **`wpa2-enterprise-utils`** - Couple of scripts that became needed/useful during **WPA2-Enterprise** penetration-testing assignment.
+
 - **`VLANHopperDTP.py`** - VLAN Hopping via DTP Trunk (Switch) Spoofing exploit - script automating full VLAN Hopping attack, from DTP detection to VLAN Hop with DHCP lease request ([gist](https://gist.github.com/mgeeky/7ff9bb1dcf8aa093d3a157b3c22432a0))
 
     Sample output:

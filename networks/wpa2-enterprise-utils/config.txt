@@ -1,0 +1,14 @@
+# Specify an interface
+iface = wlp4s0
+
+# Number of deauths
+deauths = 3
+
+# Retry deauths, 0 - infinity
+retry = 3
+
+# Here comes a list of APs to attack. The list entry form is following:
+#	target = <essid> <bssid> <channel>
+target = test 00:11:22:33:44:55 14
+target = test2 00:11:22:33:44:55 14
+target = test3 00:11:22:33:44:55 14
