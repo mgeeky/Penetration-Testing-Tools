@@ -4,6 +4,8 @@
 
 - **`backdoor-drop.js`** - Internet Explorer - JavaScript trojan/backdoor dropper template, to be used during Penetration Testing assessments. ([gist](https://gist.github.com/mgeeky/b0aed7c1e510560db50f96604b150dac))
 
+- **`clickOnceSharpPickTemplate.cs`** - This is a template for **C# Console Project** containing [SharpPick](https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerPick) technique of loading Powershell code from within C# application. The ClickOnce concept is to generate a windows self-updating Application that is specially privileged ([ClickOnce](https://www.slideshare.net/NetSPI/all-you-need-is-one-a-click-once-love-story-secure360-2015))
+
 - **`compressedPowershell.py`** - Creates a Powershell snippet containing GZIP-Compressed payload that will get decompressed and executed (IEX)
 . ([gist](https://gist.github.com/mgeeky/e30ceecc2082a11b99c7b24b42bd77fc))
 
