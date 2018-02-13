@@ -9,6 +9,6 @@ retry = 3
 
 # Here comes a list of APs to attack. The list entry form is following:
 #	target = <essid> <bssid> <channel>
-target = test 00:11:22:33:44:55 14
-target = test2 00:11:22:33:44:55 14
-target = test3 00:11:22:33:44:55 14
+target = SomeAP 00:11:22:33:44:55 1
+target = OtherAP 00:11:22:33:44:55 2
+target = AnotherAP 00:11:22:33:44:55 3
