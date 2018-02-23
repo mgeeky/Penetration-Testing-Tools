@@ -2,6 +2,17 @@
 
 - **`CDPFlooder.py`** - CDP Flooding tool, intended to take out entire segment switched by some old Cisco switches, vulnerable to Denial of Service after receiving big amount of invalid CDP packets.
 
+The effect will be similar to:
+```
+SW2960#show cdp traffic 
+CDP counters :
+	Total packets output: 361, Input: 11824
+	Hdr syntax: 0, Chksum error: 0, Encaps failed: 0
+	No memory: 0, Invalid packet: 461858, Fragmented: 0
+	CDP version 1 advertisements output: 9, Input: 178
+	CDP version 2 advertisements output: 352, Input: 76
+```
+
 - **`dtpscan.py`** - DTP Scanner - simple script trying to determine type of configured switchport and DTP negotation mode in order to assist in VLAN Hopping attacks. ([gist](https://gist.github.com/mgeeky/3f678d385984ba0377299a844fb793fa))
 
 - **`host-scanner-via-udp.py`** - Running Hosts scanner leveraging ICMP Destination Unreachable response upon UDP closed port packet. ([gist](https://gist.github.com/mgeeky/eae20db2d3dd4704fc6f04ea233bca9c))
