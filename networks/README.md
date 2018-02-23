@@ -1,5 +1,6 @@
 ## Networks Penetration Testing related scripts, tools and Cheatsheets
 
+- **`CDPFlooder.py`** - CDP Flooding tool, intended to take out entire segment switched by some old Cisco switches, vulnerable to Denial of Service after receiving big amount of invalid CDP packets.
 
 - **`dtpscan.py`** - DTP Scanner - simple script trying to determine type of configured switchport and DTP negotation mode in order to assist in VLAN Hopping attacks. ([gist](https://gist.github.com/mgeeky/3f678d385984ba0377299a844fb793fa))
 
