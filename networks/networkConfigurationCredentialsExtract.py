@@ -43,7 +43,8 @@ regexes = {
         'FTP Server Username'               : r'ip ftp username \name',
         'FTP Server Password'               : r'ip ftp password \password',
         'ISAKMP Key'                        : r'crypto isakmp key \password address \ip',
-        'SNMP-Server User Auth & Encr keys' :r'snmp-server user \name .* encrypted auth md5 ([0-9a-f\:]+) priv aes \d+ ([0-9a-f\:]+)',
+        'SNMP-Server User Auth & Encr keys' : r'snmp-server user \name .* encrypted auth md5 ([0-9a-f\:]+) priv aes \d+ ([0-9a-f\:]+)',
+        'PPP PAP Sent Username & Password'  : r'ppp pap sent-username \name password \password',
     },
 
     'Cisco ASA' : {
