@@ -17,6 +17,8 @@ CDP counters :
 
 - **`host-scanner-via-udp.py`** - Running Hosts scanner leveraging ICMP Destination Unreachable response upon UDP closed port packet. ([gist](https://gist.github.com/mgeeky/eae20db2d3dd4704fc6f04ea233bca9c))
 
+- **`HSRPFlooder.py`** - Proof of concept _HSRP Coup State: Active_ flooder, trying to provoke Denial of Service within LAN segment due to tunnelling packets to the non-existent gateway that won active-router election. Not working stabily at the moment.
+
 - **`iis_webdav_upload.py`** - Microsoft IIS WebDAV Write Code Execution exploit (based on Metasploit HDM's <iis_webdav_upload_asp> implementation). ([gist](https://gist.github.com/mgeeky/ce179cdbe4d8d85979a28c1de61618c2))
 
 - **`networkConfigurationCredentialsExtract.py`** - Network-configuration Credentials extraction script - intended to sweep input configuration file and extract keys, hashes, passwords. ([gist](https://gist.github.com/mgeeky/861a8769a261c7fc09a34b7d2bd1e1a0))
