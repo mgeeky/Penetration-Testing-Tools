@@ -23,6 +23,8 @@ CDP counters :
 
 - **`nmap-grep-to-table.sh`** - Script converting nmap's greppable output (-oG) into a printable per-host tables. ([gist](https://gist.github.com/mgeeky/cd3092cf60fd513d786286a21c6fa915))
 
+- **`nmap-scan-all.sh`** - Simple script to launch nmap scans against given target, using specific options and scripts set.
+
 - **`pingsweep.py`** - Quick Python Scapy-based ping-sweeper. ([gist](https://gist.github.com/mgeeky/a360e4a124ddb9ef6a9ac1557b47d14c))
 
 - **`sshbrute.py`** - ripped out from Violent Python - by TJ O'Connor. ([gist](https://gist.github.com/mgeeky/70606be7249a61ac26b34b1ef3b07553))

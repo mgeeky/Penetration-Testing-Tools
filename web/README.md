@@ -134,6 +134,8 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 (3) ENCODED FORM: "Rk9PJTIwQUFBQSUyMEJBUg=="
 ```
 
+- **`sqlmap-tamper-scripts-evaluation.md`** - Results of my evaluation of **sqlmap**'s tamper scripts against detectability and rating used in F5 Big-IP ASM WAF.
+
 - **`oRTC-leak-internal-ip.js`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/03f0871fb88c64b3d6d3a725c3ba38bf))
 
 
