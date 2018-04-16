@@ -4,7 +4,7 @@
 # ReEncoder.py - script allowing for recursive encoding detection, decoding and then re-encoding. 
 # To be used for instance in fuzzing purposes. Imagine you want to fuzz XML parameters within 
 # **PaReq** packet of 3DSecure standard. This packet has been ZLIB compressed, then Base64 encoded, 
-# then URLEncoded. In order to modify the inner HTML you would need to peel off that encoding layers 
+# then URLEncoded. In order to modify the inner XML you would need to peel off that encoding layers 
 # and then reaplly them in reversed order. This script allows you to do that in an automated manner
 # 
 # NOTICE:
@@ -37,7 +37,7 @@ from collections import Counter
 class ReEncoder:
 
     # Switch this to show some verbose informations about decoding process.
-    DEBUG = True
+    DEBUG = False
 
     class Utils:
         @staticmethod
