@@ -428,7 +428,7 @@ def main(argv):
             num = 0
             for cmd in config['command'].split(';'):
                 num += 1
-                generate('custom-cmd{}'.format(num), cmd)
+                generate('custom-cmd{}'.format(num), cmd.strip())
         else:
             generate('custom', config['command'])
     else:
