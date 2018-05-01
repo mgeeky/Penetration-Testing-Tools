@@ -54,7 +54,7 @@
 
 - **`post.php`** - (GIST discontinued, for recent version check: https://github.com/mgeeky/PhishingPost ) PHP Credentials Harversting script to be used during Social Engineering Phishing campaigns/projects. ([gist](https://gist.github.com/mgeeky/32375178621a5920e8c810d2d7e3b2e5))
 
-- **`reencode.py`** - ReEncoder.py - script allowing for recursive encoding detection, decoding and then re-encoding. To be used for instance in fuzzing purposes. Requires: jwt (pip install pyjwt). ([gist](https://gist.github.com/mgeeky/1052681318a8164b112edfcdcb30798f))
+- **`reencode.py`** - ReEncoder.py - script allowing for recursive encoding detection, decoding and then re-encoding. To be used for instance in fuzzing purposes. Imagine you want to fuzz XML parameters within **PaReq** packet of 3DSecure standard. This packet has been ZLIB compressed, then Base64 encoded, then URLEncoded. In order to modify the inner XML you would need to peel off that encoding layers and then reaplly them in reversed order. This script allows you to do that in an automated manner. ([gist](https://gist.github.com/mgeeky/1052681318a8164b112edfcdcb30798f))
 
     Sample output could look like:
 
@@ -142,4 +142,8 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 - **`xml-attacks.md`** - XML Vulnerabilities and Attacks cheatsheet. ([gist](https://gist.github.com/mgeeky/4f726d3b374f0a34267d4f19c9004870))
 
 - **`XXE Payloads`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/181c6836488e35fcbf70290a048cd51d))
+
+- **`ysoserial-generator.py`** - This tool helps fuzzing applications that use Java serialization under the hood, by automating `ysoserial` proof-of-concept tool for generating payloads that exploit unsafe Java object deserialization. 
+This tool generates every possible payload for every implemented gadget, thus resulting in number of payload files (or one file with number of lines), being URL/Base64 encoded along the way or not - which can be later used for manual penetration testing assignments like pasting that file to BurpSuite intruder, or enumerating every payload from within bash/python script.
+
 

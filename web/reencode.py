@@ -2,7 +2,10 @@
 
 # 
 # ReEncoder.py - script allowing for recursive encoding detection, decoding and then re-encoding. 
-# To be used for instance in fuzzing purposes.
+# To be used for instance in fuzzing purposes. Imagine you want to fuzz XML parameters within 
+# **PaReq** packet of 3DSecure standard. This packet has been ZLIB compressed, then Base64 encoded, 
+# then URLEncoded. In order to modify the inner XML you would need to peel off that encoding layers 
+# and then reaplly them in reversed order. This script allows you to do that in an automated manner
 # 
 # NOTICE:
 #   If the input string's length is divisble by 4, Base64 will be able to decode it - thus, the script
@@ -21,6 +24,7 @@
 import re
 import sys
 import jwt
+import zlib
 import math
 import base64
 import urllib
@@ -34,6 +38,22 @@ class ReEncoder:
 
     # Switch this to show some verbose informations about decoding process.
     DEBUG = False
+
+    class Utils:
+        @staticmethod
+        def isBinaryData(data):
+            nonBinary = 0
+            percOfBinaryToAssume = 0.10
+
+            for d in data:
+                c = ord(d)
+                if c in (10, 13): 
+                    nonBinary += 1
+                elif c >= 0x20 and c <= 0x7f:
+                    nonBinary += 1
+
+            binary = len(data) - nonBinary
+            return binary >= int(percOfBinaryToAssume * len(data))
 
     # ============================================================
     # ENCODERS SECTION
@@ -75,7 +95,7 @@ class ReEncoder:
             if urllib.quote(urllib.unquote(data)) == data and (urllib.unquote(data) != data):
                 return True
 
-            if re.match(r'^(?:%[0-9a-f]{2})+$', data, re.I):
+            if re.search(r'(?:%[0-9a-f]{2})+', data, re.I):
                 return True
 
             return False
@@ -157,6 +177,28 @@ class ReEncoder:
         def decode(self, data):
             return jwt.decode(data, verify = False)
 
+    class ZlibEncoder(Encoder):
+        def name(self):
+            return 'ZLIB'
+
+        def check(self, data):
+            if not ReEncoder.Utils.isBinaryData(data):
+                return False
+
+            try:
+                if zlib.compress(zlib.decompress(data)) == data:
+                    return True
+            except:
+                pass
+            return False
+            
+        def encode(self, data):
+            return zlib.compress(data)
+
+        def decode(self, data):
+            return zlib.decompress(data)
+
+
 
     # ============================================================
     # ENCODING DETECTION IMPLEMENTATION
@@ -172,6 +214,7 @@ class ReEncoder:
             ReEncoder.Base64Encoder(),
             ReEncoder.Base64URLSafeEncoder(),
             ReEncoder.JWTEncoder(),
+            ReEncoder.ZlibEncoder(),
 
             # None must always be the last detector
             ReEncoder.NoneEncoder(),
@@ -352,6 +395,9 @@ class ReEncoder:
 
         return encodings
 
+    def getWinningDecodePath(self, root):
+        return [x for x in self.evaluateEncodingTree(root) if x != 'None']
+
     def process(self, data):
         root = anytree.Node('None', decoded = data)
         prev = root
@@ -368,9 +414,10 @@ class ReEncoder:
                 prev = currNode
 
         for pre, fill, node in anytree.RenderTree(root):
-            ReEncoder.log("%s%s (%s)" % (pre, node.name, node.decoded[:20].decode('ascii', 'ignore')))
+            if node.name != 'None':
+                ReEncoder.log("%s%s (%s)" % (pre, node.name, node.decoded[:20].decode('ascii', 'ignore')))
 
-        self.encodings = self.evaluateEncodingTree(root)
+        self.encodings = self.getWinningDecodePath(root)
         ReEncoder.log('[+] Selected encodings: {}'.format(str(self.encodings)))
 
     def decode(self, data, encodings = []):
@@ -399,6 +446,10 @@ class ReEncoder:
         return data
 
 def main(argv):
+    # Sample 1: ZLIB -> Base64 -> URLEncode
+    sample = 'eJzzSM3JyVcozy%2FKSVFIK8rPVQhKdc1Lzk9JLVIEAIr8Cck%3D'
+
+    # Sample 2: URLEncode -> Base64 -> HexEncode
     sample = '4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4a5463794a545a6a4a5459304a5449784a5449774a544e684a544a6b4a544935'
 
     if len(argv) != 2:
