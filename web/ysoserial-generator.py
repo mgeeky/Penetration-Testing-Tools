@@ -67,7 +67,7 @@ import subprocess
 import argparse
 from sys import platform
 
-VERSION = '0.1'
+VERSION = '0.2'
 
 config = {
     'verbose' : True,
