@@ -391,7 +391,7 @@ def parseOptions(argv):
 
     parser.add_argument('-s', '--onefile', action='store_true', help='Output every generated payload to the same file, starting from newline. Makes sense to use with base64 encoding option set (default: False).')
 
-    parser.add_argument('-y', '--ysoserial', metavar='PATH', default='', help='Specifies path to ysoserial.jar file to use. If left empty, will try the one from current directory (or PATH environment variable)')
+    parser.add_argument('-y', '--ysoserial', metavar='PATH', default='', help='Specifies path to ysoserial.jar file to use. If left empty, will try the one from current directory (or PATH environment variable). Also, you can download latest ysoserial.jar from official JitPack: https://jitpack.io/com/github/frohoff/ysoserial/master/ysoserial-master.jar')
     parser.add_argument('-j', '--java', metavar='PATH', default='', help='Specifies path to java program to use. If left empty, will try the one from current directory (or PATH environment variable)')
     
     parser.add_argument('-v', '--verbose', action='store_true', help='Display verbose output.')
