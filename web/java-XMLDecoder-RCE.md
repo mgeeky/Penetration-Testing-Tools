@@ -78,3 +78,7 @@ Then the payload would look like:
   </void>
 </java>
 ```
+
+For more payloads and guides how to leverage **XMLDecoder** deserialization vulnerability, one can refer to following good quality sources:
+- http://blog.diniscruz.com/2013/08/using-xmldecoder-to-execute-server-side.html
+- https://github.com/o2platform/DefCon_RESTing/tree/master/Demos/_O2_Scripts/XmlEncoder%20-%20Restlet/exploits

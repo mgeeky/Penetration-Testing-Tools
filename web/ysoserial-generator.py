@@ -63,17 +63,18 @@ import re
 import sys
 import base64
 import urllib
-import commands
+import subprocess
 import argparse
 from sys import platform
 
-VERSION = '0.1'
+VERSION = '0.2'
 
 config = {
     'verbose' : True,
     'debug' : True,
 
     'ysoserial-path' : '',
+    'java-path' : '',
     'command' : '',
 
     # Do not modify below ones
@@ -240,7 +241,8 @@ def generate(name, cmd):
             redir = '2>NULL_STREAM'
 
         cmd2 = processCmd(cmd, name, gadget)
-        out = shell('java -jar {ysoserial} {gadget} "{command}" {redir}'.format(
+        out = shell('"{java}" -jar "{ysoserial}" {gadget} "{command}" {redir}'.format(
+            java = config['java-path'],
             ysoserial = config['ysoserial-path'], 
             gadget = gadget, 
             command = cmd2,
@@ -284,6 +286,9 @@ def processShellCmd(cmd):
         },
     }
 
+    # Strip "2>nul" part as we switched from commands.getstatusoutput to subprocess.Popen
+    cmd = cmd.replace(" 2>NULL_STREAM", "")
+
     for k, v in replaces.items():
         if k in cmd:
             cmd = cmd.replace(k, v[config['platform']])
@@ -292,11 +297,16 @@ def processShellCmd(cmd):
 
 def shell(cmd, noOut = False):
     cmd = processShellCmd(cmd)
-    out = commands.getstatusoutput(cmd)[1]
+    out, err = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+
+    if not out and err:
+        out = err
+
     if not noOut:
-        Logger.dbg('shell("{}") returned:\n"{}"'.format(cmd, out))
+        Logger.dbg('shell(\'{}\') returned:\n"{}"\n'.format(cmd, out))
     else:
-        Logger.dbg('shell("{}")\n'.format(cmd))
+        Logger.dbg('shell(\'{}\')\n'.format(cmd))
+
     return out
 
 def tryToFindYsoserial():
@@ -317,10 +327,32 @@ def tryToFindYsoserial():
 
     return True
 
+def tryToFindJava():
+    global config
+    if config['java-path']:
+        return True
+
+    out = shell('WHICH_COMMAND java 2>NULL_STREAM')
+    out1 = ''
+
+    if out:
+        out1 = out.split('\n')[0].strip()
+
+    if out1 and os.path.isfile(out1):
+        config['java-path'] = out1
+    else:
+        Logger.err('Could not find "java" interpreter in neither PATH nor current directory.')
+        Logger.err('Please specify where to find "java" using "-j" option.')
+        sys.exit(1)
+
+    return True
+
 def collectGadgets():
     global config
 
-    out = shell('java -jar {} --help'.format(config['ysoserial-path']))
+    out = shell('"{}" -jar "{}" --help'.format(
+        config['java-path'], config['ysoserial-path']))
+
     rex = re.compile(r'^\s+(\w+)\s+@\w+.+', re.I|re.M)
     gadgets = rex.findall(out)
     Logger.info('Available gadgets ({}): {}\n'.format(len(gadgets), ", ".join(gadgets)))
@@ -359,7 +391,8 @@ def parseOptions(argv):
 
     parser.add_argument('-s', '--onefile', action='store_true', help='Output every generated payload to the same file, starting from newline. Makes sense to use with base64 encoding option set (default: False).')
 
-    parser.add_argument('-y', '--ysoserial', metavar='PATH', default='', help='Specifies path to ysoserial.jar file to use. If left empty, will try the one from current directory (or PATH environment variable)')
+    parser.add_argument('-y', '--ysoserial', metavar='PATH', default='', help='Specifies path to ysoserial.jar file to use. If left empty, will try the one from current directory (or PATH environment variable). Also, you can download latest ysoserial.jar from official JitPack: https://jitpack.io/com/github/frohoff/ysoserial/master/ysoserial-master.jar')
+    parser.add_argument('-j', '--java', metavar='PATH', default='', help='Specifies path to java program to use. If left empty, will try the one from current directory (or PATH environment variable)')
     
     parser.add_argument('-v', '--verbose', action='store_true', help='Display verbose output.')
     parser.add_argument('-d', '--debug', action='store_true', help='Display debug output.')
@@ -408,6 +441,25 @@ def parseOptions(argv):
         config['ysoserial-path'] = args.ysoserial
     else: 
         tryToFindYsoserial()
+
+    if args.java: 
+        config['java-path'] = args.java
+    else: 
+        tryToFindJava()
+
+    ver = shell('"{}" -version'.format(config['java-path']))
+    m = re.search(r'java version "([^"]+)"', ver)
+    if m:
+        ver = "java version " + m.group(1)
+    else:
+        if '\r' in ver:
+            ver = ver.strip().split('\r\n')[0].strip()
+        else:
+            ver = ver.strip().split('\n')[0].strip()
+    Logger.info("Using {}: '{}'".format(
+        ver,
+        config['java-path']
+    ))
 
     return args
 
