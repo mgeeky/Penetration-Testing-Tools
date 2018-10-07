@@ -20,8 +20,6 @@
 
 - **`dummy-web-server.py`** - a minimal http server in python. Responds to GET, HEAD, POST requests, but will fail on anything else. Forked from: [bradmontgomery/dummy-web-server.py](https://gist.github.com/bradmontgomery/2219997) ([gist](https://gist.github.com/mgeeky/c0675b2cf65bad6171edcb8f3bb2af6d))
 
-- **`generate_png_backdoor_idat_chunks.php`** - PHP script implementing idea of encoding Web Shells in PNG iDAT chunks, according to [this](https://www.idontplaydarts.com/2012/06/encoding-web-shells-in-png-idat-chunks/) research.
-
 - **`http-auth-timing.py`** - HTTP Auth Timing attack tool as presented at Ruxcon CTF 2012 simple web challange. The tools tries to use every letter for auth password and construct the entire password upon the longest took authentication request. ([gist](https://gist.github.com/mgeeky/57e866604942f1824da310982c46da84))
 
 - **`java-XMLDecoder-RCE.md`** - Java Beans XMLDecoder XML-deserialization Remote Code Execution payloads. ([gist](https://gist.github.com/mgeeky/5eb48b17c9d282ad3170ef91cfb6fe4c))
