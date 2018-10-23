@@ -145,6 +145,8 @@ def fetchRhost():
     global config
     config['rhost'] = socket.gethostbyname(socket.gethostname())
 
+    print('[>] RHOST set to: {}'.format(config['rhost']))
+
 def main(argv):
     global config
 
