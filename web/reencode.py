@@ -21,6 +21,7 @@
 # Mariusz B., 2018
 #
 
+import os
 import re
 import sys
 import jwt
@@ -34,10 +35,21 @@ import binascii
 from collections import Counter
 
 
+
+
+# =============================================
+# RE-ENCODER'S IMPLEMENTATION
+#
+
+
 class ReEncoder:
 
     # Switch this to show some verbose informations about decoding process.
-    DEBUG = False
+    DEBUG = True
+
+    PREFER_AUTO = 0     # Automatically determine final output format
+    PREFER_TEXT = 1     # Prefer text/printable final output format
+    PREFER_BINARY = 2   # Prefer binary final output format
 
     class Utils:
         @staticmethod
@@ -129,7 +141,10 @@ class ReEncoder:
         def check(self, data):
             try:
                 if base64.b64encode(base64.b64decode(data)) == data:
-                    return True
+                    m = re.match('^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})$', data, re.I)
+                    if m: 
+                        return True
+                    return False
             except:
                 pass
             return False
@@ -147,7 +162,10 @@ class ReEncoder:
         def check(self, data):
             try:
                 if base64.urlsafe_b64encode(base64.urlsafe_b64decode(data)) == data:
-                    return True
+                    m = re.match('^(?:[A-Za-z0-9\-_]{4})*(?:[A-Za-z0-9\-_]{2}==|[A-Za-z0-9\-_]{3}=|[A-Za-z0-9\-_]{4})$', data, re.I)
+                    if m: 
+                        return True
+                    return False
             except:
                 pass
             return False
@@ -221,6 +239,7 @@ class ReEncoder:
         )
         self.encodersMap = {}
         self.data = ''
+        self.preferredOutputFormat = ReEncoder.PREFER_AUTO
 
         for encoder in self.encoders:
             self.encodersMap[encoder.name()] = encoder
@@ -328,13 +347,37 @@ class ReEncoder:
         return ent
 
     def evaluateEncodingTree(self, root):
-        weights = {
-            'printableChars' : 10.0,
-            'highEntropy' : 4.0,
-            'length' : 1.0
-        }
+        (printableEncodings, printableCandidate) = self.evaluateEncodingTreePicker(root, False)
+        (binaryEncodings, binaryCandidate) = self.evaluateEncodingTreePicker(root, True)
 
-        candidates = self.formEncodingCandidates(root)
+        if self.preferredOutputFormat == ReEncoder.PREFER_TEXT:
+            ReEncoder.log('Returning text/printable output format as requested preferred one.')
+            return printableEncodings
+        elif self.preferredOutputFormat == ReEncoder.PREFER_BINARY:
+            ReEncoder.log('Returning binary output format as requested preferred one.')
+            return binaryEncodings
+        else:
+            ReEncoder.log('Trying to determine preferred output format...')
+
+        ReEncoder.log('\n---------------------------------------')
+        ReEncoder.log('[>] Winning printable encoding path scored: {} points.'.format(
+            printableCandidate[2]
+        ))
+        ReEncoder.log('[>] Winning binary encoding path scored: {} points.'.format(
+            binaryCandidate[2]
+        ))
+
+        if(printableCandidate[2] >= binaryCandidate[2]):
+            ReEncoder.log('\n[+] Choosing all-time winner: PRINTABLE output format.')
+            return printableEncodings
+
+        ReEncoder.log('\n[+] Choosing all-time winner: BINARY output format.')
+        ReEncoder.log('---------------------------------------\n')
+        return binaryEncodings
+
+    def evaluateEncodingTreePicker(self, root, preferBinary):
+        candidates = self._evaluateEncodingTreeWorker(root, preferBinary)
+
         maxCandidate = 0
 
         for i in range(len(candidates)):
@@ -343,38 +386,6 @@ class ReEncoder:
             name = candidate[0]
             decoded = candidate[1]
             points = float(candidate[2])
-
-            ReEncoder.log('[=] Evaluating candidate: {} (data: "{}")'.format(
-                name, decoded
-            ))
-
-            # Step 1: Adding points for printable percentage.
-            printables = sum([int(x in string.printable) for x in decoded])
-            printablePoints = weights['printableChars'] * (float(printables) / float(len(decoded)))
-            ReEncoder.log('\tAdding {} points for printable characters.'.format(printablePoints))
-            points += printablePoints
-
-            # Step 4: If encoder is Base64 and was previously None
-            #    - then length and entropy of previous values should be of slighly lower weights
-            if name.lower() == 'none' \
-                and len(candidates) > i+1 \
-                and candidates[i+1][0].lower().startswith('base64'):
-                entropyPoints = ReEncoder.entropy(decoded) * (weights['highEntropy'] * 0.75)
-                lengthPoints = float(len(decoded)) * (weights['length'] * 0.75)
-            else:
-                entropyPoints = ReEncoder.entropy(decoded) * weights['highEntropy']
-                lengthPoints = float(len(decoded)) * weights['length']
-
-            # Step 2: Add points for entropy
-            ReEncoder.log('\tAdding {} points for high entropy.'.format(entropyPoints))
-            points += entropyPoints
-
-            # Step 3: Add points for length
-            ReEncoder.log('\tAdding {} points for length.'.format(lengthPoints))
-            points += lengthPoints
-            
-            ReEncoder.log('\tScored in total: {} points.'.format(points))
-            candidates[i][2] = points
 
             if points > candidates[maxCandidate][2]:
                 maxCandidate = i
@@ -389,11 +400,87 @@ class ReEncoder:
         ReEncoder.log('[?] Other equally good candidate paths:\n' + str(winningPaths))
         winningPath = winningPaths[0]
 
-        ReEncoder.log('[+] Winning decode path is:\n{}'.format(str(winningPath)))
+        preferred = 'printable'
+        if preferBinary:
+            preferred = 'binary'
+
+        ReEncoder.log('[+] Winning decode path for {} output is:\n{}'.format(
+            preferred,
+            str(winningPath))
+        )
 
         encodings = [x.name for x in winningPath.path if x != 'None']
+        return (encodings, winningCandidate)
 
-        return encodings
+    def _evaluateEncodingTreeWorker(self, root, preferBinary = False):
+        weights = {
+            'unreadableChars' : 0.0,
+            'printableChars' : 9.6,
+            'entropyScore' : 4.0,
+            'length' : 1.0,
+        }
+
+        if preferBinary:
+            weights['unreadableChars'] = 24.0
+            weights['printableChars'] = 0.0
+            weights['entropyScore'] = 2.666667
+
+        candidates = self.formEncodingCandidates(root)
+
+        for i in range(len(candidates)):
+            candidate = candidates[i]
+
+            name = candidate[0]
+            decoded = candidate[1]
+            points = float(candidate[2])
+            entropy = ReEncoder.entropy(decoded)
+            printables = sum([int(x in string.printable) for x in decoded])
+            nonprintables = len(decoded) - printables
+
+            ReEncoder.log('[=] Evaluating candidate: {} (entropy: {}, data: "{}")'.format(
+                name, entropy, decoded
+            ))
+
+            # Step 1: Adding points for printable percentage.
+            printablePoints = float(weights['printableChars']) * (float(printables) / float(len(decoded)))
+            nonPrintablePoints = float(weights['unreadableChars']) * (float(nonprintables) / float(len(decoded)))
+
+            # Step 2: If encoder is Base64 and was previously None
+            #    - then length and entropy of previous values should be of slighly lower weights
+            if name.lower() == 'none' \
+                and len(candidates) > i+1 \
+                and candidates[i+1][0].lower().startswith('base64'):
+                ReEncoder.log('\tAdding fine for being base64')
+                entropyPoints = entropy * (weights['entropyScore'] * 0.666666)
+                lengthPoints = float(len(decoded)) * (weights['length'] * 0.666666)
+            else:
+                entropyPoints = entropy * weights['entropyScore']
+                lengthPoints = float(len(decoded)) * weights['length']
+
+            if printables > nonprintables:
+                ReEncoder.log('More printable chars than binary ones.')
+                ReEncoder.log('\tAdding {} points for printable entropy.'.format(entropyPoints))
+
+                ReEncoder.log('\tAdding {} points for printable characters.'.format(printablePoints))
+                points += printablePoints
+            else:
+                ReEncoder.log('More binary chars than printable ones.')
+                ReEncoder.log('\tAdding {} points for binary entropy.'.format(entropyPoints))
+
+                ReEncoder.log('\tAdding {} points for binary characters.'.format(nonPrintablePoints))
+                points += nonPrintablePoints
+
+            points += entropyPoints
+
+            # Step 4: Add points for length
+            ReEncoder.log('\tAdding {} points for length.'.format(lengthPoints))
+            points += lengthPoints
+            
+            ReEncoder.log('\tScored in total: {} points.'.format(points))
+            candidates[i][2] = points
+
+        return candidates
+
 
     def getWinningDecodePath(self, root):
         return [x for x in self.evaluateEncodingTree(root) if x != 'None']
@@ -420,7 +507,16 @@ class ReEncoder:
         self.encodings = self.getWinningDecodePath(root)
         ReEncoder.log('[+] Selected encodings: {}'.format(str(self.encodings)))
 
-    def decode(self, data, encodings = []):
+    def decode(self, data, preferredOutputFormat = PREFER_AUTO, encodings = []):
+        self.preferredOutputFormat = preferredOutputFormat
+
+        if preferredOutputFormat != ReEncoder.PREFER_AUTO and \
+            preferredOutputFormat != ReEncoder.PREFER_TEXT and \
+            preferredOutputFormat != ReEncoder.PREFER_BINARY:
+            raise Exception('Unknown preferred output format specified in decode(): {}'.format(
+                preferredOutputFormat
+            ))
+
         if not encodings:
             self.process(data)
         else:
@@ -445,19 +541,25 @@ class ReEncoder:
 
         return data
 
+
 def main(argv):
     # Sample 1: ZLIB -> Base64 -> URLEncode
     sample = 'eJzzSM3JyVcozy%2FKSVFIK8rPVQhKdc1Lzk9JLVIEAIr8Cck%3D'
 
     # Sample 2: URLEncode -> Base64 -> HexEncode
-    sample = '4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4a5463794a545a6a4a5459304a5449784a5449774a544e684a544a6b4a544935'
+    #sample = '4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4a5463794a545a6a4a5459304a5449784a5449774a544e684a544a6b4a544935'
 
     if len(argv) != 2:
-        print('Usage: reencode.py <text>')
+        print('Usage: reencode.py <text|file>')
         print('Using sample: "{}"'.format(sample))
         text = sample
     else:
         text = argv[1]
+
+        if os.path.isfile(text):
+            f = open(text, 'rb')
+            text = f.read()
+            f.close()
 
     decoder = ReEncoder()
     decoded = decoder.decode(text)
