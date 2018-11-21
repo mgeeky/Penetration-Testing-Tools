@@ -23,7 +23,7 @@
 #
 #   3. Generate payloads to test against that application:
 #       -----------------------------------------
-#       $ ./mass-ysoserial.py -u -b -y ~/tools/ysoserial/ysoserial.jar -s --lhost 192.168.56.1:8000
+#       $ ./ysoserial-generator.py -u -b -y ~/tools/ysoserial/ysoserial.jar -s --lhost 192.168.56.1:8000
 #           :: ysoserial payloads generation helper
 #           Helps generate many variations of payloads to try against vulnerable application.
 #           Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
