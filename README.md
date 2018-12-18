@@ -12,7 +12,7 @@ This repository is divided further onto following directories:
 - `linux` - Contains linux-based scripts for various purposes.
 - `networks` - Network devices & services Penetration Testing and auditing scripts
 - `others` - Others related somehow to penetration tests & Audits
-- `social-engineering` - Powershell, Visual Basic, js, phishings and other alike candys
+- `red-teaming` - Powershell, Visual Basic, js, phishings and other alike candys
 - `web` - Web-Application auditing, pentesting, fuzzing related.
 - `windows` - Windows utilities, scripts, exploits.
 

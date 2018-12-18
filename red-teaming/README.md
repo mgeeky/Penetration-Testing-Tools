@@ -18,6 +18,50 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 
 - **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
 
+- **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-Net*`, `Invoke-*` into _Clixml_ files. Those files can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread.
+
+Exposed functions:
+- `Export-ReconData` - Launches many cmdlets and exports their Clixml outputs.
+- `Import-ReconData -DirName <DIR>` - Loads Clixml previously exported outputs and stores them in Global variables reachable when script terminates.
+- `Get-ReconData -DirName <DIR>` - Gets names of variables that were created and contains previously imported data.
+
+```
+PS E:\PowerSploit\Recon> Load-ReconData -DirName .\PowerView-12-18-2018-08-30-09
+Loaded $FileFinderSearchSYSVol results.
+Loaded $FileFinder results.
+Loaded $ForeignGroup results.
+Loaded $ForeignUser results.
+Loaded $GPOLocation results.
+Loaded $MapDomainTrust results.
+Loaded $NetComputer results.
+Loaded $NetDomain results.
+Loaded $NetDomainController results.
+Loaded $NetDomainTrust results.
+Loaded $NetFileServer results.
+Loaded $NetForest results.
+Loaded $NetForestCatalog results.
+Loaded $NetForestDomain results.
+Loaded $NetForestTrust results.
+Loaded $NetGPO results.
+Loaded $NetGPOGroup results.
+Loaded $NetGroup results.
+Loaded $NetGroupMember results.
+Loaded $NetLocalGroup results.
+Loaded $NetLoggedon results.
+Loaded $NetOU results.
+Loaded $NetProcess results.
+Loaded $NetRDPSession results.
+Loaded $NetSession results.
+Loaded $NetShare results.
+Loaded $NetSite results.
+Loaded $NetSubnet results.
+Loaded $NetUserAdminCount results.
+Loaded $NetUser results.
+Loaded $ShareFinder results.
+Loaded $StealthUserHunterShowAll results.
+Loaded $UserHunterShowAll results.
+```
+
 - **`generateMSBuildPowershellXML.py`** - Powershell via MSBuild inline-task XML payload generation script - To be used during Red-Team assignments to launch Powershell payloads without using `powershell.exe` ([gist](https://gist.github.com/mgeeky/df9f313cfe468e56c59268b958319bcb))
 
     Example output **not minimized**:
