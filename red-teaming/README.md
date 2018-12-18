@@ -137,6 +137,36 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py Show-
 ------------------------------------------------------------------------------------                              
 ```
 
+- **`Get-NetOUTree.ps1`** - Collects OU lines returned from **PowerView's** `Get-NetOU` cmdlet, and then prints that structure as a _Organizational Units tree_.
+
+```
+PS E:\PowerSploit\Recon> Get-NetOU | Get-NetOUTree
++ CONTOSO
+   + SharedFolders
+   + Departments
+      + IT
+      + SALES
+      + LAWYERS
+      + CHIEFS
+      + AUDIT
+      + HR
+   + Software
+   + Computers
+      + Workstations
+      + Servers
+         + Data
+         + Infrastructure
+         + SOC
+   + Groups
+   + Users
+      + Partners
+      + Employees
+      + Admins
++ Domain Controllers
++ Microsoft Exchange Security Groups
+```
+
+
 - **`Invoke-Command-Cred-Example.ps1`** - Example of using PSRemoting with credentials passed directly from command line. ([gist](https://gist.github.com/mgeeky/de4ecf952ddce774d241b85cfbf97faf))
 
 - **`MacroDetectSandbox.vbs`** - Visual Basic script responsible for detecting Sandbox environments, as presented in modern Trojan Droppers implemented in Macros. ([gist](https://gist.github.com/mgeeky/61e4dfe305ab719e9874ca442779a91d))
