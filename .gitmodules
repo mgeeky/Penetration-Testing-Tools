@@ -19,3 +19,12 @@
 [submodule "web/arachni-launching-script"]
 	path = web/arachni-launching-script
 	url = git@github.com:mgeeky/arachni-launching-script.git
+[submodule "red-teaming/RobustPentestMacro"]
+	path = red-teaming/RobustPentestMacro
+	url = https://github.com/mgeeky/RobustPentestMacro
+[submodule "red-teaming/VisualBasicObfuscator"]
+	path = red-teaming/VisualBasicObfuscator
+	url = git@github.com:mgeeky/VisualBasicObfuscator.git
+[submodule "red-teaming/PhishingPost"]
+	path = red-teaming/PhishingPost
+	url = git@github.com:mgeeky/PhishingPost.git

