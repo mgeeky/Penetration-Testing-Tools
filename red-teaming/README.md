@@ -20,6 +20,9 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 
 - **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-Net*`, `Invoke-*` into _Clixml_ files. Those files (stored in an output directory as separate XML files) can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread. **Warning**: Be careful though, as this script launches many reconnaissance commands one by one, this WILL generate a lot of noise. Microsoft ATA for instance for sure pick you up with _"Reconnaissance using SMB session enumeration"_ after you've launched `Invoke-UserHunter`. 
 
+    **WARNING:** At the moment this script works only with older version of PowerView - from before 12 dev 2016, where
+    it had Get-NetUser/Get-NetComputer/Get-Net* commands only.
+
     Exposed functions:
     - `Export-ReconData` - Launches many cmdlets and exports their Clixml outputs.
     - `Import-ReconData -DirName <DIR>` - Loads Clixml previously exported outputs and stores them in Global variables reachable when script terminates.
@@ -137,10 +140,18 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py Show-
 ------------------------------------------------------------------------------------                              
 ```
 
-- **`Get-NetOUTree.ps1`** - Collects OU lines returned from **PowerView's** `Get-NetOU` cmdlet, and then prints that structure as a _Organizational Units tree_.
+- **`Get-DomainOUTree.ps1`** - Collects OU lines returned from **PowerView's** `Get-NetOU`/`Get-DomainOU` cmdlet, and then prints that structure as a _Organizational Units tree_.
+
+This scriptlet works with both older version of PowerView that got implemented `Get-NetOU` cmdlet, by passing its output via pipeline to `Get-NetOUTree`:
 
 ```
 PS E:\PowerSploit\Recon> Get-NetOU | Get-NetOUTree
+```
+
+or with new version of PowerView coming with it's `Get-DomainOU` cmdlet.
+
+```
+PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 + CONTOSO
    + SharedFolders
    + Departments

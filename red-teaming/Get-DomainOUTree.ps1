@@ -7,6 +7,59 @@
     Optional Dependencies: None
 #>
 
+function Get-DomainOUTree
+{
+<#
+	.SYNOPSIS
+
+	    Author: Mariusz B. (@mgeeky)
+    	License: BSD 3-Clause
+   	 	Required Dependencies: PowerView.ps1
+    	Optional Dependencies: None
+
+    	Prints out Organizational Units collected from Get-DomainOU as a tree.
+
+	.DESCRIPTION
+
+		Collects OU lines returned from PowerView's Get-NetOU cmdlet,
+		and then prints that structure as a Organizational Units tree.
+
+		It works with newer PowerView version (from dev branch as of 2018), that
+    	has reworked Get-NetOU into Get-DomainOU.
+
+	.PARAMETER OU
+
+		Parameter passed from pipelined PowerView's Get-DomainOU cmdlet.
+		That cmdlet will return list of OUs in form of: "OU=...,DC=local,DC=test".
+
+	.EXAMPLE
+
+		PS> Get-DomainOU | Get-DomainOUTree
+
+#>
+	[CmdletBinding()]
+	Param 
+	(
+		[Parameter(ValueFromPipelineByPropertyName = $True)]
+		$Distinguishedname
+	)
+
+	begin
+	{
+		$OUlines = @()
+	}
+	
+	process
+	{
+		$OUlines += $Distinguishedname
+	}
+
+	end 
+	{
+		$OUlines | Get-NetOUTree
+	}	
+}
+
 function Get-NetOUTree 
 {
 <#
@@ -23,6 +76,9 @@ function Get-NetOUTree
 
 		Collects OU lines returned from PowerView's Get-NetOU cmdlet,
 		and then prints that structure as a Organizational Units tree.
+
+		It works with older PowerView version (from before 12 dec 2016), that
+    	got Get-NetOU cmdlet.
 
 	.PARAMETER OU
 
