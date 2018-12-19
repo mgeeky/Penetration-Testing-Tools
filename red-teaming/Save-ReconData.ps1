@@ -10,7 +10,7 @@
 	Required Dependencies: PowerSploit's Recon.psm1
 #>
 
-function Export-ReconData
+function Save-ReconData
 {
 	$DirName = (Get-Date).ToString("PowerView-MM-dd-yyyy-hh-mm-ss")
 	New-Item -Name $DirName -ItemType Directory | Out-Null
@@ -54,7 +54,7 @@ function Export-ReconData
 	}
 }
 
-function Import-ReconData
+function Load-ReconData
 {
 	Param
 	(
