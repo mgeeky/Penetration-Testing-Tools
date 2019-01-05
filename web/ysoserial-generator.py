@@ -297,10 +297,14 @@ def processShellCmd(cmd):
 
 def shell(cmd, noOut = False):
     cmd = processShellCmd(cmd)
-    out, err = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-
-    if not out and err:
-        out = err
+    out = ""
+    try:
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError as e:
+        if 'Available payload types' in e.output or 'mbechler' in e.output:
+            out = e.output
+        else:
+            Logger.dbg('Error ({}): shell(\'{}\') returned code {}: {}'.format(str(e), e.cmd, e.returncode, e.output))
 
     if not noOut:
         Logger.dbg('shell(\'{}\') returned:\n"{}"\n'.format(cmd, out))
