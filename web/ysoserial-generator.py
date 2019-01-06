@@ -55,7 +55,7 @@
 #
 #
 # Author: 
-#    Mariusz B., '18 / <mb@binary-offensive.com>
+#    Mariusz B., '18-19 / <mb@binary-offensive.com>
 #
 
 import os
@@ -67,7 +67,7 @@ import subprocess
 import argparse
 from sys import platform
 
-VERSION = '0.2'
+VERSION = '0.3'
 
 config = {
     'verbose' : True,
@@ -147,6 +147,7 @@ class Logger:
     @staticmethod
     def ok(x):  
         Logger._out('[+] ' + x)
+
 
 def getFileName(name, gadget):
     global firstLaunch
@@ -247,7 +248,7 @@ def generate(name, cmd):
             gadget = gadget, 
             command = cmd2,
             redir = redir
-        ), True)
+        ), True, True)
 
         if config['base64']:
             out = base64.b64encode(out)
@@ -267,7 +268,9 @@ def generate(name, cmd):
                     else:
                         Logger.ok('Writing payload to the file: "{}"'.format(filename))
                     
-                    open(filename, mode).write(out + '\n')
+                    with open(filename, mode) as f:
+                        f.write(out + '\n')
+
                     generated += 1
         else:
             Logger.err('Failed generating payload {}-{} for cmd: "{}"'.format(
@@ -295,11 +298,14 @@ def processShellCmd(cmd):
 
     return cmd
 
-def shell(cmd, noOut = False):
+def shell(cmd, noOut = False, surpressStderr = False):
     cmd = processShellCmd(cmd)
     out = ""
     try:
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        stderr = subprocess.STDOUT
+        if surpressStderr:
+            stderr = None
+        out = subprocess.check_output(cmd, stderr=stderr, shell=True)
     except subprocess.CalledProcessError as e:
         if 'Available payload types' in e.output or 'mbechler' in e.output:
             out = e.output
