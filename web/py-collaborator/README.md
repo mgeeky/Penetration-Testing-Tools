@@ -32,7 +32,12 @@ info: Initializing py-collaborator-mitmproxy-plugin.
 info: Connecting to MySQL database: root@<YOUR-IP> ...
 info: Connected.
 ...
-Injected pingbacks for host (login.live.com)
+Injected pingbacks for host (d9.sina.com.cn)
+info: 127.0.0.1:48162: clientconnect
+info: (1) Re-sent misrouted request with hijacked Host header (d9.sina.com.cn -> xxx1yfgeq0a5jrpxb56lycb0w7a7togjpqlrw2pjm2rcqermytibyyyy.<YOUR-HOST>)
+info: (2) Re-sent host overriding request (/litong/zhitou/sinaads/test/e-recommendation/release/sinaere.js -> http://xxxqwzmqhx464804woszmnyuhv4idoj9dg83q6aywhcgtjfkq2ewdyyy.<YOUR-HOST>/)
+info: (3) Re-sent host header @ manipulated request (d9.sina.com.cn -> d9.sina.com.cn@xxxnd31uvlno1hhpznqxdhhbwp3zsqg2k25nfx5z9q6nku51fgsjnyyy.<YOUR-HOST>)
+info: Injected pingbacks for host (d9.sina.com.cn).
 ...
 ```
 
