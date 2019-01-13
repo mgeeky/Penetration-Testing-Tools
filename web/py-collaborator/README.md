@@ -20,10 +20,10 @@ $ mitmproxy -s py-collaborator-mitmproxy-addon.py
 ```
 
 After that, 
-a) go to your favorite browser
-b) set up it's proxy so it points on **mitmproxy**'s listening interface and port
-c) Load up mitmproxy's certificate by browsing to **http://mitm.it** and selecting your option (int Firefox - you can directly go to the: [http://mitm.it/cert/pem](http://mitm.it/cert/pem))
-d) Select trust checkboxes.
+- go to your favorite browser
+- set up it's proxy so it points on **mitmproxy**'s listening interface and port
+- Load up mitmproxy's certificate by browsing to **http://mitm.it** and selecting your option (int Firefox - you can directly go to the: [http://mitm.it/cert/pem](http://mitm.it/cert/pem))
+- Select trust checkboxes.
 
 Then, when in **mitmproxy** interface - type in **'E'** to go to Events log and look for following outputs:
 ```
@@ -48,10 +48,10 @@ $ ./proxy2.py -p py-collaborator-mitmproxy-addon.py
 ```
 
 After that, 
-a) go to your favorite browser
-b) set up it's proxy so it points on **proxy2**'s listening interface and port
-c) Load up proxy2's certificate by browsing to **http://proxy2.test**
-d) Select trust checkboxes.
+- go to your favorite browser
+- set up it's proxy so it points on **proxy2**'s listening interface and port
+- Load up proxy2's certificate by browsing to **http://proxy2.test**
+- Select trust checkboxes.
 
 
 
@@ -60,9 +60,9 @@ d) Select trust checkboxes.
 
 Just as Burp Collaborator needs to listen on ports such as 80, 443, 8080 - our server will need too. In order to handle properly 443/HTTPS traffic, we shall supply to our server wildcard CA certificate, that can be generated using **Let's Encrypt's certbot**. 
 
-1) One will need to start a MySQL server, no need to create database or initialize it anyhow.
-2) Then, we need to configure all needed informations in **config.json** file.
-3) Having properly filled config.json - we can start up our server:
+- One will need to start a MySQL server, no need to create database or initialize it anyhow.
+- Then, we need to configure all needed informations in **config.json** file.
+- Having properly filled config.json - we can start up our server:
 
 ```
 $ python3.7 py-collaborator-server.py
