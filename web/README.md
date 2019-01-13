@@ -54,6 +54,9 @@
 
 - **`post.php`** - (GIST discontinued, for recent version check: https://github.com/mgeeky/PhishingPost ) PHP Credentials Harversting script to be used during Social Engineering Phishing campaigns/projects. ([gist](https://gist.github.com/mgeeky/32375178621a5920e8c810d2d7e3b2e5))
 
+
+- **`py-collaborator`** - Poor man's Burp-Collaborator equivalent. A project offering mitmproxy/proxy2 plugin for injecting pingback URLs into processed HTTP(S) requests, and server part capable of handling Out-of-band incoming requests triggered by some Load Balancer/Reverse-Proxy/Caching-Proxy/other fetchers misconfigurations (alike to _Server-Side Request Forgery_ condition). Implementation based on terrific research of James 'albinowax' Kettle [Cracking the Lens](https://portswigger.net/kb/papers/crackingthelens-whitepaper.pdf).
+
 - **`reencode.py`** - ReEncoder.py - script allowing for recursive encoding detection, decoding and then re-encoding. To be used for instance in fuzzing purposes. Imagine you want to fuzz XML parameters within **PaReq** packet of 3DSecure standard. This packet has been ZLIB compressed, then Base64 encoded, then URLEncoded. In order to modify the inner XML you would need to peel off that encoding layers and then reaplly them in reversed order. This script allows you to do that in an automated manner. ([gist](https://gist.github.com/mgeeky/1052681318a8164b112edfcdcb30798f))
 
     Sample output could look like:

@@ -1,0 +1,18 @@
+{
+    "listen" : "0.0.0.0",
+    "pingback-host": "example.com",
+    "server-remote-addr": "",
+    "listen-on-ports" : [80, 443, 8080],
+
+    "server-ca-cert" : "/etc/letsencrypt/live/example.com/fullchain.pem",
+    "server-key-file" : "/etc/letsencrypt/live/example.com/privkey.pem",
+    
+    "mysql-host": "<MYSQL-IP>",
+    "mysql-user": "root",
+    "mysql-pass": "",
+    "mysql-database": "pingback_server",
+
+    "exclude-pingbacks-from-clients": [
+    	"127.0.0.1"
+    ]
+}
