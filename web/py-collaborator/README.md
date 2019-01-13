@@ -95,7 +95,7 @@ hostname|23:55|~/dev/py-collaborator # python3.7 py-collaborator-server.py -d
 -------------------------------------------------------------------------------------
 Issue:                  Pingback (GET / ) found in request's Header: Host
 Where payload was put:  Overridden Host header (magnetic.t.domdex.com -> GET /http://xxxkr2hr3nb43pxqb1174wsl48platj701r1d38k7quaf74kukqfqyyy.<YOUR-HOST>:80
-Contacting host:        vps327993.ovh.net
+Contacting host:        vps3274533.ovh.net
 Tried to reach vhost:   xxxkr2hr3nb43pxqb1174wsl48platj701r1d38k7quaf74kukqfqyyy.<YOUR-HOST>:80
 
 Issue detail:
