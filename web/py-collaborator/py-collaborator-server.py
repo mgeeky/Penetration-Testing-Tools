@@ -65,8 +65,8 @@ class PingbackServer(BaseHTTPRequestHandler):
                 Logger.dbg('Failure along __init__ of BaseHTTPRequestHandler: {}'.format(str(e)))
                 raise
 
-        Logger.info('Previously catched pingbacks:\n--------------------------\n')
-        self.presentAtStart()
+        #Logger.info('Previously catched pingbacks:\n--------------------------\n')
+        #self.presentAtStart()
 
     def presentAtStart(self):
         rows = databaseInstance.query(f'SELECT * FROM calledbacks')
@@ -178,11 +178,13 @@ The payload was sent at ({record['sent']}) and received on ({now}).
     def do_GET(self):
         if not (self.client_address[0] in config['exclude-pingbacks-from-clients']):
             if config['debug']:
-                Logger.dbg('Incoming HTTP request from {}: {} {}'.format(
+                Logger.dbg('--------------------------\nIncoming HTTP request from {}: {} {}'.format(
                     self.client_address[0],
                     self.method,
                     self.path[:25]
                 ))
+
+                Logger.dbg(PingbackServer.requestToString(self) + '\n')
 
             (where, uuid) = PingbackServer.extractUuid(self)
             if uuid:

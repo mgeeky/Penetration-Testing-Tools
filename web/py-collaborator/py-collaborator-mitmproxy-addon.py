@@ -22,7 +22,8 @@ VERSION = '0.1'
 # Must point to JSON file containing configuration mentioned in `config` dictionary below.
 # One can either supply that configuration file, or let the below variable empty and fill the `config`
 # dictionary instead.
-CONFIGURATION_FILE = 'config.json'
+CONFIGURATION_FILE = '..\\py-collaborator\\config.json'
+CONFIGURATION_FILE = '/mnt/d/dev2/py-collaborator/config.json'
 
 config = {
     'debug' : False,
@@ -230,7 +231,7 @@ class PyCollaboratorMitmproxyAddon:
         requestData+= 'Accept: */*\r\n'
         requestData+= 'Connection: close\r\n'
 
-        self.saveRequestForCorrelation(self.request, pingback, uuid, 'Overridden Host header ({} -> GET /{} )'.format(self.request.headers['Host'], pingback))
+        self.saveRequestForCorrelation(self.request, pingback, uuid, 'Overridden Host header ({} -> GET {} )'.format(self.request.headers['Host'], pingback))
         PyCollaboratorMitmproxyAddon.sendRawRequest(self.request, requestData)
         ctx.log.info('(2) Re-sent host overriding request ({} -> {})'.format(self.request.path, pingback))
 
