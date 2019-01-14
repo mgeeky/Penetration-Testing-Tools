@@ -38,6 +38,13 @@ append_headers = (
     'X-Forwarded-For',
     'Referer',
     'True-Client-IP',
+    'X-Originating-IP',
+    'X-Client-IP',
+    'Client-IP',
+    'X-Real-IP',
+    'Contact',
+    'Forwarded',
+    'CF-Connecting_IP',
     'X-WAP-Profile'
 )
 
@@ -301,6 +308,8 @@ class ProxyHandler:
             for header in append_headers:   
                 (pingback, uuid) = ProxyHandler.getPingbackUrl(self.request)
                 self.request.headers[header] = pingback
+                if 'IP' in header:
+                    self.request.headers[header] = '{}.{}'.format(uuid, config['pingback-host'])
                 self.saveRequestForCorrelation(pingback, header, uuid, 'Header: {}'.format(header))
 
             self.sendMisroutedRequests()
