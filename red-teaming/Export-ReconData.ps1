@@ -34,6 +34,7 @@ function Export-ReconData
     $Commands += "Get-DomainForeignUser"
     $Commands += "Get-DomainForeignGroupMember"
     $Commands += "Find-InterestingDomainShareFile"
+    $Commands += "Invoke-Kerberoastable"
 
     $IdentityBased = @( 
         "Get-DomainGroupMember",
@@ -127,5 +128,5 @@ Try
 } 
 Catch [System.Exception]
 {
-    exit
+    Write-Host "[!] BEFORE USING THIS SCRIPT MAKE SURE YOU'VE IMPORTED Recon.psm1 !"
 }
