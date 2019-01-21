@@ -121,12 +121,12 @@ function Get-ReconData
     Set-Location -Path $path
 }
 
-Try 
-{
+#Try 
+#{
     # You need to be in PowerSploit\Recon directory
-    Import-Module .\Recon.psm1
-} 
-Catch [System.Exception]
-{
-    Write-Host "[!] BEFORE USING THIS SCRIPT MAKE SURE YOU'VE IMPORTED Recon.psm1 !"
-}
+    #Import-Module .\Recon.psm1
+#} 
+#Catch [System.Exception]
+#{
+    #Write-Host "[!] BEFORE USING THIS SCRIPT MAKE SURE YOU'VE IMPORTED Recon.psm1 !"
+#}
