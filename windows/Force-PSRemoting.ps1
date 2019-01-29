@@ -1,0 +1,1 @@
+Set-ExecutionPolicy -ExecutionPolicy Bypass ; Start-Service winrm ; Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private ; Enable-PSRemoting -SkipNetworkProfileCheck -Force ; winrm quickconfig ; Configure-SMRemoting -Force -Enable

