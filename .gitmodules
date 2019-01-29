@@ -1,33 +1,33 @@
 [submodule "web/tomcatWarDeployer"]
 	path = web/tomcatWarDeployer
-	url = git@github.com:mgeeky/tomcatWarDeployer.git
+	url = https://github.com/mgeeky/tomcatWarDeployer.git
 [submodule "social-engineering/VisualBasicObfuscator"]
 	path = social-engineering/VisualBasicObfuscator
-	url = git@github.com:mgeeky/VisualBasicObfuscator.git
+	url = https://github.com/mgeeky/VisualBasicObfuscator.git
 [submodule "social-engineering/RobustPentestMacro"]
 	path = social-engineering/RobustPentestMacro
-	url = git@github.com:mgeeky/RobustPentestMacro.git
+	url = https://github.com/mgeeky/RobustPentestMacro.git
 [submodule "web/burpContextAwareFuzzer"]
 	path = web/burpContextAwareFuzzer
-	url = git@github.com:mgeeky/burpContextAwareFuzzer.git
+	url = https://github.com/mgeeky/burpContextAwareFuzzer.git
 [submodule "web/dirbuster"]
 	path = web/dirbuster
-	url = git@github.com:mgeeky/dirbuster.git
+	url = https://github.com/mgeeky/dirbuster.git
 [submodule "social-engineering/PhishingPost"]
 	path = social-engineering/PhishingPost
-	url = git@github.com:mgeeky/PhishingPost.git
+	url = https://github.com/mgeeky/PhishingPost.git
 [submodule "web/arachni-launching-script"]
 	path = web/arachni-launching-script
-	url = git@github.com:mgeeky/arachni-launching-script.git
+	url = https://github.com/mgeeky/arachni-launching-script.git
 [submodule "red-teaming/RobustPentestMacro"]
 	path = red-teaming/RobustPentestMacro
 	url = https://github.com/mgeeky/RobustPentestMacro
 [submodule "red-teaming/VisualBasicObfuscator"]
 	path = red-teaming/VisualBasicObfuscator
-	url = git@github.com:mgeeky/VisualBasicObfuscator.git
+	url = https://github.com/mgeeky/VisualBasicObfuscator.git
 [submodule "red-teaming/PhishingPost"]
 	path = red-teaming/PhishingPost
-	url = git@github.com:mgeeky/PhishingPost.git
+	url = https://github.com/mgeeky/PhishingPost.git
 [submodule "web/proxy2"]
 	path = web/proxy2
 	url = https://github.com/mgeeky/proxy2

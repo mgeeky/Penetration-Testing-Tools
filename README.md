@@ -2,6 +2,11 @@
 
 This is a collection of many tools, scripts, cheatsheets and other loots that I've been developing over years for penetration testing and IT Security audits purposes. Many of them actually had been used during real-world assignments, some of them are a collection gathered from various sources (waiting to be used someday). 
 
+**Notice:** In order to clone it properly - use `--recurse-submodules` option:
+```
+bash$ git clone --recurse-submodules https://github.com/mgeeky/Penetration-Testing-Tools
+```
+
 This repository does not contain actual exploits. These I will release under separate repository in some point in future.
 
 Most of these files actually comes straight from my [Gists](https://gist.github.com/mgeeky) - I've decided to move them into separated repository as managmenet of this number of scripts became tough nut to crack.
