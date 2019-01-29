@@ -78,8 +78,8 @@ class IP(ctypes.Structure):
         ('ttl',             ctypes.c_ubyte),
         ('protocol_num',    ctypes.c_ubyte),
         ('sum',             ctypes.c_ushort),
-        ('src',             ctypes.c_ulong),
-        ('dst',             ctypes.c_ulong)
+        ('src',             ctypes.c_uint),
+        ('dst',             ctypes.c_uint)
     ]
 
     def __new__(self, socketBuffer = None):
@@ -109,8 +109,17 @@ class IP(ctypes.Structure):
         }
 
         # Human readable IP addresses.
-        self.src_address = socket.inet_ntoa(struct.pack('<L', self.src))
-        self.dst_address = socket.inet_ntoa(struct.pack('<L', self.dst))
+        try:
+            self.src_address = socket.inet_ntoa(struct.pack('<L', self.src))
+        except:
+            print('[!] Could not represent incoming packet\'s source address: {}'.format(self.src))
+            self.src_address = '127.0.0.1'
+
+        try:
+            self.dst_address = socket.inet_ntoa(struct.pack('<L', self.dst))
+        except:
+            print('[!] Could not represent incoming packet\'s destination address: {}'.format(self.dst))
+            self.dst_address = '127.0.0.1'
 
         # Human readable protocol
         try:
@@ -121,7 +130,8 @@ class IP(ctypes.Structure):
 
 def udpSend(subnet, message):
     time.sleep(5)
-    if DEBUG: print('[.] Started spraying UDP packets across {}'.format(str(subnet)))
+    if DEBUG: 
+        print('[.] Started spraying UDP packets across {}'.format(str(subnet)))
 
     packets = 0
     ports = [x for x in SCAN_PORTS]
