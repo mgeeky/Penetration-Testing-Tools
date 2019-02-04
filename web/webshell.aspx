@@ -1,4 +1,4 @@
-<%@ Page Language="C#" Debug="true" Trace="false" %>
+<%@ Page Language="C#" Debug="false" Trace="false" %>
 <%@ Import Namespace="System.Diagnostics" %>
 <%@ Import Namespace="System.IO" %>
 <script Language="c#" runat="server">
