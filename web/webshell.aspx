@@ -89,7 +89,7 @@
                     <asp:Label id="Hostname" runat='server'></asp:Label>
                 </td>
                 <td width="60%">
-                    <input type=text id="CommandTextbox" runat="server" value='' onClick="this.select();" style="width:80%" onkeydown="if (event.keyCode == 13) { this.form.submit(); return false; }"/>
+                    <input type=text id="CommandTextbox" runat="server" value='' onClick="" style="width:80%" onkeydown="if (event.keyCode == 13) { this.form.submit(); return false; }"/>
                 </td>
             </tr>
             <tr>
