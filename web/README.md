@@ -141,6 +141,7 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 
 - **`oRTC-leak-internal-ip.js`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/03f0871fb88c64b3d6d3a725c3ba38bf))
 
+- **`webshell.aspx`** - ASPX Backdoor / Webshell equipped with password-based authentication. To be used against ASP.NET applications during Penetration Testing assignments as a proof of concept.
 
 - **`xml-attacks.md`** - XML Vulnerabilities and Attacks cheatsheet. ([gist](https://gist.github.com/mgeeky/4f726d3b374f0a34267d4f19c9004870))
 
