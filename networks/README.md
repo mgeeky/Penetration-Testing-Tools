@@ -29,6 +29,63 @@ CDP counters :
 
 - **`pingsweep.py`** - Quick Python Scapy-based ping-sweeper. ([gist](https://gist.github.com/mgeeky/a360e4a124ddb9ef6a9ac1557b47d14c))
 
+- **`RoutingAttackKit.py`** - Tool collecting various Routing Protocols exploitation techniques in one place, one file, handy for Penetration Testing and Red-Teaming assignments. Currently supporting RIPv1/RIPv2 attacks, planning to cover OSPF, EIGRP, MPLS, IS-IS tricks someday.
+
+TODO:
+- Add more protocols and their related attacks and fuzzers
+- Add online brute-force attacks against authentication strings
+- Implement sniffer hunting for used protocols and their auth strings
+- Implement semi-auto mode that is first learning a network, then choosing specific attacks
+
+```
+bash $ python RoutingAttackKit.py
+
+        :: Routing Protocols Exploitation toolkit
+        Sends out various routing protocols management frames 
+        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        v0.1
+
+Available attacks:
+	0. 'sniffer' - (NOT YET IMPLEMENTED) Sniffer hunting for authentication strings.
+	1. 'ripv1-route' - RIP Spoofed Route announcement
+	2. 'ripv1-dos' - RIPv1 Denial of Service by Null-routing
+	3. 'ripv1-ampl' - RIPv1 Reflection Amplification DDoS
+	4. 'ripv2-route' - RIPv2 Spoofed Route announcement
+	5. 'ripv2-dos' - RIPv2 Denial of Service by Null-routing
+	6. 'rip-fuzzer' - RIP/RIPv2 packets fuzzer
+
+bash # python RoutingAttackKit.py -t rip-fuzzer -v
+
+        :: Routing Protocols Exploitation toolkit
+        Sends out various routing protocols management frames 
+        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        v0.1
+
+[.] Using 192.168.1.14 as local/spoof IP address
+[+] Launching attack: RIP/RIPv2 packets fuzzer
+[.] Generating fuzzed packets for RIPv1...
+[.] Generating fuzzed packets for RIPv2...
+[.] Collected in total 47782 packets to send. Sending them out...
+[+] Started flooding. Press CTRL-C to stop that.
+^C
+
+bash $ sudo tshark -i eth0 -f 'udp port 520'
+Running as user "root" and group "root". This could be dangerous.
+Capturing on 'eth0'
+    1 0.000000000 192.168.1.14 → 224.0.0.9    RIP 60 Request[Malformed Packet]
+    2 0.000006657 192.168.1.14 → 224.0.0.9    RIP 60 Request[Malformed Packet]
+    3 0.015081856 192.168.1.14 → 224.0.0.9    RIPv2 69 Unknown command (254)[Malformed Packet]
+    4 0.015089122 192.168.1.14 → 224.0.0.9    RIPv2 69 Unknown command (254)[Malformed Packet]
+    5 0.017368720 192.168.1.14 → 224.0.0.9    RIP 70 Request[Malformed Packet]
+    6 0.017372733 192.168.1.14 → 224.0.0.9    RIP 70 Request[Malformed Packet]
+    7 0.021995733 192.168.1.14 → 224.0.0.9    RIPv2 70 Request[Malformed Packet]
+    8 0.022003639 192.168.1.14 → 224.0.0.9    RIPv2 70 Request[Malformed Packet]
+    9 0.043048787 192.168.1.14 → 224.0.0.9    RIP 60 Request[Malformed Packet]
+   10 0.043058474 192.168.1.14 → 224.0.0.9    RIP 60 Request[Malformed Packet]
+   11 0.050826081 192.168.1.14 → 224.0.0.9    RIPv2 61 Unknown command (64)[Malformed Packet]
+   12 0.050831934 192.168.1.14 → 224.0.0.9    RIPv2 61 Unknown command (64)[Malformed Packet]
+```
+
 - **`sshbrute.py`** - ripped out from Violent Python - by TJ O'Connor. ([gist](https://gist.github.com/mgeeky/70606be7249a61ac26b34b1ef3b07553))
 
 - **`smb-credential-leak.html`** - SMB Credentials leakage by MSEdge as presented in Browser Security White Paper, X41 D-Sec GmbH. ([gist](https://gist.github.com/mgeeky/44ce8a8887c169aa6a0093d915ea103d))
