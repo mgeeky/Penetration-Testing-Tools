@@ -49,7 +49,7 @@ If you spot those lines, the injecting plugin is working and you can now browse 
 Although **proxy2** is very unstable at the moment, one can give it a try by running:
 
 ```
-$ ./proxy2.py -p py-collaborator-mitmproxy-addon.py
+$ ./proxy2.py -p py-collaborator-proxy2-addon.py
 ```
 
 After that, 
