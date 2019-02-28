@@ -22,8 +22,7 @@ VERSION = '0.1'
 # Must point to JSON file containing configuration mentioned in `config` dictionary below.
 # One can either supply that configuration file, or let the below variable empty and fill the `config`
 # dictionary instead.
-CONFIGURATION_FILE = '..\\py-collaborator\\config.json'
-CONFIGURATION_FILE = '/mnt/d/dev2/py-collaborator/config.json'
+CONFIGURATION_FILE = 'config.json'
 
 config = {
     'debug' : False,
