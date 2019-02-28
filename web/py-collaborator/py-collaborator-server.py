@@ -214,7 +214,7 @@ def parseOptions(argv):
         Mariusz B. / mgeeky '16-18, <mb@binary-offensive.com>
 ''')
 
-    parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <file>')
+    parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options]')
 
     parser.add_argument('-l', '--listen', default='0.0.0.0', help = 'Specifies interface address to bind the HTTP server on / listen on. Default: 0.0.0.0 (all interfaces)')
     parser.add_argument('-p', '--port', metavar='PORT', default='80', type=int, help='Specifies the port to listen on. Default: 80')
