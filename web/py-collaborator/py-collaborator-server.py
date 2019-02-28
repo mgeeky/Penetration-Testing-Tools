@@ -301,6 +301,7 @@ def main(argv):
         config.update(json.loads(open(CONFIGURATION_FILE).read()))
 
     if not connectToDatabase():
+        Logger.err('Could not connect to database: {}'.format(config['mysql-host']))
         sys.exit(-1)
 
     initDatabase()
