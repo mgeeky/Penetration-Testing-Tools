@@ -61,7 +61,7 @@ class Database:
 
     def close(self):
         Logger.dbg("Closing database connection.")
-        self.databaseConnection.close()
+        if self.databaseConnection: self.databaseConnection.close()
         self.databaseConnection = None
 
     def connection(self, host, user, password, db = None):
