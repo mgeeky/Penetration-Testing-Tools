@@ -21,6 +21,8 @@ CDP counters :
 
 - **`iis_webdav_upload.py`** - Microsoft IIS WebDAV Write Code Execution exploit (based on Metasploit HDM's <iis_webdav_upload_asp> implementation). ([gist](https://gist.github.com/mgeeky/ce179cdbe4d8d85979a28c1de61618c2))
 
+- **`libssh-auth-bypass.py`** - CVE-2018-10993 libSSH authentication bypass exploit
+
 - **`networkConfigurationCredentialsExtract.py`** - Network-configuration Credentials extraction script - intended to sweep input configuration file and extract keys, hashes, passwords. ([gist](https://gist.github.com/mgeeky/861a8769a261c7fc09a34b7d2bd1e1a0))
 
 - **`nmap-grep-to-table.sh`** - Script converting nmap's greppable output (-oG) into a printable per-host tables. ([gist](https://gist.github.com/mgeeky/cd3092cf60fd513d786286a21c6fa915))
