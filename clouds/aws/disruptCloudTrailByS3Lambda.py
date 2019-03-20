@@ -1,4 +1,45 @@
 #!/usr/bin/python3
+# 
+# This script attempts to disrupt CloudTrail by planting a Lambda function that will delete every object created in S3 bucket 
+# bound to a trail. As soon as CloudTrail creates a new object in S3 bucket, Lambda will kick in and delete that object. 
+# No object, no logs. No logs, no Incident Response :-)
+# 
+# One will need to pass AWS credentials to this tool. Also, the account affected should have at least following permissions:
+# - `iam:CreateRole`
+# - `iam:CreatePolicy`
+# - `iam:AttachRolePolicy`
+# - `lambda:CreateFunction`
+# - `lambda:AddPermission`
+# - `s3:PutBucketNotification`
+# 
+# These are the changes to be introduced within a specified AWS account:
+# - IAM role will be created, by default with name: `cloudtrail_helper_role`
+# - IAM policy will be created, by default with name: `cloudtrail_helper_policy`
+# - Lambda function will be created, by default with name: `cloudtrail_helper_function`
+# - Put Event notification will be configured on affected CloudTrail S3 buckets.
+# 
+# This tool will fail upon first execution with the following exception:
+# 
+# ```
+# [-] Could not create a Lambda function: An error occurred (InvalidParameterValueException) when calling the CreateFunction operation: 
+#       The role defined for the function cannot be assumed by Lambda.
+# ```
+# 
+# At the moment I did not find an explanation for that, but running the tool again with the same set of parameters - get the job done.
+# 
+# Afterwards, one should see following logs in CloudWatch traces for planted Lambda function - if no `--disrupt` option was specified:
+# 
+# ```
+# [*] Following S3 object could be removed: (Bucket=90112981864022885796153088027941100000000000000000000000, 
+#   Key=cloudtrail/AWSLogs/712800000000/CloudTrail/us-west-2/2019/03/20/712800000000_CloudTrail_us-west-2_20190320T1000Z_oxxxxxxxxxxxxc.json.gz)
+# ```
+#
+# Requirements:
+#   - boto3
+#
+# Author: Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+#
+
 
 import io
 import sys

@@ -3,9 +3,15 @@
 
 - **`disruptCloudTrailByS3Lambda.py`** - This script attempts to disrupt CloudTrail by planting a Lambda function that will delete every object created in S3 bucket bound to a trail. As soon as CloudTrail creates a new object in S3 bucket, Lambda will kick in and delete that object. No object, no logs. No logs, no Incident Response :-)
 
-One will need to pass AWS credentials to this tool. Also, the account affected should have a bunch of required permissions.
+One will need to pass AWS credentials to this tool. Also, the account affected should have at least following permissions:
+- `iam:CreateRole`
+- `iam:CreatePolicy`
+- `iam:AttachRolePolicy`
+- `lambda:CreateFunction`
+- `lambda:AddPermission`
+- `s3:PutBucketNotification`
 
-Following changes are introduced to a specified AWS account:
+These are the changes to be introduced within a specified AWS account:
 - IAM role will be created, by default with name: `cloudtrail_helper_role`
 - IAM policy will be created, by default with name: `cloudtrail_helper_policy`
 - Lambda function will be created, by default with name: `cloudtrail_helper_function`
