@@ -51,7 +51,7 @@ optional arguments:
                         name for AWS Lambda function
 
 
-bash $ python3 disruptCloudTrailByS3Lambda.py --access-key ASIAXXXXXXXXXXXXXXXX --secret-key Gaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --token FQoGZX[...]
+bash $ python3 disruptCloudTrailByS3Lambda.py --access-key ASIAXXXXXXXXXXXXXXXX --secret-key Gaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --token FQoGZX[...] us-west-2
 
         :: AWS CloudTrail disruption via S3 Put notification to Lambda
         Disrupts AWS CloudTrail logging by planting Lambda that deletes S3 objects upon their creation
