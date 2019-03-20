@@ -13,6 +13,7 @@ Most of these files actually comes straight from my [Gists](https://gist.github.
 
 This repository is divided further onto following directories:
 
+- `clouds` - Cloud-Security related tools
 - `file-formats` - Contains various file-format related utilities, fuzzers and so on.
 - `linux` - Contains linux-based scripts for various purposes.
 - `networks` - Network devices & services Penetration Testing and auditing scripts
