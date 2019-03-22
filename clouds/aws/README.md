@@ -92,3 +92,5 @@ Afterwards, one should see following logs in CloudWatch traces for planted Lambd
 ```
 [*] Following S3 object could be removed: (Bucket=90112981864022885796153088027941100000000000000000000000, Key=cloudtrail/AWSLogs/712800000000/CloudTrail/us-west-2/2019/03/20/712800000000_CloudTrail_us-west-2_20190320T1000Z_oxxxxxxxxxxxxc.json.gz)
 ```
+
+- **`identifyS3Bucket.rb`** - This script attempts to identify passed name whether it resolves to a valid AWS S3 Bucket via different means. This script may come handy when revealing S3 buckets hidden behind HTTP proxies.

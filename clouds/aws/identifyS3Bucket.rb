@@ -144,6 +144,7 @@ def checkBucketResponse(bucket)
 		'<Error><Code>AllAccessDisabled</Code>',
 		'<Error><Code>PermanentRedirect</Code><Message>',
 		'</Endpoint><Bucket>',
+		'<Error><Code>TemporaryRedirect</Code>',
 		"<Name>#{bucket}</Name>",
 		"<Bucket>#{bucket}</Bucket>"
 	]
