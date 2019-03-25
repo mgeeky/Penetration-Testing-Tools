@@ -439,7 +439,7 @@ def parseOptions(argv):
 
     required.add_argument('--access-key', type=str, help = 'AWS Access Key ID')
     required.add_argument('--secret-key', type=str, help = 'AWS Access Key ID')
-    required.add_argument('--token', type=str, help = 'AWS temporary session token')
+    optional.add_argument('--token', type=str, help = 'AWS temporary session token')
 
     optional.add_argument('trail_name', type=str, default = 'all', nargs='?', help = 'CloudTrail name that you want to disrupt. If not specified, will disrupt every actively logging trail.')
 
@@ -526,8 +526,6 @@ def main(argv):
     Logger.info('Trails intended to be disrupted:')
     for trail in trails:
         Logger._out(f'\t- {trail["Name"]}')
-
-    sys.exit(0)
 
     Logger._out('')
     Logger.info('Step 2: Create a role to be assumed by planted Lambda')
