@@ -96,3 +96,5 @@ Afterwards, one should see following logs in CloudWatch traces for planted Lambd
 - **`exfiltrateLambdaTasksDirectory.py`** - Script that creates an in-memory ZIP file from the entire directory `$LAMBDA_TASK_ROOT` (typically `/var/task`) and sends it out in a form of HTTP(S) POST request, within an `exfil` parameter. To be used for exfiltrating AWS Lambda's entire source code.
 
 - **`identifyS3Bucket.rb`** - This script attempts to identify passed name whether it resolves to a valid AWS S3 Bucket via different means. This script may come handy when revealing S3 buckets hidden behind HTTP proxies.
+
+- **`pentest-ec2-instance`** - A set of utilities for quick starting, ssh-ing and stopping of a single temporary EC2 instance intended to be used for Web out-of-band tests (SSRF, reverse-shells, dns/http/other daemons).
