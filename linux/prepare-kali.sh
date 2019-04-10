@@ -157,7 +157,9 @@ popd
 
 pushd recon
 git_clone https://github.com/FortyNorthSecurity/EyeWitness.git
+git_clone https://github.com/OWASP/Amass.git
 git_clone https://github.com/michenriksen/gitrob.git
+git_clone https://github.com/darkoperator/dnsrecon.git
 git_clone https://github.com/smicallef/spiderfoot.git
 git_clone https://bitbucket.org/LaNMaSteR53/recon-ng.git ; cd recon-ng ; pip install -r REQUIREMENTS ; cd ..
 git_clone https://github.com/infosec-au/altdns.git
@@ -240,7 +242,6 @@ git_clone https://github.com/sullo/nikto.git
 git_clone https://github.com/gw0/PadBuster.git
 git_clone https://github.com/OJ/gobuster.git
 git_clone https://github.com/GerbenJavado/LinkFinder.git
-git_clone https://github.com/OWASP/Amass.git
 git_clone https://github.com/ticarpi/jwt_tool.git
 git_clone https://github.com/dnoiz1/git-money.git
 git_clone https://github.com/arthaud/git-dumper.git
