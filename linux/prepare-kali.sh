@@ -210,7 +210,7 @@ popd
 
 pushd ssl
 git_clone https://github.com/rbsec/sslscan.git
-git_clone https://github.com/drwetter/testssl.sh.git
+git clone --depth 1 https://github.com/drwetter/testssl.sh.git
 git_clone https://github.com/tomato42/tlsfuzzer.git
 popd
 
