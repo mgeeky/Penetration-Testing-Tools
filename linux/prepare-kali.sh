@@ -189,6 +189,9 @@ git_clone https://github.com/Veil-Framework/Veil.git
 git_clone https://github.com/Veil-Framework/Veil-Evasion.git
 git_clone https://github.com/pentestgeek/phishing-frenzy.git
 git_clone https://github.com/trustedsec/social-engineer-toolkit.git
+git_clone https://github.com/bluscreenofjeff/Malleable-C2-Randomizer.git
+git_clone https://github.com/rsmudge/Malleable-C2-Profiles.git
+git_clone https://github.com/threatexpress/malleable-c2.git
 popd
 
 pushd reversing
