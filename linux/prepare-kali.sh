@@ -218,21 +218,19 @@ git_clone https://github.com/threatexpress/malleable-c2.git
 git_clone https://github.com/cobbr/Covenant.git
 cd Covenant
 dotnet build
-mkdir Data
 cd Covenant
 dotnet build
 docker build -t covenant .
-echo "docker run -it -p 7443:7443 -p 80:80 -p 443:443 --name covenant -v $ROOT_DIR/tools/redteam/Covenant/Data:/app/Data covenant --username Admin --computername 0.0.0.0" > start-covenant-docker.sh
+echo "docker run -it -p 7443:7443 -p 80:80 -p 443:443 --name covenant -v $ROOT_DIR/tools/redteam/Covenant/Covenant/Data:/app/Data covenant --username Admin --computername 0.0.0.0" > start-covenant-docker.sh
 chmod +x start-covenant-docker.sh
 cd ../..
 git_clone https://github.com/cobbr/Elite.git
 cd Elite
 dotnet build
-mkdir Data
 cd Elite
 dotnet build
 docker build -t elite .
-echo "docker run -it --rm --name elite -v $ROOT_DIR/tools/redteam/Elite/Data:/app/Data elite --username Admin --computername"'$1' > start-elite-docker.sh
+echo "docker run -it --rm --name elite -v $ROOT_DIR/tools/redteam/Elite/Elite/Data:/app/Data elite --username Admin --computername"'$1' > start-elite-docker.sh
 chmod +x start-elite-docker.sh
 cd ../..
 docker stop $(docker ps -aq)
