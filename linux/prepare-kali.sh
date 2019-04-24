@@ -23,11 +23,24 @@ install_dotnet() {
 	popd
 }
 
+install_docker() {
+	curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-
+	echo 'deb https://download.docker.com/linux/debian stretch stable' > /etc/apt/sources.list.d/docker.list
+	apt update
+	apt-get remove -y docker docker-engine docker.io
+	apt-get install -y docker-ce
+	docker run hello-world
+}
+
 apt update ; apt upgrade -y
+
 apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties
+
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore
+
 install_dotnet
+install_docker
 
 cd $ROOT_DIR
 mkdir {data,dev,tools,utils,misc,work}
@@ -205,9 +218,24 @@ git_clone https://github.com/threatexpress/malleable-c2.git
 git_clone https://github.com/cobbr/Covenant.git
 cd Covenant
 dotnet build
+mkdir Data
 cd Covenant
 dotnet build
+docker build -t covenant .
+echo "docker run -it -p 7443:7443 -p 80:80 -p 443:443 --name covenant -v $ROOT_DIR/tools/redteam/Covenant/Data:/Data covenant --username Admin --computername 0.0.0.0" > start-covenant-docker.sh
+chmod +x start-covenant-docker.sh
 cd ../..
+git_clone https://github.com/cobbr/Elite.git
+cd Elite
+dotnet build
+mkdir Data
+cd Elite
+dotnet build
+docker build -t elite .
+echo "docker run -it --rm --name elite -v $ROOT_DIR/tools/redteam/Elite/Data:/Data elite --username Admin --computername"'$1' > start-elite-docker.sh
+chmod +x start-elite-docker.sh
+cd ../..
+
 popd
 
 pushd reversing
