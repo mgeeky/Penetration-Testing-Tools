@@ -14,10 +14,20 @@ git_clone() {
   git clone --recurse-submodules $1
 }
 
+install_dotnet() {
+	pushd /tmp
+	wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
+	sudo dpkg -i packages-microsoft-prod.deb
+	apt update
+	apt install -y dotnet-sdk-2.2
+	popd
+}
+
 apt update ; apt upgrade -y
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore
+install_dotnet
 
 cd $ROOT_DIR
 mkdir {data,dev,tools,utils,misc,work}
@@ -192,6 +202,12 @@ git_clone https://github.com/trustedsec/social-engineer-toolkit.git
 git_clone https://github.com/bluscreenofjeff/Malleable-C2-Randomizer.git
 git_clone https://github.com/rsmudge/Malleable-C2-Profiles.git
 git_clone https://github.com/threatexpress/malleable-c2.git
+git_clone https://github.com/cobbr/Covenant.git
+cd Covenant
+dotnet build
+cd Covenant
+dotnet build
+cd ../..
 popd
 
 pushd reversing
@@ -255,7 +271,6 @@ popd
 pushd windows
 git_clone https://github.com/gentilkiwi/mimikatz.git
 git_clone https://github.com/brav0hax/smbexec.git
-git_clone https://github.com/lgandx/Responder.git
 git_clone https://github.com/SecureAuthCorp/impacket.git
 cd impacket ; mkdir binaries ; cd binaries ; curl -s https://api.github.com/repos/ropnop/impacket_static_binaries/releases/latest | grep "browser_download_url.*exe" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; cd ../../
 popd
