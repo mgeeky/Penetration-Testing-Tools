@@ -44,8 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j
-
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore
 
@@ -270,12 +269,27 @@ cd BloodHound
 wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-linux-x64.zip
 wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-win32-x64.zip
 wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-win32-ia32.zip
+for a in *.zip ; do
+	unzip -d . $a
+	rm $a
+done
 cd ..
 git_clone https://github.com/BloodHoundAD/BloodHound-Tools.git
 cd BloodHound-Tools/DBCreator
 pip install neo4j-driver
 echo -e "connect\ngenerate\nexit" | python DBCreator.py
 cd ../..
+
+git_clone https://github.com/GhostPack/Seatbelt.git
+git_clone https://github.com/GhostPack/SharpDump.git
+git_clone https://github.com/GhostPack/Rubeus.git
+git_clone https://github.com/GhostPack/SharpRoast.git
+git_clone https://github.com/GhostPack/SharpDPAPI.git
+git_clone https://github.com/GhostPack/SharpUp.git
+git_clone https://github.com/GhostPack/SharpView.git
+git_clone https://github.com/GhostPack/SharpWMI.git
+
+git_clone https://github.com/tyranid/DotNetToJScript.git
 
 popd
 
