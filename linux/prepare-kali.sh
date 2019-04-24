@@ -32,15 +32,27 @@ install_docker() {
 	docker run hello-world
 }
 
+configure_neo4j() {
+	mkdir -p /usr/share/neo4j/run/
+	mkdir -p /usr/share/neo4j/logs/
+	sed -i -r 's:#dbms.allow_upgrade=true:dbms.allow_upgrade=true:' /etc/neo4j/neo4j.conf
+	neo4j start
+
+	# Changes Neo4j credentials to: neo4j/neo4jj
+	curl -H "Content-Type: application/json" -X POST -d '{"password":"neo4jj"}' -u neo4j:neo4j http://localhost:7474/user/neo4j/password
+}
+
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j
 
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore
 
 install_dotnet
 install_docker
+
+configure_neo4j
 
 cd $ROOT_DIR
 mkdir {data,dev,tools,utils,misc,work}
@@ -235,6 +247,35 @@ chmod +x start-elite-docker.sh
 cd ../..
 docker stop $(docker ps -aq)
 docker rm $(docker ps -aq)
+
+git_clone https://github.com/tevora-threat/PowerView3-Aggressor.git
+git_clone https://github.com/tevora-threat/SharpView.git
+git_clone https://github.com/SpiderLabs/SharpCompile.git
+sed -i -r 's:/tmp/SharpCompileTemp/:/tmp/:' SharpCompile/SharpCompile.cna 
+git_clone https://github.com/cobbr/SharpGen.git
+cd SharpGen
+dotnet build
+wget https://gist.githubusercontent.com/mgeeky/a3f54a08ae08aa267b76f75a35c11211/raw/268614427acc69c92e57b222e2235e1891425e97/sharpgen.cna
+sed -i -r "s:/usr/local/share/dotnet/dotnet:$(which dotnet):" sharpgen.cna
+sed -i -r "s:/Users/dtmsecurity/Tools/SharpGen/bin/Debug/netcoreapp2.1/SharpGen.dll:$(pwd)/bin/Debug/netcoreapp2.1/SharpGen.dll:" sharpgen.cna
+cd ..
+#git_clone https://github.com/chrismaddalena/SharpCloud.git
+git_clone https://github.com/BloodHoundAD/SharpHound.git
+cd SharpHound
+wget https://github.com/BloodHoundAD/BloodHound/raw/master/Ingestors/SharpHound.exe
+wget https://raw.githubusercontent.com/BloodHoundAD/BloodHound/master/Ingestors/SharpHound.ps1
+cd ..
+git_clone https://github.com/BloodHoundAD/BloodHound.git
+cd BloodHound
+wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-linux-x64.zip
+wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-win32-x64.zip
+wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-win32-ia32.zip
+cd ..
+git_clone https://github.com/BloodHoundAD/BloodHound-Tools.git
+cd BloodHound-Tools/DBCreator
+pip install neo4j-driver
+echo -e "connect\ngenerate\nexit" | python DBCreator.py
+cd ../..
 
 popd
 
