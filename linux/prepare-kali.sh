@@ -46,7 +46,7 @@ apt update ; apt upgrade -y
 
 apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4
 pip3 install virtualenv awscli wheel boto3 botocore
-pip install virtualenv wheel boto3 botocore
+pip install virtualenv wheel boto3 botocore pyinstaller
 
 install_dotnet
 install_docker
@@ -180,6 +180,8 @@ pushd misc
 git_clone https://github.com/nullsecuritynet/tools.git
 git_clone https://github.com/leebaird/discover.git
 git_clone https://github.com/dxa4481/truffleHog.git
+git_clone https://github.com/XiphosResearch/exploits.git
+git_clone https://github.com/netbiosX/Checklists.git
 popd
 
 pushd powershell
@@ -291,6 +293,13 @@ git_clone https://github.com/GhostPack/SharpWMI.git
 
 git_clone https://github.com/tyranid/DotNetToJScript.git
 
+git_clone https://github.com/gentilkiwi/mimikatz.git
+git_clone https://github.com/brav0hax/smbexec.git
+git_clone https://github.com/SecureAuthCorp/impacket.git
+cd impacket ; mkdir binaries ; cd binaries ; curl -s https://api.github.com/repos/ropnop/impacket_static_binaries/releases/latest | grep "browser_download_url.*exe" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; cd ../../
+
+git_clone https://github.com/rasta-mouse/Watson.git
+
 popd
 
 pushd reversing
@@ -352,10 +361,17 @@ git_clone https://github.com/NickstaDB/BaRMIe.git
 popd
 
 pushd windows
-git_clone https://github.com/gentilkiwi/mimikatz.git
-git_clone https://github.com/brav0hax/smbexec.git
-git_clone https://github.com/SecureAuthCorp/impacket.git
-cd impacket ; mkdir binaries ; cd binaries ; curl -s https://api.github.com/repos/ropnop/impacket_static_binaries/releases/latest | grep "browser_download_url.*exe" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; cd ../../
+git_clone https://github.com/M4ximuss/Powerless.git
+git_clone https://github.com/SecWiki/windows-kernel-exploit.git
+git_clone https://github.com/smgorelik/Windows-RCE-exploits.git
+git_clone https://github.com/GDSSecurity/Windows-Exploit-Suggester.git
+git_clone https://github.com/pentestmonkey/windows-privesc-check.git
+git_clone https://github.com/rootm0s/WinPwnage.git
+cd WinPwnage
+pip install -r requirements.txt
+python build.py winpwnage.py
+pyinstaller --onefile winpwnage.py
+cd ..
 popd
 
 pushd wireless
