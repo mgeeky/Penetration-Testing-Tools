@@ -44,7 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore pyinstaller
 
@@ -102,6 +102,7 @@ git_clone https://github.com/nahamsec/lazys3.git
 git_clone https://github.com/andresriancho/nimbostratus.git
 git_clone https://github.com/duo-labs/cloudmapper.git ; cd cloudmapper/ ; pipenv install --skip-lock ; pipenv shell ; cd ..
 git_clone https://github.com/awslabs/aws-security-benchmark.git
+git_clone https://github.com/VirtueSecurity/aws-extender-cli.git
 git_clone https://github.com/cloudsploit/scans.git
 mv scans cloudsploit
 cd cloudsploit
@@ -358,6 +359,7 @@ git_clone https://github.com/dnoiz1/git-money.git
 git_clone https://github.com/arthaud/git-dumper.git
 git_clone https://github.com/mogwaisec/mjet.git
 git_clone https://github.com/NickstaDB/BaRMIe.git
+git_clone https://github.com/torque59/Nosql-Exploitation-Framework.git
 popd
 
 pushd windows
