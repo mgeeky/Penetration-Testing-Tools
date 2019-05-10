@@ -46,7 +46,7 @@ apt update ; apt upgrade -y
 
 apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp
 pip3 install virtualenv awscli wheel boto3 botocore
-pip install virtualenv wheel boto3 botocore pyinstaller
+pip install virtualenv wheel boto3 botocore pyinstaller lxml
 
 install_dotnet
 install_docker
@@ -72,7 +72,7 @@ wget https://gist.githubusercontent.com/mgeeky/8b7b1c8d9fe8be69978d774bddb6e382/
 
 cd $ROOT_DIR/tools
 
-mkdir {bruteforce,clouds,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,powershell,ssl,sourceaudit,shells,wireless}
+mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,powershell,ssl,sourceaudit,shells,wireless}
 
 git_clone https://github.com/mgeeky/Penetration-Testing-Tools
 
@@ -129,6 +129,12 @@ git_clone https://github.com/frohoff/ysoserial.git
 git_clone https://github.com/NetSPI/JavaSerialKiller.git
 git_clone https://github.com/joaomatosf/jexboss.git
 wget 'https://jitpack.io/com/github/frohoff/ysoserial/master-SNAPSHOT/ysoserial-master-SNAPSHOT.jar' -O ysoserial/ysoserial.jar
+popd
+
+pushd devops
+git clone --recurse-submodules -b develop https://github.com/torque59/Garfield.git
+git_clone https://github.com/wavestone-cdt/hadoop-attack-library.git 
+wget https://raw.githubusercontent.com/n0tty/Random-Hacking-Scripts/master/pwnsible.sh ; chmod +x pwnsible.sh
 popd
 
 pushd exploitdev
@@ -229,6 +235,8 @@ git_clone https://github.com/trustedsec/social-engineer-toolkit.git
 git_clone https://github.com/bluscreenofjeff/Malleable-C2-Randomizer.git
 git_clone https://github.com/rsmudge/Malleable-C2-Profiles.git
 git_clone https://github.com/threatexpress/malleable-c2.git
+git_clone https://github.com/ropnop/kerbrute.git
+git_clone https://github.com/Raikia/CredNinja.git
 git_clone https://github.com/cobbr/Covenant.git
 cd Covenant
 dotnet build
