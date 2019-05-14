@@ -98,6 +98,7 @@ cd aws
 git_clone https://github.com/RhinoSecurityLabs/pacu.git ; cd pacu ; bash install.sh ; cd ..
 git_clone https://github.com/Alfresco/prowler.git
 git_clone https://github.com/sa7mon/S3Scanner.git
+git_clone https://github.com/ankane/s3tk.git
 git_clone https://github.com/nahamsec/lazys3.git
 git_clone https://github.com/andresriancho/nimbostratus.git
 git_clone https://github.com/duo-labs/cloudmapper.git ; cd cloudmapper/ ; pipenv install --skip-lock ; pipenv shell ; cd ..
@@ -234,6 +235,7 @@ git_clone https://github.com/pentestgeek/phishing-frenzy.git
 git_clone https://github.com/trustedsec/social-engineer-toolkit.git
 git_clone https://github.com/bluscreenofjeff/Malleable-C2-Randomizer.git
 git_clone https://github.com/rsmudge/Malleable-C2-Profiles.git
+git_clone https://github.com/sense-of-security/ADRecon.git
 git_clone https://github.com/threatexpress/malleable-c2.git
 git_clone https://github.com/ropnop/kerbrute.git
 git_clone https://github.com/Raikia/CredNinja.git
