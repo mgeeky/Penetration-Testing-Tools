@@ -44,7 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore pyinstaller lxml
 
@@ -101,6 +101,12 @@ git_clone https://github.com/sa7mon/S3Scanner.git
 git_clone https://github.com/ankane/s3tk.git
 git_clone https://github.com/arkadiyt/aws_public_ips.git
 git_clone go get github.com/haccer/subjack.git
+git_clone https://github.com/Skyscanner/lambdaguard.git
+cd lambdaguard
+make install
+python3 setup.py install
+chmod +x bin/lambdaguard
+cd ..
 git_clone https://github.com/nahamsec/lazys3.git
 git_clone https://github.com/andresriancho/nimbostratus.git
 git_clone https://github.com/duo-labs/cloudmapper.git ; cd cloudmapper/ ; pipenv install --skip-lock ; pipenv shell ; cd ..
@@ -191,6 +197,7 @@ git_clone https://github.com/nullsecuritynet/tools.git
 git_clone https://github.com/leebaird/discover.git
 git_clone https://github.com/dxa4481/truffleHog.git
 git_clone https://github.com/XiphosResearch/exploits.git
+git_clone https://github.com/wireghoul/graudit.git
 git_clone https://github.com/netbiosX/Checklists.git
 popd
 
@@ -231,6 +238,8 @@ git_clone https://github.com/dxa4481/truffleHog.git
 popd
 
 pushd redteam
+git_clone https://github.com/ropnop/windapsearch.git
+git_clone https://github.com/stufus/ADOffline.git
 git_clone https://github.com/Veil-Framework/Veil.git
 git_clone https://github.com/Veil-Framework/Veil-Evasion.git
 git_clone https://github.com/pentestgeek/phishing-frenzy.git
@@ -347,6 +356,12 @@ git_clone https://github.com/breenmachine/httpscreenshot.git
 git_clone https://github.com/beefproject/beef/ ; pushd beef ; yes | ./install ; popd
 git_clone https://github.com/mitmproxy/mitmproxy.git
 git_clone https://github.com/sqlmapproject/sqlmap.git
+mkdir aquatone ; cd aquatone
+wget https://github.com/michenriksen/aquatone/releases/download/v1.6.0/aquatone_linux_amd64_1.6.0.zip
+unzip -d . aquatone_linux_amd64_1.6.0.zip
+rm aquatone_linux_amd64_1.6.0.zip
+chmod +x aquatone
+cd ..
 git_clone https://github.com/RhinoSecurityLabs/SleuthQL
 git_clone https://github.com/EnableSecurity/wafw00f.git
 git_clone https://github.com/nodesecurity/eslint-plugin-security ; npm install --save-dev eslint-plugin-security
