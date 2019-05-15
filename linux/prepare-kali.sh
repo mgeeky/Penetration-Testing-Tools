@@ -99,6 +99,8 @@ git_clone https://github.com/RhinoSecurityLabs/pacu.git ; cd pacu ; bash install
 git_clone https://github.com/Alfresco/prowler.git
 git_clone https://github.com/sa7mon/S3Scanner.git
 git_clone https://github.com/ankane/s3tk.git
+git_clone https://github.com/arkadiyt/aws_public_ips.git
+git_clone go get github.com/haccer/subjack.git
 git_clone https://github.com/nahamsec/lazys3.git
 git_clone https://github.com/andresriancho/nimbostratus.git
 git_clone https://github.com/duo-labs/cloudmapper.git ; cd cloudmapper/ ; pipenv install --skip-lock ; pipenv shell ; cd ..
