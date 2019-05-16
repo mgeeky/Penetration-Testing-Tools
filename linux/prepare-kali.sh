@@ -44,7 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate
 pip3 install virtualenv awscli wheel boto3 botocore
 pip install virtualenv wheel boto3 botocore pyinstaller lxml
 
@@ -249,6 +249,13 @@ git_clone https://github.com/rsmudge/Malleable-C2-Profiles.git
 git_clone https://github.com/sense-of-security/ADRecon.git
 git_clone https://github.com/threatexpress/malleable-c2.git
 git_clone https://github.com/ropnop/kerbrute.git
+cd kerbrute
+wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_windows_amd64.exe
+wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_windows_386.exe
+wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_linux_amd64
+wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_linux_386
+chmod +x kerbrute_*
+cd ..
 git_clone https://github.com/Raikia/CredNinja.git
 git_clone https://github.com/cobbr/Covenant.git
 cd Covenant
