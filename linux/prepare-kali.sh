@@ -46,7 +46,7 @@ apt update ; apt upgrade -y
 
 apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate
 pip3 install virtualenv awscli wheel boto3 botocore
-pip install virtualenv wheel boto3 botocore pyinstaller lxml
+pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
 
 install_dotnet
 install_docker
@@ -163,6 +163,7 @@ git_clone https://github.com/inquisb/icmpsh.git
 git_clone https://github.com/tomac/yersinia.git
 git_clone https://github.com/threat9/routersploit.git
 git_clone https://github.com/hatRiot/clusterd.git
+git_clone https://github.com/SpiderLabs/ikeforce.git
 popd
 
 pushd fuzzers
@@ -325,8 +326,14 @@ git_clone https://github.com/tyranid/DotNetToJScript.git
 git_clone https://github.com/gentilkiwi/mimikatz.git
 git_clone https://github.com/brav0hax/smbexec.git
 git_clone https://github.com/SecureAuthCorp/impacket.git
-cd impacket ; mkdir binaries ; cd binaries ; curl -s https://api.github.com/repos/ropnop/impacket_static_binaries/releases/latest | grep "browser_download_url.*exe" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; cd ../../
-
+cd impacket ; mkdir binaries ; cd binaries ; 
+wget https://github.com/ropnop/impacket_static_binaries/releases/download/0.9.19-binaries/impacket_windows_binaries.zip
+unzip -d . impacket_windows_binaries.zip
+rm impacket_windows_binaries.zip
+wget https://github.com/ropnop/impacket_static_binaries/releases/download/0.9.19-binaries/impacket_linux_binaries.tar.gz
+tar xzf impacket_linux_binaries.tar.gz
+rm impacket_linux_binaries.tar.gz
+cd ../../
 git_clone https://github.com/rasta-mouse/Watson.git
 
 popd
