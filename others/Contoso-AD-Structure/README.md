@@ -1,7 +1,10 @@
-# Create Contoso Users in Active Directory - for quick RedTeam Lab setup
+# Create Contoso Users in Active Directory 
+## for quick RedTeam Lab setup
+
 Create Contoso Users in Active Directory This script creates 270 + users in Active Directory copied from the Contoso WorkerInformation Environment.
 
 ***Original Author: Mark Rhodes - markrhodes@gmail.com - @mrhodes***
+
 ***Modified by: Mariusz B., mb@binary-offensive.com - @mgeeky***
 
 **To Use:** 
