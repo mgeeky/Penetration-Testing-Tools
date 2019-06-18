@@ -72,7 +72,7 @@ wget https://gist.githubusercontent.com/mgeeky/8b7b1c8d9fe8be69978d774bddb6e382/
 
 cd $ROOT_DIR/tools
 
-mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,powershell,ssl,sourceaudit,shells,wireless}
+mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,ssl,sourceaudit,shells,wireless}
 
 git_clone https://github.com/mgeeky/Penetration-Testing-Tools
 
@@ -202,13 +202,6 @@ git_clone https://github.com/wireghoul/graudit.git
 git_clone https://github.com/netbiosX/Checklists.git
 popd
 
-pushd powershell
-git_clone https://github.com/BloodHoundAD/BloodHound.git
-git_clone https://github.com/EmpireProject/Empire.git
-git_clone https://github.com/PowerShellMafia/PowerSploit.git
-git_clone https://github.com/samratashok/nishang.git
-popd
-
 pushd recon
 git_clone https://github.com/FortyNorthSecurity/EyeWitness.git
 git_clone https://github.com/OWASP/Amass.git
@@ -239,7 +232,17 @@ git_clone https://github.com/dxa4481/truffleHog.git
 popd
 
 pushd redteam
+git_clone https://github.com/danielbohannon/Invoke-Obfuscation.git
+git_clone https://github.com/FuzzySecurity/PowerShell-Suite.git 
+git_clone https://github.com/rvrsh3ll/Misc-Powershell-Scripts.git
+git_clone https://github.com/Kevin-Robertson/Inveigh.git
+git_clone https://github.com/Kevin-Robertson/Tater.git
+git_clone https://github.com/BloodHoundAD/BloodHound.git
+git_clone https://github.com/EmpireProject/Empire.git
+git_clone https://github.com/PowerShellMafia/PowerSploit.git
+git_clone https://github.com/samratashok/nishang.git
 git_clone https://github.com/dirkjanm/krbrelayx.git
+git_clone https://github.com/SySS-Research/Seth.git
 git_clone https://github.com/ropnop/windapsearch.git
 git_clone https://github.com/stufus/ADOffline.git
 git_clone https://github.com/Veil-Framework/Veil.git
