@@ -239,6 +239,7 @@ git_clone https://github.com/dxa4481/truffleHog.git
 popd
 
 pushd redteam
+git_clone https://github.com/dirkjanm/krbrelayx.git
 git_clone https://github.com/ropnop/windapsearch.git
 git_clone https://github.com/stufus/ADOffline.git
 git_clone https://github.com/Veil-Framework/Veil.git
