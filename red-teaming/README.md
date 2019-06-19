@@ -39,6 +39,10 @@ PS > "amsiInitFailed"
 amsiInitFailed
 ```
 
+- **`Disable-ScriptLogging.ps1`** - Tries to evade Script Block logging by leveraging couple of publicly documented techniqus, but in an approach to avoid signatured or otherwise considered harmful keywords. 
+
+*Warning:* This scriptlet should be launched first, before `Disable-Amsi.ps1` for better OpSec experience.
+
 
 - **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-*`, `Find-*` into _Clixml_ files. Those files (stored in an output directory as separate XML files) can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread. **Warning**: Be careful though, as this script launches many reconnaissance commands one by one, this WILL generate a lot of noise. Microsoft ATA for instance for sure pick you up with _"Reconnaissance using SMB session enumeration"_ after you've launched `Invoke-UserHunter`. 
 

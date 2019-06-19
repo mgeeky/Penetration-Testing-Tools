@@ -72,7 +72,7 @@ wget https://gist.githubusercontent.com/mgeeky/8b7b1c8d9fe8be69978d774bddb6e382/
 
 cd $ROOT_DIR/tools
 
-mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,ssl,sourceaudit,shells,wireless}
+mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,privesc,ssl,sourceaudit,shells,wireless}
 
 git_clone https://github.com/mgeeky/Penetration-Testing-Tools
 
@@ -203,6 +203,10 @@ git_clone https://github.com/wireghoul/graudit.git
 git_clone https://github.com/netbiosX/Checklists.git
 popd
 
+pushd privesc
+git_clone https://github.com/AusJock/Privilege-Escalation.git
+popd
+
 pushd recon
 git_clone https://github.com/FortyNorthSecurity/EyeWitness.git
 git_clone https://github.com/OWASP/Amass.git
@@ -233,6 +237,11 @@ git_clone https://github.com/dxa4481/truffleHog.git
 popd
 
 pushd redteam
+git_clone https://github.com/jaredhaight/PSAttack.git
+cd PSAttack
+wget https://github.com/jaredhaight/PSAttack/releases/download/v1.99.1/PSAttack-1.99.1.zip
+unzip -d . PSAttack-1.99.1.zip
+cd ..
 git_clone https://github.com/danielbohannon/Invoke-Obfuscation.git
 git_clone https://github.com/FuzzySecurity/PowerShell-Suite.git 
 git_clone https://github.com/rvrsh3ll/Misc-Powershell-Scripts.git
@@ -410,9 +419,11 @@ popd
 
 pushd windows
 git_clone https://github.com/M4ximuss/Powerless.git
-git_clone https://github.com/SecWiki/windows-kernel-exploit.git
+git_clone https://github.com/SecWiki/windows-kernel-exploits.git
 git_clone https://github.com/smgorelik/Windows-RCE-exploits.git
+git_clone https://github.com/abatchy17/WindowsExploits.git
 git_clone https://github.com/GDSSecurity/Windows-Exploit-Suggester.git
+git_clone https://github.com/brianwrf/WinSystemHelper.git
 git_clone https://github.com/pentestmonkey/windows-privesc-check.git
 git_clone https://github.com/rootm0s/WinPwnage.git
 cd WinPwnage
@@ -424,7 +435,7 @@ popd
 
 pushd wireless
 git_clone https://github.com/brav0hax/easy-creds.git
-git_clone https://github.com/s0lst1c3/eaphammer.git ; cd eaphammer ; ./kali-setup ; cd ..
+git_clone https://github.com/s0lst1c3/eaphammer.git ; cd eaphammer ; yes | ./kali-setup ; cd ..
 git_clone https://github.com/derv82/wifite2.git ; cd wifite2 ; python setup.py install ; cd ..
 popd
 

