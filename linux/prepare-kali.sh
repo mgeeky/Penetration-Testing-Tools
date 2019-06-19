@@ -44,7 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep
 pip3 install virtualenv awscli wheel boto3 botocore
 pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
 
