@@ -248,6 +248,7 @@ git_clone https://github.com/rvrsh3ll/Misc-Powershell-Scripts.git
 git_clone https://github.com/Kevin-Robertson/Inveigh.git
 git_clone https://github.com/Kevin-Robertson/Tater.git
 git_clone https://github.com/BloodHoundAD/BloodHound.git
+git_clone https://github.com/fox-it/BloodHound.py.git
 git_clone https://github.com/EmpireProject/Empire.git
 git_clone https://github.com/PowerShellMafia/PowerSploit.git
 git_clone https://github.com/samratashok/nishang.git
@@ -347,6 +348,7 @@ rm impacket_windows_binaries.zip
 wget https://github.com/ropnop/impacket_static_binaries/releases/download/0.9.19-binaries/impacket_linux_binaries.tar.gz
 tar xzf impacket_linux_binaries.tar.gz
 rm impacket_linux_binaries.tar.gz
+python setup.py install
 cd ../../
 git_clone https://github.com/rasta-mouse/Watson.git
 
