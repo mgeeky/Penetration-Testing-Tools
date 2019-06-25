@@ -199,6 +199,8 @@ pushd misc
 git_clone https://github.com/nullsecuritynet/tools.git
 git_clone https://github.com/leebaird/discover.git
 git_clone https://github.com/dxa4481/truffleHog.git
+git_clone https://github.com/internetwache/GitTools.git
+git_clone https://github.com/kost/dvcs-ripper.git
 git_clone https://github.com/XiphosResearch/exploits.git
 git_clone https://github.com/wireghoul/graudit.git
 git_clone https://github.com/netbiosX/Checklists.git
