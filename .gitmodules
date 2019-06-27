@@ -31,3 +31,6 @@
 [submodule "web/proxy2"]
 	path = web/proxy2
 	url = https://github.com/mgeeky/proxy2
+[submodule "red-teaming/Stracciatella"]
+	path = red-teaming/Stracciatella
+	url = https://github.com/mgeeky/Stracciatella.git
