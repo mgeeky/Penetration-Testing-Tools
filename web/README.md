@@ -143,6 +143,8 @@ Node('/None/Base64/URLEncoder', decoded='AAAA')
 
 - **`webshell.aspx`** - ASPX Backdoor / Webshell equipped with password-based authentication. To be used against ASP.NET applications during Penetration Testing assignments as a proof of concept.
 
+- **`webshell.aspx`** - JSP Backdoor / Webshell equipped with password-based authentication. To be used against Tomcat/JBoss applications during Penetration Testing assignments as a proof of concept.
+
 - **`xml-attacks.md`** - XML Vulnerabilities and Attacks cheatsheet. ([gist](https://gist.github.com/mgeeky/4f726d3b374f0a34267d4f19c9004870))
 
 - **`XXE Payloads`** - Internal IP address leakage via Object RTC (ORTC) interface implemented in Microsoft Edge. ([gist](https://gist.github.com/mgeeky/181c6836488e35fcbf70290a048cd51d))
