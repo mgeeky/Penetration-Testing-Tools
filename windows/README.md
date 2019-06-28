@@ -22,6 +22,8 @@
 
 - **`pth-carpet.py`** - Pass-The-Hash Carpet Bombing utility - trying every provided hash against every specified machine. ([gist](https://gist.github.com/mgeeky/3018bf3643f80798bde75c17571a38a9))
 
+- **`revshell.c`** - Utterly simple reverse-shell, ready to be compiled by `mingw-w64` on Kali. No security features attached, completely not OPSEC-safe.
+
 - **`Simulate-DNSTunnel.ps1`** - Performs DNS Tunnelling simulation for purpose of triggering installed Network IPS and IDS systems, generating SIEM offenses and picking up Blue Teams.
 
 - **`win-clean-logs.bat`** - Batch script to hide malware execution from Windows box. Source: Mandiant M-Trends 2017. ([gist](https://gist.github.com/mgeeky/3561be7e697c62f543910851c0a26d00))
