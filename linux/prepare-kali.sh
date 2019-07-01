@@ -165,6 +165,7 @@ git_clone https://github.com/inquisb/icmpsh.git
 git_clone https://github.com/tomac/yersinia.git
 git_clone https://github.com/threat9/routersploit.git
 git_clone https://github.com/hatRiot/clusterd.git
+git_clone https://github.com/joaomatosf/jexboss.git
 git_clone https://github.com/SpiderLabs/ikeforce.git
 popd
 
@@ -385,6 +386,7 @@ git_clone https://github.com/mgeeky/tomcatWarDeployer.git
 git_clone https://github.com/codingo/NoSQLMap.git
 git_clone https://github.com/commixproject/commix.git
 git_clone https://github.com/droope/droopescan.git
+git_clone https://github.com/enjoiz/XXEinjector.git
 git_clone https://github.com/breenmachine/httpscreenshot.git
 git_clone https://github.com/beefproject/beef/ ; pushd beef ; yes | ./install ; popd
 git_clone https://github.com/mitmproxy/mitmproxy.git
