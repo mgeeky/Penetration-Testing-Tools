@@ -44,8 +44,9 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64
-pip3 install virtualenv awscli wheel boto3 botocore
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev
+
+pip3 install virtualenv awscli wheel boto3 botocore btlejack
 pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
 
 install_dotnet
@@ -72,7 +73,7 @@ wget https://gist.githubusercontent.com/mgeeky/8b7b1c8d9fe8be69978d774bddb6e382/
 
 cd $ROOT_DIR/tools
 
-mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,reversing,web,infra,fuzzers,linux,misc,privesc,ssl,sourceaudit,shells,wireless}
+mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon,hardware,reversing,web,infra,fuzzers,linux,misc,privesc,ssl,sourceaudit,shells,wireless}
 
 git_clone https://github.com/mgeeky/Penetration-Testing-Tools
 
@@ -152,6 +153,37 @@ git_clone https://github.com/longld/peda.git
 git_clone https://github.com/Gallopsled/pwntools.git
 git_clone https://github.com/packz/ropeme.git
 git_clone https://github.com/mgeeky/Exploit-Development-Tools.git
+popd
+
+pushd hardware
+git_clone https://github.com/DrSchottky/mfcuk.git
+cd mfcuk
+automake
+autoconf
+./configure
+make -j8
+cd ..
+git_clone https://github.com/zhovner/mfdread.git
+git_clone https://github.com/DigitalSecurity/btlejuice.git
+npm install -g btlejuice
+git_clone https://github.com/nfc-tools/miLazyCracker.git
+cd miLazyCracker
+wget http://crapto1.netgarage.org/craptev1-v1.1.tar.xz
+wget http://crapto1.netgarage.org/crapto1-v3.3.tar.xz
+./miLazyCrackerFreshInstall.sh
+cd ..
+git_clone https://github.com/RfidResearchGroup/proxmark3.git
+apt-get remove modemmanager
+cd proxmark3
+make clean && make -j8 all
+cd ..
+git_clone https://github.com/mikeryan/crackle.git
+cd crackle
+make
+cd ..
+git_clone https://github.com/securing/gattacker.git
+npm install -g gattacker
+git_clone https://github.com/virtualabs/btlejack.git
 popd
 
 pushd infra
