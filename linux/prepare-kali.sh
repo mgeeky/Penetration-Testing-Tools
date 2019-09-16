@@ -199,6 +199,7 @@ git_clone https://github.com/threat9/routersploit.git
 git_clone https://github.com/hatRiot/clusterd.git
 git_clone https://github.com/joaomatosf/jexboss.git
 git_clone https://github.com/SpiderLabs/ikeforce.git
+git_clone https://github.com/EnableSecurity/sipvicious.git
 popd
 
 pushd fuzzers
