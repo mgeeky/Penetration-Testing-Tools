@@ -187,6 +187,7 @@ git_clone https://github.com/virtualabs/btlejack.git
 popd
 
 pushd infra
+git_clone https://github.com/bonsaiviking/NfSpy.git
 git_clone https://github.com/lgandx/Responder.git
 git_clone https://github.com/hegusung/RPCScan.git
 git_clone https://github.com/fox-it/mitm6.git
