@@ -188,6 +188,7 @@ popd
 
 pushd infra
 git_clone https://github.com/lgandx/Responder.git
+git_clone https://github.com/hegusung/RPCScan.git
 git_clone https://github.com/fox-it/mitm6.git
 git_clone https://github.com/lgandx/PCredz.git
 git_clone https://github.com/DanMcInerney/net-creds.git
