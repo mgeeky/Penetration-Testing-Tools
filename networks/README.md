@@ -88,6 +88,43 @@ Capturing on 'eth0'
    12 0.050831934 192.168.1.14 → 224.0.0.9    RIPv2 61 Unknown command (64)[Malformed Packet]
 ```
 
+- **`smtpAudit.py`** - SMTP Server configuration black-box testing/audit tool, capable of auditing SPF/Accepted Domains, DKIM, DMARC, SSL/TLS, SMTP services, banner, Authentication (AUTH, X-EXPS), conducting user enumerations (VRFY, EXPN, RCPT TO) and others. ([gist](https://gist.github.com/mgeeky/ef49e5fb6c3479dd6a24eb90b53f9baa))
+ 
+  Currently supported tests:
+    01) 'spf'                           - SPF DNS record test
+            - 'spf-version'             - Checks whether SPF record version is valid
+            - 'all-mechanism-usage'     - Checks whether 'all' mechanism is used correctly
+            - 'allowed-hosts-list'      - Checks whether there are not too many allowed hosts
+    02) 'dkim'                          - DKIM DNS record test
+            - 'public-key-length'       - Tests whether DKIM Public Key is at least 1024 bits long
+    03) 'dmarc'                         - DMARC DNS record test
+            - 'dmarc-version'           - Checks whether DMARC record version is valid
+            - 'policy-rejects-by-default' - Checks whether DMARC uses reject policy
+            - 'number-of-messages-filtered' - Checks whether there are at least 20% messages filtered.
+    04) 'banner-contents'               - SMTP Banner sensitive informations leak test
+            - 'not-contains-version'    - Contains version information
+            - 'not-contains-prohibited-words'- Contains software/OS/or other prohibited name
+            - 'is-not-long-or-complex'  - Seems to be long and/or complex
+            - 'contains-hostname'       - Checks whether SMTP banner contains valid hostname
+    05) 'open-relay'                    - Open-Relay misconfiguration test
+            - 'internal-internal'
+            - 'internal-external'
+            - 'external-internal'
+            - 'external-external'
+            - And about 19 other variants
+                                        - (the above is very effective against Postfix)
+    06) 'vrfy'                          - VRFY user enumeration vulnerability test
+    07) 'expn'                          - EXPN user enumeration vulnerability test
+    08) 'rcpt-to'                       - RCPT TO user enumeration vulnerability test
+    09) 'secure-ciphers'                - SSL/TLS ciphers security weak configuration
+    10) 'starttls-offering'             - STARTTLS offering (opportunistic) weak configuration
+    11) 'auth-over-ssl'                 - STARTTLS before AUTH/X-EXPS enforcement weak configuration
+    12) 'auth-methods-offered'          - Test against unsecure AUTH/X-EXPS PLAIN/LOGIN methods.
+    13) 'tls-key-len'                   - Checks private key length of negotiated or offered SSL/TLS cipher suites.
+    14) 'spf-validation'                - Checks whether SMTP Server has been configured to validate sender's SPF 
+                                          or if it's Microsoft Exchange - that is uses Accepted Domains
+
+
 - **`sshbrute.py`** - ripped out from Violent Python - by TJ O'Connor. ([gist](https://gist.github.com/mgeeky/70606be7249a61ac26b34b1ef3b07553))
 
 - **`smb-credential-leak.html`** - SMB Credentials leakage by MSEdge as presented in Browser Security White Paper, X41 D-Sec GmbH. ([gist](https://gist.github.com/mgeeky/44ce8a8887c169aa6a0093d915ea103d))
