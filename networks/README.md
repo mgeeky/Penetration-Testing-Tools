@@ -89,7 +89,7 @@ Capturing on 'eth0'
 ```
 
 - **`smtpAudit.py`** - SMTP Server configuration black-box testing/audit tool, capable of auditing SPF/Accepted Domains, DKIM, DMARC, SSL/TLS, SMTP services, banner, Authentication (AUTH, X-EXPS), conducting user enumerations (VRFY, EXPN, RCPT TO) and others. ([gist](https://gist.github.com/mgeeky/ef49e5fb6c3479dd6a24eb90b53f9baa))
- 
+```
   Currently supported tests:
     01) 'spf'                           - SPF DNS record test
             - 'spf-version'             - Checks whether SPF record version is valid
@@ -123,7 +123,7 @@ Capturing on 'eth0'
     13) 'tls-key-len'                   - Checks private key length of negotiated or offered SSL/TLS cipher suites.
     14) 'spf-validation'                - Checks whether SMTP Server has been configured to validate sender's SPF 
                                           or if it's Microsoft Exchange - that is uses Accepted Domains
-
+```
 
 - **`sshbrute.py`** - ripped out from Violent Python - by TJ O'Connor. ([gist](https://gist.github.com/mgeeky/70606be7249a61ac26b34b1ef3b07553))
 
