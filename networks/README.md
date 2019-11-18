@@ -51,7 +51,7 @@ Hostname: mail.example.com
 	10.10.13.250
 
 *) Leaked Internal Domain name in NTLM challenge packet:
-	Target Name:	F5HOST
+	Target Name:	EXAMPLE
 	Context:	
 	Target:
 		AD domain name    :	EXAMPLE.LOCAL
