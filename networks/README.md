@@ -15,6 +15,77 @@ CDP counters :
 
 - **`dtpscan.py`** - DTP Scanner - simple script trying to determine type of configured switchport and DTP negotation mode in order to assist in VLAN Hopping attacks. ([gist](https://gist.github.com/mgeeky/3f678d385984ba0377299a844fb793fa))
 
+- **`exchangeRecon.py`** - This tool connects to the given Exchange's hostname/IP address and then by collects various internal information being leaked while interacting with different Exchange protocols. Exchange may give away following helpful during OSINT or breach planning stages insights:
+  - Internal IP address
+  - Internal Domain Name (ActiveDirectory)
+  - Exchange Server Version
+  - support for various SMTP User Enumeration techniques
+  - Version of underlying software such as ASP.NET, IIS which
+      may point at OS version indirectly
+
+This tool will be helpful before mounting social engieering attack against
+victim's premises or to aid Password-Spraying efforts against exposed OWA 
+interface. 
+
+Sample run:
+
+```
+user@host:~/ $ python3 mail.example.com
+
+Hostname: mail.example.com
+
+*) SSL Certificate Subject components:
+	CN = mail.example.com
+
+*) Outlook Web App version leaked in OWA HTML source:
+	14.0.639.21
+	(Exchange Server 2010 RTM; November 9, 2009; 14.0.639.21 14.00.0639.021)
+
+*) IIS Version:
+	Microsoft-IIS/7.5
+
+*) ASP.Net Version:
+	2.0.50727
+
+*) Leaked Internal IP address:
+	10.10.13.250
+
+*) Leaked Internal Domain name in NTLM challenge packet:
+	Target Name:	F5HOST
+	Context:	
+	Target:
+		AD domain name    :	EXAMPLE.LOCAL
+		Server name       :	EX05
+		DNS domain name   :	example.local
+		FQDN              :	ex05.example.local
+		Parent DNS domain :	example.local
+		Server Timestamp  :	19-11-18 Mon 16:06:53 UTC
+	OS Ver:	????????
+	Flags:	
+	    - Negotiate Unicode
+		- Request Target
+		- Negotiate NTLM
+		- Negotiate Always Sign
+		- Target Type Domain
+		- Negotiate NTLM2 Key
+		- Negotiate Target Info
+		- unknown
+		- Negotiate 128
+		- Negotiate 56
+
+*) Exchange supports legacy SMTP and returns following unusual capabilities:
+	mail.example.com Hello [192.168.0.100]
+	- 250-XEXCH50
+	- 250-XRDST
+	- XSHADOW
+
+*) Results for SMTP User Enumeration attempts:
+	- [-] MAIL FROM:<test@[192.168.0.100]>                  returned: (501, "5.1.7 Invalid address")
+	- [-] RCPT TO:<test@[192.168.0.100]>                    returned: (503, "5.5.2 Need mail command")
+	- [+] VRFY root                                         returned: (252, "2.1.5 Cannot VRFY user")
+	- [-] EXPN root                                         returned: (502, "5.3.3 Command not implemented")
+```
+
 - **`host-scanner-via-udp.py`** - Running Hosts scanner leveraging ICMP Destination Unreachable response upon UDP closed port packet. Requires root/Administrator privileges. ([gist](https://gist.github.com/mgeeky/eae20db2d3dd4704fc6f04ea233bca9c))
 
 - **`HSRPFlooder.py`** - Proof of concept _HSRP Coup State: Active_ flooder, trying to provoke Denial of Service within LAN segment due to tunnelling packets to the non-existent gateway that won active-router election. Not working stabily at the moment.
