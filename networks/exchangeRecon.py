@@ -1068,6 +1068,7 @@ class ExchangeRecon:
             'GSSAPI',
             'X-EXPS',
             'X-ANONYMOUSTLS',
+            'This server supports the following commands'
         )
 
         unfiltered = set()
@@ -1082,7 +1083,7 @@ class ExchangeRecon:
 
 
         if len(unfiltered):
-            self.results["Exchange supports legacy SMTP and returns following unusual capabilities"] = '\n\t- '.join(unfiltered)
+            self.results["Exchange supports legacy SMTP and returns following unusual capabilities"] = '\t- ' + '\n\t- '.join(unfiltered)
 
         try:
             server.quit()
