@@ -23,8 +23,13 @@
 # shady behaviour could be observed on one-shot attempts to perform SMTP user 
 # enumeration, however it is unlikely that single commands would trigger SIEM use cases.
 #
+# TODO:
+#   - introduce some fuzzy logic for Exchange version recognition
+#   - Extend SMTP User Enumeration validation capabilities
+#
 # Requirements:
 #   - pyOpenSSL
+#   - packaging
 #
 # Author:
 #   Mariusz B. / mgeeky, '19, <mb@binary-offensive.com>
@@ -39,21 +44,24 @@ import struct
 import string
 import socket
 import smtplib
+import urllib3
 import requests
 import argparse
 import threading
 import collections
-import urllib3
+import packaging.version
 from urllib.parse import urlparse
 import OpenSSL.crypto as crypto
 
-VERSION = '0.1'
+VERSION = '0.2'
 
 config = {
     'debug' : False,
     'verbose' : False,
     'timeout' : 6.0,
 }
+
+found_dns_domain = ''
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -207,7 +215,7 @@ class NtlmParser:
                 try:
                     self.string = self.raw.decode('utf-16')
                 except:
-                    self.string = ''.join(filter(lambda x: str(x) != '\0', self.raw))
+                    self.string = ''.join(filter(lambda x: str(x) != str('\0'), self.raw))
                 self.utf16 = True
             else:
                 self.string = self.raw
@@ -346,6 +354,259 @@ class ExchangeRecon:
         'Accept-Encoding': 'gzip, deflate',
         #'Connection': 'close',
     }
+
+    leakedInternalIp = 'Leaked Internal IP address'
+    leakedInternalDomainNTLM = 'Leaked Internal Domain name in NTLM challenge packet'
+    iisVersion = 'IIS Version'
+    aspVersion = 'ASP.Net Version'
+    unusualHeaders = 'Unusual HTTP headers observed'
+    owaVersionInHttpHeader = 'Outlook Web App version HTTP header'
+    legacyMailCapabilities = "Exchange supports legacy SMTP and returned following banner/unusual capabilities"
+
+    usualHeaders = {
+        'accept-ranges',
+        'access-control-allow-origin',
+        'age',
+        'cache',
+        'cache-control',
+        'connection',
+        'content-encoding',
+        'content-length',
+        'content-security-policy',
+        'content-type',
+        'cookie',
+        'date',
+        'etag',
+        'expires',
+        'last-modified',
+        'link',
+        'location',
+        'pragma',
+        'referrer-policy',
+        'request-id',
+        'server',
+        'set-cookie',
+        'status',
+        'strict-transport-security',
+        'vary',
+        'via',
+        'www-authenticate',
+        'x-aspnet-version',
+        'x-content-type-options',
+        'x-frame-options',
+        'x-powered-by',
+        'x-xss-protection',
+    }
+
+    htmlregexes = {
+        'Outlook Web App version leaked in OWA HTML source' : r'/owa/(?:auth/)?((?:\d+\.)+\d+)/(?:themes|scripts)/'
+    }
+
+    class Verstring(object):
+        def __init__(self, name, date, *versions):
+            self.name = name
+            self.date = date
+            self.version = versions[0].split(' ')[0]
+
+        def __eq__(self, other):
+            if isinstance(other, Verstring):
+                return packaging.version.parse(self.version) == packaging.version.parse(other.version) \
+                and self.name == other.name
+            elif isinstance(other, str):
+                return packaging.version.parse(self.version) == packaging.version.parse(other)
+
+        def __lt__(self, other):
+            return packaging.version.parse(self.version) < packaging.version.parse(other.version)
+
+        def __str__(self):
+            return f'{self.name}; {self.date}; {self.version}'
+
+    # https://docs.microsoft.com/en-us/exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
+    exchangeVersions = (
+        Verstring('Exchange Server 4.0 SP5 ', 'May 5, 1998', '4.0.996'),
+        Verstring('Exchange Server 4.0 SP4 ', 'March 28, 1997', '4.0.995'),
+        Verstring('Exchange Server 4.0 SP3 ', 'October 29, 1996', '4.0.994'),
+        Verstring('Exchange Server 4.0 SP2 ', 'July 19, 1996', '4.0.993'),
+        Verstring('Exchange Server 4.0 SP1 ', 'May 1, 1996', '4.0.838'),
+        Verstring('Exchange Server 4.0 Standard Edition', 'June 11, 1996', '4.0.837'),
+        Verstring('Exchange Server 5.0 SP2 ', 'February 19, 1998', '5.0.1460'),
+        Verstring('Exchange Server 5.0 SP1 ', 'June 18, 1997', '5.0.1458'),
+        Verstring('Exchange Server 5.0 ', 'May 23, 1997', '5.0.1457'),
+        Verstring('Exchange Server version 5.5 SP4 ', 'November 1, 2000', '5.5.2653'),
+        Verstring('Exchange Server version 5.5 SP3 ', 'September 9, 1999', '5.5.2650'),
+        Verstring('Exchange Server version 5.5 SP2 ', 'December 23, 1998', '5.5.2448'),
+        Verstring('Exchange Server version 5.5 SP1 ', 'August 5, 1998', '5.5.2232'),
+        Verstring('Exchange Server version 5.5 ', 'February 3, 1998', '5.5.1960'),
+        Verstring('Exchange 2000 Server post-SP3', 'August 2008', '6.0.6620.7'),
+        Verstring('Exchange 2000 Server post-SP3', 'March 2008', '6.0.6620.5'),
+        Verstring('Exchange 2000 Server post-SP3', 'August 2004', '6.0.6603'),
+        Verstring('Exchange 2000 Server post-SP3', 'April 2004', '6.0.6556'),
+        Verstring('Exchange 2000 Server post-SP3', 'September 2003', '6.0.6487'),
+        Verstring('Exchange 2000 Server SP3', 'July 18, 2002', '6.0.6249'),
+        Verstring('Exchange 2000 Server SP2', 'November 29, 2001', '6.0.5762'),
+        Verstring('Exchange 2000 Server SP1', 'June 21, 2001', '6.0.4712'),
+        Verstring('Exchange 2000 Server', 'November 29, 2000', '6.0.4417'),
+        Verstring('Exchange Server 2003 post-SP2', 'August 2008', '6.5.7654.4'),
+        Verstring('Exchange Server 2003 post-SP2', 'March 2008', '6.5.7653.33'),
+        Verstring('Exchange Server 2003 SP2', 'October 19, 2005', '6.5.7683'),
+        Verstring('Exchange Server 2003 SP1', 'May25, 2004', '6.5.7226'),
+        Verstring('Exchange Server 2003', 'September 28, 2003', '6.5.6944'),
+        Verstring('Update Rollup 5 for Exchange Server 2007 SP2', 'December 7, 2010', '8.2.305.3', '8.02.0305.003'),
+        Verstring('Update Rollup 4 for Exchange Server 2007 SP2', 'April 9, 2010', '8.2.254.0', '8.02.0254.000'),
+        Verstring('Update Rollup 3 for Exchange Server 2007 SP2', 'March 17, 2010', '8.2.247.2', '8.02.0247.002'),
+        Verstring('Update Rollup 2 for Exchange Server 2007 SP2', 'January 22, 2010', '8.2.234.1', '8.02.0234.001'),
+        Verstring('Update Rollup 1 for Exchange Server 2007 SP2', 'November 19, 2009', '8.2.217.3', '8.02.0217.003'),
+        Verstring('Exchange Server 2007 SP2', 'August 24, 2009', '8.2.176.2', '8.02.0176.002'),
+        Verstring('Update Rollup 10 for Exchange Server 2007 SP1', 'April 13, 2010', '8.1.436.0', '8.01.0436.000'),
+        Verstring('Update Rollup 9 for Exchange Server 2007 SP1', 'July 16, 2009', '8.1.393.1', '8.01.0393.001'),
+        Verstring('Update Rollup 8 for Exchange Server 2007 SP1', 'May 19, 2009', '8.1.375.2', '8.01.0375.002'),
+        Verstring('Update Rollup 7 for Exchange Server 2007 SP1', 'March 18, 2009', '8.1.359.2', '8.01.0359.002'),
+        Verstring('Update Rollup 6 for Exchange Server 2007 SP1', 'February 10, 2009', '8.1.340.1', '8.01.0340.001'),
+        Verstring('Update Rollup 5 for Exchange Server 2007 SP1', 'November 20, 2008', '8.1.336.1', '8.01.0336.01'),
+        Verstring('Update Rollup 4 for Exchange Server 2007 SP1', 'October 7, 2008', '8.1.311.3', '8.01.0311.003'),
+        Verstring('Update Rollup 3 for Exchange Server 2007 SP1', 'July 8, 2008', '8.1.291.2', '8.01.0291.002'),
+        Verstring('Update Rollup 2 for Exchange Server 2007 SP1', 'May 9, 2008', '8.1.278.2', '8.01.0278.002'),
+        Verstring('Update Rollup 1 for Exchange Server 2007 SP1', 'February 28, 2008', '8.1.263.1', '8.01.0263.001'),
+        Verstring('Exchange Server 2007 SP1', 'November 29, 2007', '8.1.240.6', '8.01.0240.006'),
+        Verstring('Update Rollup 7 for Exchange Server 2007', 'July 8, 2008', '8.0.813.0', '8.00.0813.000'),
+        Verstring('Update Rollup 6 for Exchange Server 2007', 'February 21, 2008', '8.0.783.2', '8.00.0783.002'),
+        Verstring('Update Rollup 5 for Exchange Server 2007', 'October 25, 2007', '8.0.754.0', '8.00.0754.000'),
+        Verstring('Update Rollup 4 for Exchange Server 2007', 'August 23, 2007', '8.0.744.0', '8.00.0744.000'),
+        Verstring('Update Rollup 3 for Exchange Server 2007', 'June 28, 2007', '8.0.730.1', '8.00.0730.001'),
+        Verstring('Update Rollup 2 for Exchange Server 2007', 'May 8, 2007', '8.0.711.2', '8.00.0711.002'),
+        Verstring('Update Rollup 1 for Exchange Server 2007', 'April 17, 2007', '8.0.708.3', '8.00.0708.003'),
+        Verstring('Exchange Server 2007 RTM', 'March 8, 2007', '8.0.685.25  8.00.0685.025'),
+        Verstring('Update Rollup 23 for Exchange Server 2007 SP3', 'March 21, 2017', '8.3.517.0', '8.03.0517.000'),
+        Verstring('Update Rollup 22 for Exchange Server 2007 SP3', 'December 13, 2016', '8.3.502.0', '8.03.0502.000'),
+        Verstring('Update Rollup 21 for Exchange Server 2007 SP3', 'September 20, 2016', '8.3.485.1', '8.03.0485.001'),
+        Verstring('Update Rollup 20 for Exchange Server 2007 SP3', 'June 21, 2016', '8.3.468.0', '8.03.0468.000'),
+        Verstring('Update Rollup 19 forExchange Server 2007 SP3', 'March 15, 2016', '8.3.459.0', '8.03.0459.000'),
+        Verstring('Update Rollup 18 forExchange Server 2007 SP3', 'December, 2015', '8.3.445.0', '8.03.0445.000'),
+        Verstring('Update Rollup 17 forExchange Server 2007 SP3', 'June 17, 2015', '8.3.417.1', '8.03.0417.001'),
+        Verstring('Update Rollup 16 for Exchange Server 2007 SP3', 'March 17, 2015', '8.3.406.0', '8.03.0406.000'),
+        Verstring('Update Rollup 15 for Exchange Server 2007 SP3', 'December 9, 2014', '8.3.389.2', '8.03.0389.002'),
+        Verstring('Update Rollup 14 for Exchange Server 2007 SP3', 'August 26, 2014', '8.3.379.2', '8.03.0379.002'),
+        Verstring('Update Rollup 13 for Exchange Server 2007 SP3', 'February 24, 2014', '8.3.348.2', '8.03.0348.002'),
+        Verstring('Update Rollup 12 for Exchange Server 2007 SP3', 'December 9, 2013', '8.3.342.4', '8.03.0342.004'),
+        Verstring('Update Rollup 11 for Exchange Server 2007 SP3', 'August 13, 2013', '8.3.327.1', '8.03.0327.001'),
+        Verstring('Update Rollup 10 for Exchange Server 2007 SP3', 'February 11, 2013', '8.3.298.3', '8.03.0298.003'),
+        Verstring('Update Rollup 9 for Exchange Server 2007 SP3', 'December 10, 2012', '8.3.297.2', '8.03.0297.002'),
+        Verstring('Update Rollup 8-v3 for Exchange Server 2007 SP3 ', 'November 13, 2012', '8.3.279.6', '8.03.0279.006'),
+        Verstring('Update Rollup 8-v2 for Exchange Server 2007 SP3 ', 'October 9, 2012', '8.3.279.5', '8.03.0279.005'),
+        Verstring('Update Rollup 8 for Exchange Server 2007 SP3', 'August 13, 2012', '8.3.279.3', '8.03.0279.003'),
+        Verstring('Update Rollup 7 for Exchange Server 2007 SP3', 'April 16, 2012', '8.3.264.0', '8.03.0264.000'),
+        Verstring('Update Rollup 6 for Exchange Server 2007 SP3', 'January 26, 2012', '8.3.245.2', '8.03.0245.002'),
+        Verstring('Update Rollup 5 for Exchange Server 2007 SP3', 'September 21, 2011', '8.3.213.1', '8.03.0213.001'),
+        Verstring('Update Rollup 4 for Exchange Server 2007 SP3', 'May 28, 2011', '8.3.192.1', '8.03.0192.001'),
+        Verstring('Update Rollup 3-v2 for Exchange Server 2007 SP3 ', 'March 30, 2011', '8.3.159.2', '8.03.0159.002'),
+        Verstring('Update Rollup 2 for Exchange Server 2007 SP3', 'December 10, 2010', '8.3.137.3', '8.03.0137.003'),
+        Verstring('Update Rollup 1 for Exchange Server 2007 SP3', 'September 9, 2010', '8.3.106.2', '8.03.0106.002'),
+        Verstring('Exchange Server 2007 SP3', 'June 7, 2010', '8.3.83.6', '8.03.0083.006'),
+        Verstring('Update Rollup 8 for Exchange Server 2010 SP2', 'December 9, 2013', '14.2.390.3  14.02.0390.003'),
+        Verstring('Update Rollup 7 for Exchange Server 2010 SP2', 'August 3, 2013', '14.2.375.0  14.02.0375.000'),
+        Verstring('Update Rollup 6 Exchange Server 2010 SP2', 'February 12, 2013', '14.2.342.3  14.02.0342.003'),
+        Verstring('Update Rollup 5 v2 for Exchange Server 2010 SP2 ', 'December 10, 2012', '14.2.328.10 14.02.0328.010'),
+        Verstring('Update Rollup 5 for Exchange Server 2010 SP2', 'November 13, 2012', '14.3.328.5  14.03.0328.005'),
+        Verstring('Update Rollup 4 v2 for Exchange Server 2010 SP2 ', 'October 9, 2012', '14.2.318.4  14.02.0318.004'),
+        Verstring('Update Rollup 4 for Exchange Server 2010 SP2', 'August 13, 2012', '14.2.318.2  14.02.0318.002'),
+        Verstring('Update Rollup 3 for Exchange Server 2010 SP2', 'May 29, 2012', '14.2.309.2  14.02.0309.002'),
+        Verstring('Update Rollup 2 for Exchange Server 2010 SP2', 'April 16, 2012', '14.2.298.4  14.02.0298.004'),
+        Verstring('Update Rollup 1 for Exchange Server 2010 SP2', 'February 13, 2012', '14.2.283.3  14.02.0283.003'),
+        Verstring('Exchange Server 2010 SP2', 'December 4, 2011', '14.2.247.5  14.02.0247.005'),
+        Verstring('Update Rollup 8 for Exchange Server 2010 SP1', 'December 10, 2012', '14.1.438.0  14.01.0438.000'),
+        Verstring('Update Rollup 7 v3 for Exchange Server 2010 SP1 ', 'November 13, 2012', '14.1.421.3  14.01.0421.003'),
+        Verstring('Update Rollup 7 v2 for Exchange Server 2010 SP1 ', 'October 10, 2012', '14.1.421.2  14.01.0421.002'),
+        Verstring('Update Rollup 7 for Exchange Server 2010 SP1', 'August 8, 2012', '14.1.421.0  14.01.0421.000'),
+        Verstring('Update Rollup 6 for Exchange Server 2010 SP1', 'October 27, 2011', '14.1.355.2  14.01.0355.002'),
+        Verstring('Update Rollup 5 for Exchange Server 2010 SP1', 'August 23, 2011', '14.1.339.1  14.01.0339.001'),
+        Verstring('Update Rollup 4 for Exchange Server 2010 SP1', 'July 27, 2011', '14.1.323.6  14.01.0323.006'),
+        Verstring('Update Rollup 3 for Exchange Server 2010 SP1', 'April 6, 2011', '14.1.289.7  14.01.0289.007'),
+        Verstring('Update Rollup 2 for Exchange Server 2010 SP1', 'December 9, 2010', '14.1.270.1  14.01.0270.001'),
+        Verstring('Update Rollup 1 for Exchange Server 2010 SP1', 'October 4, 2010', '14.1.255.2  14.01.0255.002'),
+        Verstring('Exchange Server 2010 SP1', 'August 23, 2010', '14.1.218.15 14.01.0218.015'),
+        Verstring('Update Rollup 5 for Exchange Server 2010', 'December 13, 2010', '14.0.726.0  14.00.0726.000'),
+        Verstring('Update Rollup 4 for Exchange Server 2010', 'June 10, 2010', '14.0.702.1  14.00.0702.001'),
+        Verstring('Update Rollup 3 for Exchange Server 2010', 'April 13, 2010', '14.0.694.0  14.00.0694.000'),
+        Verstring('Update Rollup 2 for Exchange Server 2010', 'March 4, 2010', '14.0.689.0  14.00.0689.000'),
+        Verstring('Update Rollup 1 for Exchange Server 2010', 'December 9, 2009', '14.0.682.1  14.00.0682.001'),
+        Verstring('Exchange Server 2010 RTM', 'November 9, 2009', '14.0.639.21 14.00.0639.021'),
+        Verstring('Update Rollup 29 for Exchange Server 2010 SP3', 'July 9, 2019', '14.3.468.0  14.03.0468.000'),
+        Verstring('Update Rollup 28 for Exchange Server 2010 SP3', 'June 7, 2019', '14.3.461.1  14.03.0461.001'),
+        Verstring('Update Rollup 27 for Exchange Server 2010 SP3', 'April 9, 2019', '14.3.452.0  14.03.0452.000'),
+        Verstring('Update Rollup 26 for Exchange Server 2010 SP3', 'February 12, 2019', '14.3.442.0  14.03.0442.000'),
+        Verstring('Update Rollup 25 for Exchange Server 2010 SP3', 'January 8, 2019', '14.3.435.0  14.03.0435.000'),
+        Verstring('Update Rollup 24 for Exchange Server 2010 SP3', 'September 5, 2018', '14.3.419.0  14.03.0419.000'),
+        Verstring('Update Rollup 23 for Exchange Server 2010 SP3', 'August 13, 2018', '14.3.417.1  14.03.0417.001'),
+        Verstring('Update Rollup 22 for Exchange Server 2010 SP3', 'June 19, 2018', '14.3.411.0  14.03.0411.000'),
+        Verstring('Update Rollup 21 for Exchange Server 2010 SP3', 'May 7, 2018', '14.3.399.2  14.03.0399.002'),
+        Verstring('Update Rollup 20 for Exchange Server 2010 SP3', 'March 5, 2018', '14.3.389.1  14.03.0389.001'),
+        Verstring('Update Rollup 19 for Exchange Server 2010 SP3', 'December 19, 2017', '14.3.382.0  14.03.0382.000'),
+        Verstring('Update Rollup 18 for Exchange Server 2010 SP3', 'July 11, 2017', '14.3.361.1  14.03.0361.001'),
+        Verstring('Update Rollup 17 for Exchange Server 2010 SP3', 'March 21, 2017', '14.3.352.0  14.03.0352.000'),
+        Verstring('Update Rollup 16 for Exchange Server 2010 SP3', 'December 13, 2016', '14.3.336.0  14.03.0336.000'),
+        Verstring('Update Rollup 15 for Exchange Server 2010 SP3', 'September 20, 2016', '14.3.319.2  14.03.0319.002'),
+        Verstring('Update Rollup 14 for Exchange Server 2010 SP3', 'June 21, 2016', '14.3.301.0  14.03.0301.000'),
+        Verstring('Update Rollup 13 for Exchange Server 2010 SP3', 'March 15, 2016', '14.3.294.0  14.03.0294.000'),
+        Verstring('Update Rollup 12 for Exchange Server 2010 SP3', 'December 15, 2015', '14.3.279.2  14.03.0279.002'),
+        Verstring('Update Rollup 11 for Exchange Server 2010 SP3', 'September 15, 2015', '14.3.266.2  14.03.0266.002'),
+        Verstring('Update Rollup 10 for Exchange Server 2010 SP3', 'June 17, 2015', '14.3.248.2  14.03.0248.002'),
+        Verstring('Update Rollup 9 for Exchange Server 2010 SP3', 'March 17, 2015', '14.3.235.1  14.03.0235.001'),
+        Verstring('Update Rollup 8 v2 for Exchange Server 2010 SP3 ', 'December 12, 2014', '14.3.224.2  14.03.0224.002'),
+        Verstring('Update Rollup 8 v1 for Exchange Server 2010 SP3 (recalled)  ', 'December 9, 2014', '14.3.224.1  14.03.0224.001'),
+        Verstring('Update Rollup 7 for Exchange Server 2010 SP3', 'August 26, 2014', '14.3.210.2  14.03.0210.002'),
+        Verstring('Update Rollup 6 for Exchange Server 2010 SP3', 'May 27, 2014', '14.3.195.1  14.03.0195.001'),
+        Verstring('Update Rollup 5 for Exchange Server 2010 SP3', 'February 24, 2014', '14.3.181.6  14.03.0181.006'),
+        Verstring('Update Rollup 4 for Exchange Server 2010 SP3', 'December 9, 2013', '14.3.174.1  14.03.0174.001'),
+        Verstring('Update Rollup 3 for Exchange Server 2010 SP3', 'November 25, 2013', '14.3.169.1  14.03.0169.001'),
+        Verstring('Update Rollup 2 for Exchange Server 2010 SP3', 'August 8, 2013', '14.3.158.1  14.03.0158.001'),
+        Verstring('Update Rollup 1 for Exchange Server 2010 SP3', 'May 29, 2013', '14.3.146.0  14.03.0146.000'),
+        Verstring('Exchange Server 2010 SP3', 'February 12, 2013', '14.3.123.4  14.03.0123.004'),
+        Verstring('Exchange Server 2013 CU23', 'June 18, 2019', '15.0.1497.2 15.00.1497.002'),
+        Verstring('Exchange Server 2013 CU22', 'February 12, 2019', '15.0.1473.3 15.00.1473.003'),
+        Verstring('Exchange Server 2013 CU21', 'June 19, 2018', '15.0.1395.4 15.00.1395.004'),
+        Verstring('Exchange Server 2013 CU20', 'March 20, 2018', '15.0.1367.3 15.00.1367.003'),
+        Verstring('Exchange Server 2013 CU19', 'December 19, 2017', '15.0.1365.1 15.00.1365.001'),
+        Verstring('Exchange Server 2013 CU18', 'September 19, 2017', '15.0.1347.2 15.00.1347.002'),
+        Verstring('Exchange Server 2013 CU17', 'June 27, 2017', '15.0.1320.4 15.00.1320.004'),
+        Verstring('Exchange Server 2013 CU16', 'March 21, 2017', '15.0.1293.2 15.00.1293.002'),
+        Verstring('Exchange Server 2013 CU15', 'December 13, 2016', '15.0.1263.5 15.00.1263.005'),
+        Verstring('Exchange Server 2013 CU14', 'September 20, 2016', '15.0.1236.3 15.00.1236.003'),
+        Verstring('Exchange Server 2013 CU13', 'June 21, 2016', '15.0.1210.3 15.00.1210.003'),
+        Verstring('Exchange Server 2013 CU12', 'March 15, 2016', '15.0.1178.4 15.00.1178.004'),
+        Verstring('Exchange Server 2013 CU11', 'December 15, 2015', '15.0.1156.6 15.00.1156.006'),
+        Verstring('Exchange Server 2013 CU10', 'September 15, 2015', '15.0.1130.7 15.00.1130.007'),
+        Verstring('Exchange Server 2013 CU9', 'June 17, 2015', '15.0.1104.5 15.00.1104.005'),
+        Verstring('Exchange Server 2013 CU8', 'March 17, 2015', '15.0.1076.9 15.00.1076.009'),
+        Verstring('Exchange Server 2013 CU7', 'December 9, 2014', '15.0.1044.25', '15.00.1044.025'),
+        Verstring('Exchange Server 2013 CU6', 'August 26, 2014', '15.0.995.29 15.00.0995.029'),
+        Verstring('Exchange Server 2013 CU5', 'May 27, 2014', '15.0.913.22 15.00.0913.022'),
+        Verstring('Exchange Server 2013 SP1', 'February 25, 2014', '15.0.847.32 15.00.0847.032'),
+        Verstring('Exchange Server 2013 CU3', 'November 25, 2013', '15.0.775.38 15.00.0775.038'),
+        Verstring('Exchange Server 2013 CU2', 'July 9, 2013', '15.0.712.24 15.00.0712.024'),
+        Verstring('Exchange Server 2013 CU1', 'April 2, 2013', '15.0.620.29 15.00.0620.029'),
+        Verstring('Exchange Server 2013 RTM', 'December 3, 2012', '15.0.516.32 15.00.0516.03'),
+        Verstring('Exchange Server 2016 CU14', 'September 17, 2019', '15.1.1847.3 15.01.1847.003'),
+        Verstring('Exchange Server 2016 CU13', 'June 18, 2019', '15.1.1779.2 15.01.1779.002'),
+        Verstring('Exchange Server 2016 CU12', 'February 12, 2019', '15.1.1713.5 15.01.1713.005'),
+        Verstring('Exchange Server 2016 CU11', 'October 16, 2018', '15.1.1591.10', '15.01.1591.010'),
+        Verstring('Exchange Server 2016 CU10', 'June 19, 2018', '15.1.1531.3 15.01.1531.003'),
+        Verstring('Exchange Server 2016 CU9', 'March 20, 2018', '15.1.1466.3 15.01.1466.003'),
+        Verstring('Exchange Server 2016 CU8', 'December 19, 2017', '15.1.1415.2 15.01.1415.002'),
+        Verstring('Exchange Server 2016 CU7', 'September 19, 2017', '15.1.1261.35', '15.01.1261.035'),
+        Verstring('Exchange Server 2016 CU6', 'June 27, 2017', '15.1.1034.26', '15.01.1034.026'),
+        Verstring('Exchange Server 2016 CU5', 'March 21, 2017', '15.1.845.34 15.01.0845.034'),
+        Verstring('Exchange Server 2016 CU4', 'December 13, 2016', '15.1.669.32 15.01.0669.032'),
+        Verstring('Exchange Server 2016 CU3', 'September 20, 2016', '15.1.544.27 15.01.0544.027'),
+        Verstring('Exchange Server 2016 CU2', 'June 21, 2016', '15.1.466.34 15.01.0466.034'),
+        Verstring('Exchange Server 2016 CU1', 'March 15, 2016', '15.1.396.30 15.01.0396.030'),
+        Verstring('Exchange Server 2016 RTM', 'October 1, 2015', '15.1.225.42 15.01.0225.042'),
+        Verstring('Exchange Server 2016 Preview', 'July 22, 2015', '15.1.225.16 15.01.0225.016'),
+        Verstring('Exchange Server 2019 CU3', 'September 17, 2019', '15.2.464.5  15.02.0464.005'),
+        Verstring('Exchange Server 2019 CU2', 'June 18, 2019', '15.2.397.3  15.02.0397.003'),
+        Verstring('Exchange Server 2019 CU1', 'February 12, 2019', '15.2.330.5  15.02.0330.005'),
+        Verstring('Exchange Server 2019 RTM', 'October 22, 2018', '15.2.221.12 15.02.0221.012'),
+        Verstring('Exchange Server 2019 Preview', 'July 24, 2018', '15.2.196.0  15.02.0196.000')
+    )
 
     def __init__(self, hostname):
         self.socket = None
@@ -555,7 +816,7 @@ class ExchangeRecon:
             num += 1
             pos = line.find(':')
 
-            name = line[:pos].lower()
+            name = line[:pos]
             val = line[pos+1:].strip()
             
             if name in resp['headers'].keys():
@@ -583,17 +844,10 @@ class ExchangeRecon:
         return resp
 
     def inspect(self, resp):
+        global found_dns_domain
+
         if resp['code'] == 0:
             return
-
-        leakedInternalIp = 'Leaked Internal IP address'
-        leakedInternalDomainNTLM = 'Leaked Internal Domain name in NTLM challenge packet'
-        iisVersion = 'IIS Version'
-        aspVersion = 'ASP.Net Version'
-
-        regexes = {
-            'Outlook Web App version leaked in OWA HTML source' : r'/owa/(?:auth/)?((?:\d+\.)+\d+)/(?:themes|scripts)/'
-        }
 
         for k, v in resp['headers'].items():
             vals = []
@@ -604,15 +858,21 @@ class ExchangeRecon:
             else:
                 vals.extend(v)
             lowervals = [x.lower() for x in vals]
+            kl = k.lower()
 
-            if k == 'www-authenticate':
+            if kl == 'x-owa-version':
+                ver = ExchangeRecon.parseVersion(v)
+                if ver:
+                    self.results[ExchangeRecon.owaVersionInHttpHeader] += '\n\t({})'.format(str(ver))
+
+            elif kl == 'www-authenticate':
                 realms = list(filter(lambda x: 'basic realm="' in x, lowervals))
                 if len(realms):
                     Logger.dbg(f"Got basic realm.: {str(realms)}")
 
                     m = re.search(r'([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})', realms[0])
                     if m:
-                        self.results[leakedInternalIp] = m.group(1)
+                        self.results[ExchangeRecon.leakedInternalIp] = m.group(1)
 
                 negotiates = list(filter(lambda x: 'Negotiate ' in x, vals))
                 if len(negotiates):
@@ -622,232 +882,79 @@ class ExchangeRecon:
                     Logger.dbg(f"Parsed NTLM Message:\n{str(parsed)}")
 
                     foo = ''
-                    for k, v in parsed.items():
-                        if isinstance(v, str):
+                    for k2, v2 in parsed.items():
+                        if isinstance(v2, str):
                             try:
-                                foo += f'\t{k}:\t{v}\n'
+                                foo += f'\t{k2}:\n\t\t{v2}\n'
                             except: pass
-                        elif isinstance(v, dict):
-                            foo += f'\t{k}:\n'
-                            for k2, v2 in v.items():
+                        elif isinstance(v2, dict):
+                            foo += f'\t{k2}:\n'
+                            for k3, v3 in v2.items():
+                                if k3 == 'DNS domain name':
+                                    found_dns_domain = v3
                                 try:
-                                    foo += f"\t\t{k2: <18}:\t{v2}\n"
+                                    foo += f"\t\t{k3: <18}:\t{v3}\n"
                                 except: pass
-                        elif isinstance(v, list):
+                        elif isinstance(v2, list):
                             try:
-                                foo += f'\t{k}:\t- ' + '\n\t\t- '.join(v) + '\n'
+                                foo += f'\t{k2}:\n\t\t- ' + '\n\t\t- '.join(v2) + '\n'
                             except: pass
-                    self.results[leakedInternalDomainNTLM] = foo[1:]
+                    self.results[ExchangeRecon.leakedInternalDomainNTLM] = foo[1:]
 
-            if k == 'server':
-                self.results[iisVersion] = vals[0]
+            if kl == 'server':
+                self.results[ExchangeRecon.iisVersion] = vals[0]
 
-            if k == 'x-aspnet-version':
-                self.results[aspVersion] = vals[0]
+            if kl == 'x-aspnet-version':
+                self.results[ExchangeRecon.aspVersion] = vals[0]
 
-        for name, rex in regexes.items():
+            if kl not in ExchangeRecon.usualHeaders:
+                l =  f'{k}: {v}'
+                if ExchangeRecon.unusualHeaders not in self.results.keys() or \
+                    l not in self.results[ExchangeRecon.unusualHeaders]:
+                    Logger.info("Came across unusual HTTP header: " + l)
+                    if ExchangeRecon.unusualHeaders not in self.results:
+                        self.results[ExchangeRecon.unusualHeaders] = set()
+                    self.results[ExchangeRecon.unusualHeaders].add(l)
+
+        for name, rex in ExchangeRecon.htmlregexes.items():
             m = re.search(rex, resp['data'])
             if m:
                 self.results[name] = m.group(1)
                 if 'Outlook Web App version leaked' in name:
                     ver = ExchangeRecon.parseVersion(m.group(1))
                     if ver:
-                        self.results[name] += '\n\t({})'.format('; '.join(ver))
+                        self.results[name] += '\n\t({})'.format(str(ver))
 
     @staticmethod
-    def parseVersion(verstring):
+    def parseVersion(lookup):
 
-        # https://docs.microsoft.com/en-us/exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
-        versions = (
-            ('Exchange Server 4.0 SP5 ', 'May 5, 1998', '4.0.996'),
-            ('Exchange Server 4.0 SP4 ', 'March 28, 1997', '4.0.995'),
-            ('Exchange Server 4.0 SP3 ', 'October 29, 1996', '4.0.994'),
-            ('Exchange Server 4.0 SP2 ', 'July 19, 1996', '4.0.993'),
-            ('Exchange Server 4.0 SP1 ', 'May 1, 1996', '4.0.838'),
-            ('Exchange Server 4.0 Standard Edition', 'June 11, 1996', '4.0.837'),
-            ('Exchange Server 5.0 SP2 ', 'February 19, 1998', '5.0.1460'),
-            ('Exchange Server 5.0 SP1 ', 'June 18, 1997', '5.0.1458'),
-            ('Exchange Server 5.0 ', 'May 23, 1997', '5.0.1457'),
-            ('Exchange Server version 5.5 SP4 ', 'November 1, 2000', '5.5.2653'),
-            ('Exchange Server version 5.5 SP3 ', 'September 9, 1999', '5.5.2650'),
-            ('Exchange Server version 5.5 SP2 ', 'December 23, 1998', '5.5.2448'),
-            ('Exchange Server version 5.5 SP1 ', 'August 5, 1998', '5.5.2232'),
-            ('Exchange Server version 5.5 ', 'February 3, 1998', '5.5.1960'),
-            ('Exchange 2000 Server post-SP3', 'August 2008', '6.0.6620.7'),
-            ('Exchange 2000 Server post-SP3', 'March 2008', '6.0.6620.5'),
-            ('Exchange 2000 Server post-SP3', 'August 2004', '6.0.6603'),
-            ('Exchange 2000 Server post-SP3', 'April 2004', '6.0.6556'),
-            ('Exchange 2000 Server post-SP3', 'September 2003', '6.0.6487'),
-            ('Exchange 2000 Server SP3', 'July 18, 2002', '6.0.6249'),
-            ('Exchange 2000 Server SP2', 'November 29, 2001', '6.0.5762'),
-            ('Exchange 2000 Server SP1', 'June 21, 2001', '6.0.4712'),
-            ('Exchange 2000 Server', 'November 29, 2000', '6.0.4417'),
-            ('Exchange Server 2003 post-SP2', 'August 2008', '6.5.7654.4'),
-            ('Exchange Server 2003 post-SP2', 'March 2008', '6.5.7653.33'),
-            ('Exchange Server 2003 SP2', 'October 19, 2005', '6.5.7683'),
-            ('Exchange Server 2003 SP1', 'May25, 2004', '6.5.7226'),
-            ('Exchange Server 2003', 'September 28, 2003', '6.5.6944'),
-            ('Update Rollup 5 for Exchange Server 2007 SP2', 'December 7, 2010', '8.2.305.3', '8.02.0305.003'),
-            ('Update Rollup 4 for Exchange Server 2007 SP2', 'April 9, 2010', '8.2.254.0', '8.02.0254.000'),
-            ('Update Rollup 3 for Exchange Server 2007 SP2', 'March 17, 2010', '8.2.247.2', '8.02.0247.002'),
-            ('Update Rollup 2 for Exchange Server 2007 SP2', 'January 22, 2010', '8.2.234.1', '8.02.0234.001'),
-            ('Update Rollup 1 for Exchange Server 2007 SP2', 'November 19, 2009', '8.2.217.3', '8.02.0217.003'),
-            ('Exchange Server 2007 SP2', 'August 24, 2009', '8.2.176.2', '8.02.0176.002'),
-            ('Update Rollup 10 for Exchange Server 2007 SP1', 'April 13, 2010', '8.1.436.0', '8.01.0436.000'),
-            ('Update Rollup 9 for Exchange Server 2007 SP1', 'July 16, 2009', '8.1.393.1', '8.01.0393.001'),
-            ('Update Rollup 8 for Exchange Server 2007 SP1', 'May 19, 2009', '8.1.375.2', '8.01.0375.002'),
-            ('Update Rollup 7 for Exchange Server 2007 SP1', 'March 18, 2009', '8.1.359.2', '8.01.0359.002'),
-            ('Update Rollup 6 for Exchange Server 2007 SP1', 'February 10, 2009', '8.1.340.1', '8.01.0340.001'),
-            ('Update Rollup 5 for Exchange Server 2007 SP1', 'November 20, 2008', '8.1.336.1', '8.01.0336.01'),
-            ('Update Rollup 4 for Exchange Server 2007 SP1', 'October 7, 2008', '8.1.311.3', '8.01.0311.003'),
-            ('Update Rollup 3 for Exchange Server 2007 SP1', 'July 8, 2008', '8.1.291.2', '8.01.0291.002'),
-            ('Update Rollup 2 for Exchange Server 2007 SP1', 'May 9, 2008', '8.1.278.2', '8.01.0278.002'),
-            ('Update Rollup 1 for Exchange Server 2007 SP1', 'February 28, 2008', '8.1.263.1', '8.01.0263.001'),
-            ('Exchange Server 2007 SP1', 'November 29, 2007', '8.1.240.6', '8.01.0240.006'),
-            ('Update Rollup 7 for Exchange Server 2007', 'July 8, 2008', '8.0.813.0', '8.00.0813.000'),
-            ('Update Rollup 6 for Exchange Server 2007', 'February 21, 2008', '8.0.783.2', '8.00.0783.002'),
-            ('Update Rollup 5 for Exchange Server 2007', 'October 25, 2007', '8.0.754.0', '8.00.0754.000'),
-            ('Update Rollup 4 for Exchange Server 2007', 'August 23, 2007', '8.0.744.0', '8.00.0744.000'),
-            ('Update Rollup 3 for Exchange Server 2007', 'June 28, 2007', '8.0.730.1', '8.00.0730.001'),
-            ('Update Rollup 2 for Exchange Server 2007', 'May 8, 2007', '8.0.711.2', '8.00.0711.002'),
-            ('Update Rollup 1 for Exchange Server 2007', 'April 17, 2007', '8.0.708.3', '8.00.0708.003'),
-            ('Exchange Server 2007 RTM', 'March 8, 2007', '8.0.685.25  8.00.0685.025'),
-            ('Update Rollup 23 for Exchange Server 2007 SP3', 'March 21, 2017', '8.3.517.0', '8.03.0517.000'),
-            ('Update Rollup 22 for Exchange Server 2007 SP3', 'December 13, 2016', '8.3.502.0', '8.03.0502.000'),
-            ('Update Rollup 21 for Exchange Server 2007 SP3', 'September 20, 2016', '8.3.485.1', '8.03.0485.001'),
-            ('Update Rollup 20 for Exchange Server 2007 SP3', 'June 21, 2016', '8.3.468.0', '8.03.0468.000'),
-            ('Update Rollup 19 forExchange Server 2007 SP3', 'March 15, 2016', '8.3.459.0', '8.03.0459.000'),
-            ('Update Rollup 18 forExchange Server 2007 SP3', 'December, 2015', '8.3.445.0', '8.03.0445.000'),
-            ('Update Rollup 17 forExchange Server 2007 SP3', 'June 17, 2015', '8.3.417.1', '8.03.0417.001'),
-            ('Update Rollup 16 for Exchange Server 2007 SP3', 'March 17, 2015', '8.3.406.0', '8.03.0406.000'),
-            ('Update Rollup 15 for Exchange Server 2007 SP3', 'December 9, 2014', '8.3.389.2', '8.03.0389.002'),
-            ('Update Rollup 14 for Exchange Server 2007 SP3', 'August 26, 2014', '8.3.379.2', '8.03.0379.002'),
-            ('Update Rollup 13 for Exchange Server 2007 SP3', 'February 24, 2014', '8.3.348.2', '8.03.0348.002'),
-            ('Update Rollup 12 for Exchange Server 2007 SP3', 'December 9, 2013', '8.3.342.4', '8.03.0342.004'),
-            ('Update Rollup 11 for Exchange Server 2007 SP3', 'August 13, 2013', '8.3.327.1', '8.03.0327.001'),
-            ('Update Rollup 10 for Exchange Server 2007 SP3', 'February 11, 2013', '8.3.298.3', '8.03.0298.003'),
-            ('Update Rollup 9 for Exchange Server 2007 SP3', 'December 10, 2012', '8.3.297.2', '8.03.0297.002'),
-            ('Update Rollup 8-v3 for Exchange Server 2007 SP3 ', 'November 13, 2012', '8.3.279.6', '8.03.0279.006'),
-            ('Update Rollup 8-v2 for Exchange Server 2007 SP3 ', 'October 9, 2012', '8.3.279.5', '8.03.0279.005'),
-            ('Update Rollup 8 for Exchange Server 2007 SP3', 'August 13, 2012', '8.3.279.3', '8.03.0279.003'),
-            ('Update Rollup 7 for Exchange Server 2007 SP3', 'April 16, 2012', '8.3.264.0', '8.03.0264.000'),
-            ('Update Rollup 6 for Exchange Server 2007 SP3', 'January 26, 2012', '8.3.245.2', '8.03.0245.002'),
-            ('Update Rollup 5 for Exchange Server 2007 SP3', 'September 21, 2011', '8.3.213.1', '8.03.0213.001'),
-            ('Update Rollup 4 for Exchange Server 2007 SP3', 'May 28, 2011', '8.3.192.1', '8.03.0192.001'),
-            ('Update Rollup 3-v2 for Exchange Server 2007 SP3 ', 'March 30, 2011', '8.3.159.2', '8.03.0159.002'),
-            ('Update Rollup 2 for Exchange Server 2007 SP3', 'December 10, 2010', '8.3.137.3', '8.03.0137.003'),
-            ('Update Rollup 1 for Exchange Server 2007 SP3', 'September 9, 2010', '8.3.106.2', '8.03.0106.002'),
-            ('Exchange Server 2007 SP3', 'June 7, 2010', '8.3.83.6', '8.03.0083.006'),
-            ('Update Rollup 8 for Exchange Server 2010 SP2', 'December 9, 2013', '14.2.390.3  14.02.0390.003'),
-            ('Update Rollup 7 for Exchange Server 2010 SP2', 'August 3, 2013', '14.2.375.0  14.02.0375.000'),
-            ('Update Rollup 6 Exchange Server 2010 SP2', 'February 12, 2013', '14.2.342.3  14.02.0342.003'),
-            ('Update Rollup 5 v2 for Exchange Server 2010 SP2 ', 'December 10, 2012', '14.2.328.10 14.02.0328.010'),
-            ('Update Rollup 5 for Exchange Server 2010 SP2', 'November 13, 2012', '14.3.328.5  14.03.0328.005'),
-            ('Update Rollup 4 v2 for Exchange Server 2010 SP2 ', 'October 9, 2012', '14.2.318.4  14.02.0318.004'),
-            ('Update Rollup 4 for Exchange Server 2010 SP2', 'August 13, 2012', '14.2.318.2  14.02.0318.002'),
-            ('Update Rollup 3 for Exchange Server 2010 SP2', 'May 29, 2012', '14.2.309.2  14.02.0309.002'),
-            ('Update Rollup 2 for Exchange Server 2010 SP2', 'April 16, 2012', '14.2.298.4  14.02.0298.004'),
-            ('Update Rollup 1 for Exchange Server 2010 SP2', 'February 13, 2012', '14.2.283.3  14.02.0283.003'),
-            ('Exchange Server 2010 SP2', 'December 4, 2011', '14.2.247.5  14.02.0247.005'),
-            ('Update Rollup 8 for Exchange Server 2010 SP1', 'December 10, 2012', '14.1.438.0  14.01.0438.000'),
-            ('Update Rollup 7 v3 for Exchange Server 2010 SP1 ', 'November 13, 2012', '14.1.421.3  14.01.0421.003'),
-            ('Update Rollup 7 v2 for Exchange Server 2010 SP1 ', 'October 10, 2012', '14.1.421.2  14.01.0421.002'),
-            ('Update Rollup 7 for Exchange Server 2010 SP1', 'August 8, 2012', '14.1.421.0  14.01.0421.000'),
-            ('Update Rollup 6 for Exchange Server 2010 SP1', 'October 27, 2011', '14.1.355.2  14.01.0355.002'),
-            ('Update Rollup 5 for Exchange Server 2010 SP1', 'August 23, 2011', '14.1.339.1  14.01.0339.001'),
-            ('Update Rollup 4 for Exchange Server 2010 SP1', 'July 27, 2011', '14.1.323.6  14.01.0323.006'),
-            ('Update Rollup 3 for Exchange Server 2010 SP1', 'April 6, 2011', '14.1.289.7  14.01.0289.007'),
-            ('Update Rollup 2 for Exchange Server 2010 SP1', 'December 9, 2010', '14.1.270.1  14.01.0270.001'),
-            ('Update Rollup 1 for Exchange Server 2010 SP1', 'October 4, 2010', '14.1.255.2  14.01.0255.002'),
-            ('Exchange Server 2010 SP1', 'August 23, 2010', '14.1.218.15 14.01.0218.015'),
-            ('Update Rollup 5 for Exchange Server 2010', 'December 13, 2010', '14.0.726.0  14.00.0726.000'),
-            ('Update Rollup 4 for Exchange Server 2010', 'June 10, 2010', '14.0.702.1  14.00.0702.001'),
-            ('Update Rollup 3 for Exchange Server 2010', 'April 13, 2010', '14.0.694.0  14.00.0694.000'),
-            ('Update Rollup 2 for Exchange Server 2010', 'March 4, 2010', '14.0.689.0  14.00.0689.000'),
-            ('Update Rollup 1 for Exchange Server 2010', 'December 9, 2009', '14.0.682.1  14.00.0682.001'),
-            ('Exchange Server 2010 RTM', 'November 9, 2009', '14.0.639.21 14.00.0639.021'),
-            ('Update Rollup 29 for Exchange Server 2010 SP3', 'July 9, 2019', '14.3.468.0  14.03.0468.000'),
-            ('Update Rollup 28 for Exchange Server 2010 SP3', 'June 7, 2019', '14.3.461.1  14.03.0461.001'),
-            ('Update Rollup 27 for Exchange Server 2010 SP3', 'April 9, 2019', '14.3.452.0  14.03.0452.000'),
-            ('Update Rollup 26 for Exchange Server 2010 SP3', 'February 12, 2019', '14.3.442.0  14.03.0442.000'),
-            ('Update Rollup 25 for Exchange Server 2010 SP3', 'January 8, 2019', '14.3.435.0  14.03.0435.000'),
-            ('Update Rollup 24 for Exchange Server 2010 SP3', 'September 5, 2018', '14.3.419.0  14.03.0419.000'),
-            ('Update Rollup 23 for Exchange Server 2010 SP3', 'August 13, 2018', '14.3.417.1  14.03.0417.001'),
-            ('Update Rollup 22 for Exchange Server 2010 SP3', 'June 19, 2018', '14.3.411.0  14.03.0411.000'),
-            ('Update Rollup 21 for Exchange Server 2010 SP3', 'May 7, 2018', '14.3.399.2  14.03.0399.002'),
-            ('Update Rollup 20 for Exchange Server 2010 SP3', 'March 5, 2018', '14.3.389.1  14.03.0389.001'),
-            ('Update Rollup 19 for Exchange Server 2010 SP3', 'December 19, 2017', '14.3.382.0  14.03.0382.000'),
-            ('Update Rollup 18 for Exchange Server 2010 SP3', 'July 11, 2017', '14.3.361.1  14.03.0361.001'),
-            ('Update Rollup 17 for Exchange Server 2010 SP3', 'March 21, 2017', '14.3.352.0  14.03.0352.000'),
-            ('Update Rollup 16 for Exchange Server 2010 SP3', 'December 13, 2016', '14.3.336.0  14.03.0336.000'),
-            ('Update Rollup 15 for Exchange Server 2010 SP3', 'September 20, 2016', '14.3.319.2  14.03.0319.002'),
-            ('Update Rollup 14 for Exchange Server 2010 SP3', 'June 21, 2016', '14.3.301.0  14.03.0301.000'),
-            ('Update Rollup 13 for Exchange Server 2010 SP3', 'March 15, 2016', '14.3.294.0  14.03.0294.000'),
-            ('Update Rollup 12 for Exchange Server 2010 SP3', 'December 15, 2015', '14.3.279.2  14.03.0279.002'),
-            ('Update Rollup 11 for Exchange Server 2010 SP3', 'September 15, 2015', '14.3.266.2  14.03.0266.002'),
-            ('Update Rollup 10 for Exchange Server 2010 SP3', 'June 17, 2015', '14.3.248.2  14.03.0248.002'),
-            ('Update Rollup 9 for Exchange Server 2010 SP3', 'March 17, 2015', '14.3.235.1  14.03.0235.001'),
-            ('Update Rollup 8 v2 for Exchange Server 2010 SP3 ', 'December 12, 2014', '14.3.224.2  14.03.0224.002'),
-            ('Update Rollup 8 v1 for Exchange Server 2010 SP3 (recalled)  ', 'December 9, 2014', '14.3.224.1  14.03.0224.001'),
-            ('Update Rollup 7 for Exchange Server 2010 SP3', 'August 26, 2014', '14.3.210.2  14.03.0210.002'),
-            ('Update Rollup 6 for Exchange Server 2010 SP3', 'May 27, 2014', '14.3.195.1  14.03.0195.001'),
-            ('Update Rollup 5 for Exchange Server 2010 SP3', 'February 24, 2014', '14.3.181.6  14.03.0181.006'),
-            ('Update Rollup 4 for Exchange Server 2010 SP3', 'December 9, 2013', '14.3.174.1  14.03.0174.001'),
-            ('Update Rollup 3 for Exchange Server 2010 SP3', 'November 25, 2013', '14.3.169.1  14.03.0169.001'),
-            ('Update Rollup 2 for Exchange Server 2010 SP3', 'August 8, 2013', '14.3.158.1  14.03.0158.001'),
-            ('Update Rollup 1 for Exchange Server 2010 SP3', 'May 29, 2013', '14.3.146.0  14.03.0146.000'),
-            ('Exchange Server 2010 SP3', 'February 12, 2013', '14.3.123.4  14.03.0123.004'),
-            ('Exchange Server 2013 CU23', 'June 18, 2019', '15.0.1497.2 15.00.1497.002'),
-            ('Exchange Server 2013 CU22', 'February 12, 2019', '15.0.1473.3 15.00.1473.003'),
-            ('Exchange Server 2013 CU21', 'June 19, 2018', '15.0.1395.4 15.00.1395.004'),
-            ('Exchange Server 2013 CU20', 'March 20, 2018', '15.0.1367.3 15.00.1367.003'),
-            ('Exchange Server 2013 CU19', 'December 19, 2017', '15.0.1365.1 15.00.1365.001'),
-            ('Exchange Server 2013 CU18', 'September 19, 2017', '15.0.1347.2 15.00.1347.002'),
-            ('Exchange Server 2013 CU17', 'June 27, 2017', '15.0.1320.4 15.00.1320.004'),
-            ('Exchange Server 2013 CU16', 'March 21, 2017', '15.0.1293.2 15.00.1293.002'),
-            ('Exchange Server 2013 CU15', 'December 13, 2016', '15.0.1263.5 15.00.1263.005'),
-            ('Exchange Server 2013 CU14', 'September 20, 2016', '15.0.1236.3 15.00.1236.003'),
-            ('Exchange Server 2013 CU13', 'June 21, 2016', '15.0.1210.3 15.00.1210.003'),
-            ('Exchange Server 2013 CU12', 'March 15, 2016', '15.0.1178.4 15.00.1178.004'),
-            ('Exchange Server 2013 CU11', 'December 15, 2015', '15.0.1156.6 15.00.1156.006'),
-            ('Exchange Server 2013 CU10', 'September 15, 2015', '15.0.1130.7 15.00.1130.007'),
-            ('Exchange Server 2013 CU9', 'June 17, 2015', '15.0.1104.5 15.00.1104.005'),
-            ('Exchange Server 2013 CU8', 'March 17, 2015', '15.0.1076.9 15.00.1076.009'),
-            ('Exchange Server 2013 CU7', 'December 9, 2014', '15.0.1044.25', '15.00.1044.025'),
-            ('Exchange Server 2013 CU6', 'August 26, 2014', '15.0.995.29 15.00.0995.029'),
-            ('Exchange Server 2013 CU5', 'May 27, 2014', '15.0.913.22 15.00.0913.022'),
-            ('Exchange Server 2013 SP1', 'February 25, 2014', '15.0.847.32 15.00.0847.032'),
-            ('Exchange Server 2013 CU3', 'November 25, 2013', '15.0.775.38 15.00.0775.038'),
-            ('Exchange Server 2013 CU2', 'July 9, 2013', '15.0.712.24 15.00.0712.024'),
-            ('Exchange Server 2013 CU1', 'April 2, 2013', '15.0.620.29 15.00.0620.029'),
-            ('Exchange Server 2013 RTM', 'December 3, 2012', '15.0.516.32 15.00.0516.03'),
-            ('Exchange Server 2016 CU14', 'September 17, 2019', '15.1.1847.3 15.01.1847.003'),
-            ('Exchange Server 2016 CU13', 'June 18, 2019', '15.1.1779.2 15.01.1779.002'),
-            ('Exchange Server 2016 CU12', 'February 12, 2019', '15.1.1713.5 15.01.1713.005'),
-            ('Exchange Server 2016 CU11', 'October 16, 2018', '15.1.1591.10', '15.01.1591.010'),
-            ('Exchange Server 2016 CU10', 'June 19, 2018', '15.1.1531.3 15.01.1531.003'),
-            ('Exchange Server 2016 CU9', 'March 20, 2018', '15.1.1466.3 15.01.1466.003'),
-            ('Exchange Server 2016 CU8', 'December 19, 2017', '15.1.1415.2 15.01.1415.002'),
-            ('Exchange Server 2016 CU7', 'September 19, 2017', '15.1.1261.35', '15.01.1261.035'),
-            ('Exchange Server 2016 CU6', 'June 27, 2017', '15.1.1034.26', '15.01.1034.026'),
-            ('Exchange Server 2016 CU5', 'March 21, 2017', '15.1.845.34 15.01.0845.034'),
-            ('Exchange Server 2016 CU4', 'December 13, 2016', '15.1.669.32 15.01.0669.032'),
-            ('Exchange Server 2016 CU3', 'September 20, 2016', '15.1.544.27 15.01.0544.027'),
-            ('Exchange Server 2016 CU2', 'June 21, 2016', '15.1.466.34 15.01.0466.034'),
-            ('Exchange Server 2016 CU1', 'March 15, 2016', '15.1.396.30 15.01.0396.030'),
-            ('Exchange Server 2016 RTM', 'October 1, 2015', '15.1.225.42 15.01.0225.042'),
-            ('Exchange Server 2016 Preview', 'July 22, 2015', '15.1.225.16 15.01.0225.016'),
-            ('Exchange Server 2019 CU3', 'September 17, 2019', '15.2.464.5  15.02.0464.005'),
-            ('Exchange Server 2019 CU2', 'June 18, 2019', '15.2.397.3  15.02.0397.003'),
-            ('Exchange Server 2019 CU1', 'February 12, 2019', '15.2.330.5  15.02.0330.005'),
-            ('Exchange Server 2019 RTM', 'October 22, 2018', '15.2.221.12 15.02.0221.012'),
-            ('Exchange Server 2019 Preview', 'July 24, 2018', '15.2.196.0  15.02.0196.000')
-        )
+        # Try strict matching
+        for ver in ExchangeRecon.exchangeVersions:
+            if ver.version == lookup:
+                return ver
 
-        for ver in versions:
-            for subver in ver:
-                if verstring in subver:
-                    return ver
+        lookupparsed = packaging.version.parse(lookup)
+
+        # Go with version-wise comparison to fuzzily find proper version name
+        sortedversions = sorted(ExchangeRecon.exchangeVersions)
+
+        for i in range(len(sortedversions)):
+            if sortedversions[i].version.startswith(lookup):
+                sortedversions[i].name = 'fuzzy match: ' + sortedversions[i].name
+                return sortedversions[i]
+
+        for i in range(len(sortedversions)):
+            prevver = packaging.version.parse('0.0')
+            nextver = packaging.version.parse('99999.0')
+            if i > 0:
+                prevver = packaging.version.parse(sortedversions[i-1].version)
+            thisver = packaging.version.parse(sortedversions[i].version)
+            if i + 1 < len(sortedversions):
+                nextver = packaging.version.parse(sortedversions[i+1].version)
+
+            if lookupparsed >= thisver and lookupparsed < nextver:
+                sortedversions[i].name = 'fuzzy match: ' + sortedversions[i].name
+                return sortedversions[i]
 
         return None
 
@@ -870,7 +977,8 @@ class ExchangeRecon:
             'Set-Cookie: OutlookSession=',
             '/owa/auth/logon.aspx?url=https://',
             '{57A118C6-2DA9-419d-BE9A-F92B0F9A418B}',
-            'To use Outlook Web App, browser settings must allow scripts to run. For information about how to allow scripts'
+            'To use Outlook Web App, browser settings must allow scripts to run. For ' +\
+            'information about how to allow scripts'
         )
 
         otherMarks = (
@@ -948,15 +1056,15 @@ class ExchangeRecon:
             Logger.err(f"Could not contact {self.hostname}. Failure.\n")
             return False
 
-        Logger.info("Probing for Exchange fingerprints...")
+        print("[.] Probing for Exchange fingerprints...")
         if not self.verifyExchange():
             Logger.err("Specified target hostname is not an Exchange server.")
             return False
 
-        Logger.info("Triggering NTLM authentication...")
+        print("[.] Triggering NTLM authentication...")
         self.tryToTriggerNtlmAuthentication()
 
-        Logger.info("Probing support for legacy mail protocols and their functions...")
+        print("[.] Probing support for legacy mail protocols and their capabilities...")
         self.legacyMailFingerprint()
 
     def legacyMailFingerprint(self):
@@ -970,7 +1078,8 @@ class ExchangeRecon:
                     break
                 else:
                     Logger.dbg(f"Trying smtp SSL on port {port}...")
-                    self.smtpInteract(self.hostname, port, _ssl = True)
+                    if self.smtpInteract(self.hostname, port, _ssl = True):
+                        break
 
             except Exception as e:
                 Logger.dbg(f"Failed fetching SMTP replies: {e}")
@@ -1002,6 +1111,12 @@ class ExchangeRecon:
             return None
 
         capabilities = []
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((host, port))
+            banner = ExchangeRecon.recvall(sock)
+            Logger.info(f"SMTP server returned following banner:\n\t{banner}")
+            capabilities.append(banner.strip())
 
         try:
             code, msg = server.ehlo()
@@ -1053,7 +1168,7 @@ class ExchangeRecon:
             '8BITMIME',
             'STARTTLS',
             'PIPELINING',
-            'AUTH ',
+            'AUTH',
             'CHUNKING',
             'SIZE ',
             'ENHANCEDSTATUSCODES',
@@ -1065,9 +1180,10 @@ class ExchangeRecon:
             'DATA',
             'EHLO',
             'HELO',
-            'GSSAPI',
-            'X-EXPS',
-            'X-ANONYMOUSTLS',
+            #'GSSAPI',
+            #'X-EXPS',
+            #'X-ANONYMOUSTLS',
+            'This server supports the following commands'
         )
 
         unfiltered = set()
@@ -1082,7 +1198,8 @@ class ExchangeRecon:
 
 
         if len(unfiltered):
-            self.results["Exchange supports legacy SMTP and returns following unusual capabilities"] = '\n\t- '.join(unfiltered)
+            self.results[ExchangeRecon.legacyMailCapabilities] = \
+                '\t- ' + '\n\t- '.join(unfiltered)
 
         try:
             server.quit()
@@ -1090,37 +1207,45 @@ class ExchangeRecon:
             pass
 
         self.verifyEnumerationOpportunities(host, port, _ssl)
+        return True
 
     def verifyEnumerationOpportunities(self, host, port, _ssl):
+
+        def _reconnect(host, port, _ssl):
+            server = ExchangeRecon._smtpconnect(host, port, _ssl)
+            server.ehlo()
+            try:
+                server.starttls()
+                server.ehlo()
+            except:
+                pass
+            return server
 
         Logger.info("Examining potential methods for SMTP user enumeration...")
         server = ExchangeRecon._smtpconnect(host, port, _ssl)
         if not server:
             return None
 
-        ip = socket.gethostbyname(self.hostname)
+        ip = '[{}]'.format(socket.gethostbyname(self.hostname))
+        if found_dns_domain:
+            ip = found_dns_domain
+
         techniques = {
-            f'MAIL FROM:<test@[{ip}]>' : None,
-            f'RCPT TO:<test@[{ip}]>' : None,
             f'VRFY root' : None,
             f'EXPN root' : None,
+            f'MAIL FROM:<test@{ip}>' : None,
+            f'RCPT TO:<test@{ip}>' : None,
         }
+
+        server = _reconnect(host, port, _ssl)
 
         likely = 0
         for data in techniques.keys():
             for i in range(3):
                 try:
-                    server = ExchangeRecon._smtpconnect(host, port, _ssl)
-                    server.ehlo()
-                    try:
-                        server.starttls()
-                        server.ehlo()
-                    except:
-                        pass
                     code, msg = server.docmd(data)
                     msg = msg.decode()
                     techniques[data] = f'({code}, "{msg}")'
-                    server.quit()
 
                     Logger.dbg(f"Attempted user enumeration using: ({data}). Result: {techniques[data]}")
 
@@ -1132,6 +1257,8 @@ class ExchangeRecon:
                     break
                 except Exception as e:
                     Logger.dbg(f"Exception occured during SMTP User enumeration attempt: {e}")
+                    server.quit()
+                    server = _reconnect(host, port, _ssl)
                     continue
 
         out = ''
@@ -1141,24 +1268,23 @@ class ExchangeRecon:
             if code >= 200 and code <= 299: c = '+'
             if code >= 500 and code <= 599: c = '-'
 
-            out += f'\n\t- [{c}] {k: <50} returned: {v}'
+            out += f'\n\t- [{c}] {k: <40} returned: {v}'
 
         self.results["Results for SMTP User Enumeration attempts"] = out[2:]
-
-
 
 def parseOptions(argv):
     global config
 
     print('''
-        :: Exchange Reconnaisance Toolkit
+        :: Exchange Fingerprinter
         Tries to obtain internal IP address, Domain name and other clues by talking to Exchange
         Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <hostname>')
-    parser.add_argument('hostname', metavar='<domain|ip>', type=str, help='Hostname of the Exchange server (or IP address).')
+    parser.add_argument('hostname', metavar='<domain|ip>', type=str, 
+        help='Hostname of the Exchange server (or IP address).')
 
     parser.add_argument('-v', '--verbose', action='store_true', help='Display verbose output.')
     parser.add_argument('-d', '--debug', action='store_true', help='Display debug output.')
@@ -1179,7 +1305,12 @@ def output(hostname, out):
     print(f"\nHostname: {hostname}\n")
 
     for k, v in out.items():
-        print(f"*) {k}:\n\t{v}\n")
+        if not v: continue
+        if isinstance(v, str):
+            print(f"*) {k}:\n\t{v.strip()}\n")
+        elif isinstance(v, list)  or isinstance(v, set):
+            v2 = '\n\t- '.join(v)
+            print(f"*) {k}:\n\t- {v2}\n")
 
 def main(argv):
     opts = parseOptions(argv)

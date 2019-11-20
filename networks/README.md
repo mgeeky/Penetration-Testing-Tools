@@ -28,62 +28,84 @@ victim's premises or to aid Password-Spraying efforts against exposed OWA
 interface. 
 
 Sample run:
-
 ```
-user@host:~/ $ python3 mail.example.com
+PS D:\> python3 .\exchangeRecon.py 10.10.10.9
 
-Hostname: mail.example.com
+        :: Exchange Fingerprinter
+        Tries to obtain internal IP address, Domain name and other clues by talking to Exchange
+        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        v0.2
+
+[.] Probing for Exchange fingerprints...
+[.] Triggering NTLM authentication...
+[.] Probing support for legacy mail protocols and their capabilities...
+
+======[ Leaked clues about internal environment ]======
+
+
+Hostname: 10.10.10.9
 
 *) SSL Certificate Subject components:
-	CN = mail.example.com
-
-*) Outlook Web App version leaked in OWA HTML source:
-	14.0.639.21
-	(Exchange Server 2010 RTM; November 9, 2009; 14.0.639.21 14.00.0639.021)
+        CN = EXCH01
 
 *) IIS Version:
-	Microsoft-IIS/7.5
+        Microsoft-IIS/8.5
 
 *) ASP.Net Version:
-	2.0.50727
+        4.0.30319
+
+*) Outlook Web App version leaked in OWA HTML source:
+        15.0.847
+        (fuzzy match: Exchange Server 2013 SP1; February 25, 2014; 15.0.847.32)
+
+*) Unusual HTTP headers observed:
+        - X-SOAP-Enabled: True
+        - X-WSSecurity-For: None
+        - X-WSSecurity-Enabled: True
+        - X-FEServer: EXCH01
+        - X-OAuth-Enabled: True
 
 *) Leaked Internal IP address:
-	10.10.13.250
+        10.10.10.9
 
 *) Leaked Internal Domain name in NTLM challenge packet:
-	Target Name:	EXAMPLE
-	Context:	
-	Target:
-		AD domain name    :	EXAMPLE.LOCAL
-		Server name       :	EX05
-		DNS domain name   :	example.local
-		FQDN              :	ex05.example.local
-		Parent DNS domain :	example.local
-		Server Timestamp  :	19-11-18 Mon 16:06:53 UTC
-	OS Ver:	????????
-	Flags:	
-	    - Negotiate Unicode
-		- Request Target
-		- Negotiate NTLM
-		- Negotiate Always Sign
-		- Target Type Domain
-		- Negotiate NTLM2 Key
-		- Negotiate Target Info
-		- unknown
-		- Negotiate 128
-		- Negotiate 56
+        Target Name:
+                BANK
+        Context:
 
-*) Exchange supports legacy SMTP and returns following unusual capabilities:
-	mail.example.com Hello [192.168.0.100]
-	- 250-XEXCH50
-	- 250-XRDST
-	- XSHADOW
+        Target:
+                AD domain name    :     BANK
+                Server name       :     EXCH01
+                DNS domain name   :     bank.corp
+                FQDN              :     EXCH01.bank.corp
+                Parent DNS domain :     bank.corp
+                Server Timestamp  :     19-11-20 Wed 01:35:18 UTC
+        OS Ver:
+                ????????
+        Flags:
+                - Negotiate Unicode
+                - Request Target
+                - Negotiate NTLM
+                - Negotiate Always Sign
+                - Target Type Domain
+                - Negotiate NTLM2 Key
+                - Negotiate Target Info
+                - unknown
+                - Negotiate 128
+                - Negotiate 56
+
+*) Exchange supports legacy SMTP and returned following banner/unusual capabilities:
+        - X-ANONYMOUSTLS
+        - 220 EXCH01.bank.corp Microsoft ESMTP MAIL Service ready at Wed, 20 Nov 2019 02:35:24 +0100
+        - X-EXPS GSSAPI NTLM
+        - EXCH01.bank.corp Hello [10.10.10.1]
+        - XRDST
 
 *) Results for SMTP User Enumeration attempts:
-	- [-] MAIL FROM:<test@[192.168.0.100]>                  returned: (501, "5.1.7 Invalid address")
-	- [-] RCPT TO:<test@[192.168.0.100]>                    returned: (503, "5.5.2 Need mail command")
-	- [+] VRFY root                                         returned: (252, "2.1.5 Cannot VRFY user")
-	- [-] EXPN root                                         returned: (502, "5.3.3 Command not implemented")
+        - [+] VRFY root                                returned: (252, "2.1.5 Cannot VRFY user")
+        - [-] EXPN root                                returned: (502, "5.3.3 Command not implemented")
+        - [+] MAIL FROM:<test@bank.corp>               returned: (250, "2.1.0 Sender OK")
+        - [+] RCPT TO:<test@bank.corp>                 returned: (250, "2.1.5 Recipient OK")
 ```
 
 - **`host-scanner-via-udp.py`** - Running Hosts scanner leveraging ICMP Destination Unreachable response upon UDP closed port packet. Requires root/Administrator privileges. ([gist](https://gist.github.com/mgeeky/eae20db2d3dd4704fc6f04ea233bca9c))
