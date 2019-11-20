@@ -31,11 +31,14 @@ Sample run:
 ```
 PS D:\> python3 .\exchangeRecon.py 10.10.10.9
 
-        :: Exchange Reconnaisance Toolkit
+        :: Exchange Fingerprinter
         Tries to obtain internal IP address, Domain name and other clues by talking to Exchange
         Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
-        v0.1
+        v0.2
 
+[.] Probing for Exchange fingerprints...
+[.] Triggering NTLM authentication...
+[.] Probing support for legacy mail protocols and their capabilities...
 
 ======[ Leaked clues about internal environment ]======
 
@@ -45,31 +48,42 @@ Hostname: 10.10.10.9
 *) SSL Certificate Subject components:
         CN = EXCH01
 
-*) Outlook Web App version leaked in OWA HTML source:
-        15.0.847
-        (Exchange Server 2013 SP1; February 25, 2014; 15.0.847.32 15.00.0847.032)
-
 *) IIS Version:
         Microsoft-IIS/8.5
 
 *) ASP.Net Version:
         4.0.30319
 
+*) Outlook Web App version leaked in OWA HTML source:
+        15.0.847
+        (fuzzy match: Exchange Server 2013 SP1; February 25, 2014; 15.0.847.32)
+
+*) Unusual HTTP headers observed:
+        - X-SOAP-Enabled: True
+        - X-WSSecurity-For: None
+        - X-WSSecurity-Enabled: True
+        - X-FEServer: EXCH01
+        - X-OAuth-Enabled: True
+
 *) Leaked Internal IP address:
         10.10.10.9
 
 *) Leaked Internal Domain name in NTLM challenge packet:
-        Target Name:    BANK
+        Target Name:
+                BANK
         Context:
+
         Target:
                 AD domain name    :     BANK
                 Server name       :     EXCH01
                 DNS domain name   :     bank.corp
                 FQDN              :     EXCH01.bank.corp
                 Parent DNS domain :     bank.corp
-                Server Timestamp  :     19-11-19 Tue 23:21:46 UTC
-        OS Ver: ????????
-        Flags:  - Negotiate Unicode
+                Server Timestamp  :     19-11-20 Wed 01:35:18 UTC
+        OS Ver:
+                ????????
+        Flags:
+                - Negotiate Unicode
                 - Request Target
                 - Negotiate NTLM
                 - Negotiate Always Sign
@@ -80,17 +94,18 @@ Hostname: 10.10.10.9
                 - Negotiate 128
                 - Negotiate 56
 
-
-*) Exchange supports legacy SMTP and returns following unusual capabilities:
-        EXCH01.bank.corp Hello [10.10.10.1]
-        - This server supports the following commands:
-        - AUTH
+*) Exchange supports legacy SMTP and returned following banner/unusual capabilities:
+        - X-ANONYMOUSTLS
+        - 220 EXCH01.bank.corp Microsoft ESMTP MAIL Service ready at Wed, 20 Nov 2019 02:35:24 +0100
+        - X-EXPS GSSAPI NTLM
+        - EXCH01.bank.corp Hello [10.10.10.1]
+        - XRDST
 
 *) Results for SMTP User Enumeration attempts:
-        - [-] MAIL FROM:<test@[10.10.10.9]>                      returned: (501, "5.1.7 Invalid address")
-        - [-] RCPT TO:<test@[10.10.10.9]>                        returned: (503, "5.5.2 Need mail command")
-        - [+] VRFY root                                          returned: (252, "2.1.5 Cannot VRFY user")
-        - [-] EXPN root                                          returned: (502, "5.3.3 Command not implemented")
+        - [+] VRFY root                                returned: (252, "2.1.5 Cannot VRFY user")
+        - [-] EXPN root                                returned: (502, "5.3.3 Command not implemented")
+        - [+] MAIL FROM:<test@bank.corp>               returned: (250, "2.1.0 Sender OK")
+        - [+] RCPT TO:<test@bank.corp>                 returned: (250, "2.1.5 Recipient OK")
 ```
 
 - **`host-scanner-via-udp.py`** - Running Hosts scanner leveraging ICMP Destination Unreachable response upon UDP closed port packet. Requires root/Administrator privileges. ([gist](https://gist.github.com/mgeeky/eae20db2d3dd4704fc6f04ea233bca9c))
