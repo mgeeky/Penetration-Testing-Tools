@@ -250,6 +250,7 @@ pushd recon
 git_clone https://github.com/FortyNorthSecurity/EyeWitness.git
 git_clone https://github.com/OWASP/Amass.git
 git_clone https://github.com/michenriksen/gitrob.git
+git_clone https://github.com/kpcyrd/sn0int.git
 git_clone https://github.com/darkoperator/dnsrecon.git
 git_clone https://github.com/smicallef/spiderfoot.git
 git_clone https://bitbucket.org/LaNMaSteR53/recon-ng.git ; cd recon-ng ; pip install -r REQUIREMENTS ; cd ..
@@ -295,6 +296,7 @@ git_clone https://github.com/dirkjanm/krbrelayx.git
 git_clone https://github.com/SySS-Research/Seth.git
 git_clone https://github.com/ropnop/windapsearch.git
 git_clone https://github.com/stufus/ADOffline.git
+git_clone https://github.com/sensepost/ruler.git
 git_clone https://github.com/Veil-Framework/Veil.git
 git_clone https://github.com/Veil-Framework/Veil-Evasion.git
 git_clone https://github.com/pentestgeek/phishing-frenzy.git
