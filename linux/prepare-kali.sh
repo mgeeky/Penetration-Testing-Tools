@@ -44,7 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient
+apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar
 
 pip3 install virtualenv awscli wheel boto3 botocore btlejack
 pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
@@ -195,6 +195,13 @@ git_clone https://github.com/fox-it/mitm6.git
 git_clone https://github.com/lgandx/PCredz.git
 git_clone https://github.com/DanMcInerney/net-creds.git
 git_clone https://github.com/rofl0r/proxychains-ng.git
+git_clone https://github.com/cisco-config-analysis-tool/ccat.git
+cd ccat
+wget https://github.com/cisco-config-analysis-tool/ccat/releases/download/v1.01/ccat_v1.01.rar
+mkdir ccat-release
+unrar x ccat_v1.01.rar ccat-release
+rm ccat_v1.01.rar
+cd ..
 git_clone https://github.com/brav0hax/smbexec.git
 git_clone https://github.com/inquisb/icmpsh.git
 git_clone https://github.com/tomac/yersinia.git
@@ -301,15 +308,21 @@ git_clone https://github.com/Veil-Framework/Veil-Evasion.git
 git_clone https://github.com/pentestgeek/phishing-frenzy.git
 git_clone https://github.com/trustedsec/social-engineer-toolkit.git
 git_clone https://github.com/bluscreenofjeff/Malleable-C2-Randomizer.git
+git_clone https://github.com/sensepost/ruler.git
+cd ruler
+wget https://github.com/sensepost/ruler/releases/latest/download/ruler-win64.exe
+wget https://github.com/sensepost/ruler/releases/latest/download/ruler-linux32.exe
+wget https://github.com/sensepost/ruler/releases/latest/download/ruler-linux64.exe
+cd ..
 git_clone https://github.com/rsmudge/Malleable-C2-Profiles.git
 git_clone https://github.com/sense-of-security/ADRecon.git
 git_clone https://github.com/threatexpress/malleable-c2.git
 git_clone https://github.com/ropnop/kerbrute.git
 cd kerbrute
-wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_windows_amd64.exe
-wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_windows_386.exe
-wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_linux_amd64
-wget https://github.com/ropnop/kerbrute/releases/download/v1.0.1/kerbrute_linux_386
+wget https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_windows_amd64.exe
+wget https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_windows_386.exe
+wget https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_linux_amd64
+wget https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_linux_386
 chmod +x kerbrute_*
 cd ..
 git_clone https://github.com/Raikia/CredNinja.git
@@ -353,9 +366,9 @@ wget https://raw.githubusercontent.com/BloodHoundAD/BloodHound/master/Ingestors/
 cd ..
 git_clone https://github.com/BloodHoundAD/BloodHound.git
 cd BloodHound
-wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-linux-x64.zip
-wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-win32-x64.zip
-wget https://github.com/BloodHoundAD/BloodHound/releases/download/2.1.0/BloodHound-win32-ia32.zip
+wget https://github.com/BloodHoundAD/BloodHound/releases/latest/download/BloodHound-linux-x64.zip
+wget https://github.com/BloodHoundAD/BloodHound/releases/latest/download/BloodHound-win32-x64.zip
+wget https://github.com/BloodHoundAD/BloodHound/releases/latest/download/BloodHound-win32-ia32.zip
 for a in *.zip ; do
 	unzip -d . $a
 	rm $a
@@ -382,10 +395,10 @@ git_clone https://github.com/gentilkiwi/mimikatz.git
 git_clone https://github.com/brav0hax/smbexec.git
 git_clone https://github.com/SecureAuthCorp/impacket.git
 cd impacket ; mkdir binaries ; cd binaries ; 
-wget https://github.com/ropnop/impacket_static_binaries/releases/download/0.9.19-binaries/impacket_windows_binaries.zip
+wget https://github.com/ropnop/impacket_static_binaries/releases/latest/download/impacket_windows_binaries.zip
 unzip -d . impacket_windows_binaries.zip
 rm impacket_windows_binaries.zip
-wget https://github.com/ropnop/impacket_static_binaries/releases/download/0.9.19-binaries/impacket_linux_binaries.tar.gz
+wget https://github.com/ropnop/impacket_static_binaries/releases/latest/download/impacket_linux_binaries.tar.gz
 tar xzf impacket_linux_binaries.tar.gz
 rm impacket_linux_binaries.tar.gz
 python setup.py install
@@ -428,7 +441,7 @@ git_clone https://github.com/beefproject/beef/ ; pushd beef ; yes | ./install ; 
 git_clone https://github.com/mitmproxy/mitmproxy.git
 git_clone https://github.com/sqlmapproject/sqlmap.git
 mkdir aquatone ; cd aquatone
-wget https://github.com/michenriksen/aquatone/releases/download/v1.6.0/aquatone_linux_amd64_1.6.0.zip
+wget https://github.com/michenriksen/aquatone/releases/latest/download/aquatone_linux_amd64_1.6.0.zip
 unzip -d . aquatone_linux_amd64_1.6.0.zip
 rm aquatone_linux_amd64_1.6.0.zip
 chmod +x aquatone
