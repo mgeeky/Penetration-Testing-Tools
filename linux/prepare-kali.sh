@@ -44,7 +44,7 @@ configure_neo4j() {
 
 apt update ; apt upgrade -y
 
-apt install -y git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang python-software-properties neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar
+apt install -y -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar
 
 pip3 install virtualenv awscli wheel boto3 botocore btlejack
 pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
