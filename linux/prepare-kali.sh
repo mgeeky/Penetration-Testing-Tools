@@ -1,4 +1,20 @@
 #!/bin/bash
+#
+# This is script intended for provisioning vanilla Kali installation with a bunch
+# of additional packages, tools and dictionaries. Basically useful for not-so-quick (+/- 4hours)
+# provisioning of Kali distro intended for some heavy pentesting purposes.
+# 
+# Assumptions made:
+#	- script must be totally non-interactive, capable of provisioning Kali system without any
+#		further user interaction (especially true for apt-get Y/n prompts)
+#	- issues with tool installation/setup are acceptable, after all need arise - the pentester
+#		will have to carry off the setup himself
+#	- issues with unavailable repositories/packages are NOT acceptable. I need to either take care of
+#		keeping tools list more or less up-to-date, or to remove tool's pull down entirely from the script
+#	- only tools that I've found useful at least twice are landing in this script.
+#
+# Mariusz B., '18-'19
+#
 
 # Well, entire Kali installation assume that we are normally working as root on our Kali.
 # I know that assumption sucks to its root, but I wanted to avoid every "permission denied" issue and I was too lazy
@@ -47,9 +63,11 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update ; apt upgrade -y
 apt-get update --fix-missing
 
-apt install -yq -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar
+apt install -yq -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar libnfc-bin autoconf libnfc-dev debian-keyring tox libmariadb-dev python-m2crypt mitmproxy
 
-pip3 install virtualenv awscli wheel boto3 botocore btlejack
+pip2 install -U pip
+pip3 install -U pip
+pip3 install virtualenv awscli wheel boto3 botocore btlejack 
 pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
 
 install_dotnet
@@ -80,12 +98,14 @@ mkdir {bruteforce,clouds,devops,deserialization,exploitdev,windows,redteam,recon
 
 git_clone https://github.com/mgeeky/Penetration-Testing-Tools
 
+# =======================================================================================
 pushd bruteforce
 git_clone https://github.com/lanjelot/patator.git
 git_clone https://github.com/galkan/crowbar.git
 git clone --depth=1 --branch=master https://www.github.com/landgrey/pydictor.git && chmod 755 pydictor/pydictor.py
 popd
 
+# =======================================================================================
 pushd clouds
 mkdir {aws,azure,gcp,kubernetes}
 
@@ -135,6 +155,7 @@ git_clone https://github.com/carnal0wnage/weirdAAL.git ; cd weirdAAL ; apt-get i
 cd ..
 popd
 
+# =======================================================================================
 pushd deserialization
 git_clone https://github.com/matthiaskaiser/jmet.git
 git_clone https://github.com/joaomatosf/JavaDeserH2HC.git
@@ -145,12 +166,14 @@ git_clone https://github.com/joaomatosf/jexboss.git
 wget 'https://jitpack.io/com/github/frohoff/ysoserial/master-SNAPSHOT/ysoserial-master-SNAPSHOT.jar' -O ysoserial/ysoserial.jar
 popd
 
+# =======================================================================================
 pushd devops
 git clone --recurse-submodules -b develop https://github.com/torque59/Garfield.git
 git_clone https://github.com/wavestone-cdt/hadoop-attack-library.git 
 wget https://raw.githubusercontent.com/n0tty/Random-Hacking-Scripts/master/pwnsible.sh ; chmod +x pwnsible.sh
 popd
 
+# =======================================================================================
 pushd exploitdev
 git_clone https://github.com/sashs/Ropper.git
 git_clone https://github.com/longld/peda.git
@@ -159,6 +182,7 @@ git_clone https://github.com/packz/ropeme.git
 git_clone https://github.com/mgeeky/Exploit-Development-Tools.git
 popd
 
+# =======================================================================================
 pushd hardware
 git_clone https://github.com/DrSchottky/mfcuk.git
 cd mfcuk
@@ -174,10 +198,11 @@ git_clone https://github.com/nfc-tools/miLazyCracker.git
 cd miLazyCracker
 wget http://crapto1.netgarage.org/craptev1-v1.1.tar.xz
 wget http://crapto1.netgarage.org/crapto1-v3.3.tar.xz
+sed -ir 's/apt-get install/apt-get install -y/' miLazyCrackerFreshInstall.sh
 ./miLazyCrackerFreshInstall.sh
 cd ..
 git_clone https://github.com/RfidResearchGroup/proxmark3.git
-apt-get remove modemmanager
+apt-get remove -y modemmanager
 cd proxmark3
 make clean && make -j8 all
 cd ..
@@ -190,6 +215,7 @@ npm install -g gattacker
 git_clone https://github.com/virtualabs/btlejack.git
 popd
 
+# =======================================================================================
 pushd infra
 git_clone https://github.com/bonsaiviking/NfSpy.git
 git_clone https://github.com/lgandx/Responder.git
@@ -215,6 +241,7 @@ git_clone https://github.com/SpiderLabs/ikeforce.git
 git_clone https://github.com/EnableSecurity/sipvicious.git
 popd
 
+# =======================================================================================
 pushd fuzzers
 git_clone https://github.com/googleprojectzero/domato.git
 wget http://www.immunitysec.com/downloads/SPIKE2.9.tgz ; tar -xvzf SPIKE2.9.tgz ; rm SPIKE2.9.tgz
@@ -237,11 +264,13 @@ git_clone https://github.com/OpenRCE/sulley.git
 git_clone https://github.com/renatahodovan/grammarinator.git
 popd
 
+# =======================================================================================
 pushd linux
 git_clone https://github.com/Arr0way/linux-local-enumeration-script.git
 git_clone https://github.com/CISOfy/lynis.git
 popd
 
+# =======================================================================================
 pushd misc
 git_clone https://github.com/nullsecuritynet/tools.git
 git_clone https://github.com/leebaird/discover.git
@@ -253,17 +282,19 @@ git_clone https://github.com/wireghoul/graudit.git
 git_clone https://github.com/netbiosX/Checklists.git
 popd
 
+# =======================================================================================
 pushd privesc
 git_clone https://github.com/AusJock/Privilege-Escalation.git
 popd
 
+# =======================================================================================
 pushd recon
 git_clone https://github.com/FortyNorthSecurity/EyeWitness.git
 git_clone https://github.com/OWASP/Amass.git
 git_clone https://github.com/michenriksen/gitrob.git
 git_clone https://github.com/darkoperator/dnsrecon.git
 git_clone https://github.com/smicallef/spiderfoot.git
-git_clone https://bitbucket.org/LaNMaSteR53/recon-ng.git ; cd recon-ng ; pip install -r REQUIREMENTS ; cd ..
+git_clone https://github.com/lanmaster53/recon-ng.git ; cd recon-ng ; pip install -r REQUIREMENTS ; cd ..
 git_clone https://github.com/infosec-au/altdns.git
 git_clone https://github.com/jhaddix/domain.git
 mv domain jhaddix-enumall
@@ -286,6 +317,7 @@ git_clone https://github.com/michenriksen/aquatone.git
 git_clone https://github.com/dxa4481/truffleHog.git
 popd
 
+# =======================================================================================
 pushd redteam
 git_clone https://github.com/jaredhaight/PSAttack.git
 cd PSAttack
@@ -410,6 +442,7 @@ git_clone https://github.com/rasta-mouse/Watson.git
 
 popd
 
+# =======================================================================================
 pushd reversing
 wget https://ghidra-sre.org/ghidra_9.0_PUBLIC_20190228.zip -O ghidra.zip ; unzip -d . ghidra.zip ; rm ghidra.zip
 git_clone https://github.com/longld/peda.git ; echo "source $ROOT_DIR/tools/reversing/peda/peda.py" >> $ROOT_DIR/.gdbinit ; 
@@ -417,22 +450,26 @@ git_clone https://github.com/hugsy/gef.git
 git_clone https://github.com/radare/radare2.git ; cd radare2 ; sys/install.sh ; r2pm init ; r2pm update ; pip install r2pipe ; cd ..
 popd
 
+# =======================================================================================
 pushd shells
 git_clone https://github.com/BlackArch/webshells.git
 git_clone https://github.com/Ne0nd0g/merlin.git
 popd
 
+# =======================================================================================
 pushd sourceaudit
 git_clone https://github.com/presidentbeef/brakeman.git
 git_clone https://github.com/wireghoul/graudit.git
 popd
 
+# =======================================================================================
 pushd ssl
 git_clone https://github.com/rbsec/sslscan.git
 git clone --depth 1 https://github.com/drwetter/testssl.sh.git
 git_clone https://github.com/tomato42/tlsfuzzer.git
 popd
 
+# =======================================================================================
 pushd web
 git_clone https://github.com/mgeeky/tomcatWarDeployer.git
 git_clone https://github.com/codingo/NoSQLMap.git
@@ -476,6 +513,7 @@ git_clone https://github.com/NickstaDB/BaRMIe.git
 git_clone https://github.com/torque59/Nosql-Exploitation-Framework.git
 popd
 
+# =======================================================================================
 pushd windows
 git_clone https://github.com/M4ximuss/Powerless.git
 git_clone https://github.com/SecWiki/windows-kernel-exploits.git
@@ -492,6 +530,7 @@ pyinstaller --onefile winpwnage.py
 cd ..
 popd
 
+# =======================================================================================
 pushd wireless
 git_clone https://github.com/brav0hax/easy-creds.git
 git_clone https://github.com/s0lst1c3/eaphammer.git ; cd eaphammer ; yes | ./kali-setup ; cd ..
@@ -499,6 +538,7 @@ git_clone https://github.com/derv82/wifite2.git ; cd wifite2 ; python setup.py i
 popd
 
 
+# =======================================================================================
 #
 # Follow repos, collect 'requirements.txt' files and feed them into `pip install`.
 # We avoid the hassle of using virtualenv here and there.
