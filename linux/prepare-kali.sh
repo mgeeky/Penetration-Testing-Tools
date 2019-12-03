@@ -40,11 +40,12 @@ install_dotnet() {
 }
 
 install_docker() {
-	curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-
-	echo 'deb https://download.docker.com/linux/debian stretch stable' > /etc/apt/sources.list.d/docker.list
-	apt update
-	apt-get remove -y docker docker-engine docker.io
-	apt-get install -y docker-ce
+	#curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-
+	#echo 'deb https://download.docker.com/linux/debian stretch stable' > /etc/apt/sources.list.d/docker.list
+	#apt update
+	#apt-get remove -y docker docker-engine docker.io
+	#apt-get install -y docker-ce
+	apt install -y docker docker-compose
 	docker run hello-world
 }
 
