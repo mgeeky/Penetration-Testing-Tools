@@ -9,6 +9,7 @@ PROFILE=$1
 ROLE_NAME=$2
 
 known_dangerous_permissions=(
+	"*:*"
 	"iam:CreatePolicyVersion"
 	"iam:SetDefaultPolicyVersion"
 	"iam:PassRole"
@@ -63,6 +64,8 @@ for policy in "${attached_role_policies[@]}" ; do
 			for dangperm in "${known_dangerous_permissions[@]}"; do
 				if echo "$dangperm" | grep -iq $perm ; then
 					dangerous_permissions+=("$perm")
+				elif echo "$perm" | grep -qP "\w+:\*"; then
+					dangerous_permissions+=("$perm")
 				fi
 			done
 		done
@@ -71,7 +74,8 @@ done
 
 if [[ ${#dangerous_permissions[@]} -gt 0 ]]; then
 	echo -e "\n\n=============== Detected dangerous permissions granted ==============="
-	for dangperm in "${dangerous_permissions[@]}"; do
+	sorted=($(echo "${dangerous_permissions[@]}" | tr ' ' '\n' | sort -u ))
+	for dangperm in "${sorted[@]}"; do
 		echo -e "\t$dangperm"
 	done
 else
