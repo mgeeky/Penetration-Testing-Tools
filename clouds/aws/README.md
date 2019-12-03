@@ -93,6 +93,8 @@ Afterwards, one should see following logs in CloudWatch traces for planted Lambd
 [*] Following S3 object could be removed: (Bucket=90112981864022885796153088027941100000000000000000000000, Key=cloudtrail/AWSLogs/712800000000/CloudTrail/us-west-2/2019/03/20/712800000000_CloudTrail_us-west-2_20190320T1000Z_oxxxxxxxxxxxxc.json.gz)
 ```
 
+- **`evaluate-iam-role.sh`** - Enumerates attached IAM Role policies, goes through all of granted permissions and lists those that are known for Privilege Escalation risks. Based on [Rhino Security Labs work](https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/). [gist](https://gist.github.com/mgeeky/14685d94af7848e64afefe6fd2341a18)
+
 - **`exfiltrateLambdaTasksDirectory.py`** - Script that creates an in-memory ZIP file from the entire directory `$LAMBDA_TASK_ROOT` (typically `/var/task`) and sends it out in a form of HTTP(S) POST request, within an `exfil` parameter. To be used for exfiltrating AWS Lambda's entire source code.
 
 - **`get-session-creds-in-config-format.sh`** - Calls `aws sts assume-role` using MFA token in order to then retrieve session credentials and reformat it into `~/.aws/credentials` file format. Having that it's easy to copy-and-paste that script's output into credentials file. Then tools such as _s3tk_ that are unable to process MFA tokens may just use preconfigured profile creds. 
