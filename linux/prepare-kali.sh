@@ -11,7 +11,7 @@
 #		will have to carry off the setup himself
 #	- issues with unavailable repositories/packages are NOT acceptable. I need to either take care of
 #		keeping tools list more or less up-to-date, or to remove tool's pull down entirely from the script
-#	- only tools that I've found useful at least twice are landing in this script.
+#	- only tools that I've found useful at least once are landing in this script.
 #
 # Mariusz B., '18-'19
 #
@@ -478,7 +478,6 @@ git_clone https://github.com/droope/droopescan.git
 git_clone https://github.com/enjoiz/XXEinjector.git
 git_clone https://github.com/breenmachine/httpscreenshot.git
 git_clone https://github.com/beefproject/beef/ ; pushd beef ; yes | ./install ; popd
-git_clone https://github.com/mitmproxy/mitmproxy.git
 git_clone https://github.com/sqlmapproject/sqlmap.git
 mkdir aquatone ; cd aquatone
 wget https://github.com/michenriksen/aquatone/releases/latest/download/aquatone_linux_amd64_1.6.0.zip
