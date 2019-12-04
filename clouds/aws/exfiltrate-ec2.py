@@ -277,7 +277,7 @@ class ExfiltrateEC2:
             else:
                 Logger.fail(f"ec2:AttachVolume action on Attacker failed. Exception: {e}")
 
-        ssh_command = 'SSH to the attacker\'s EC2 instance'
+        ssh_command = 'SSH to the attacker\'s EC2 instance\n'
         if attacker_instance_data:
             try:
                 ip = attacker_instance_data['PublicIpAddress']
