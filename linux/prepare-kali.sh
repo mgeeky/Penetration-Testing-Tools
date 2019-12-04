@@ -439,6 +439,11 @@ python setup.py install
 cd ../../
 git_clone https://github.com/rasta-mouse/Watson.git
 
+git_clone https://github.com/pimps/wsuxploit.git
+cd wsuxploit
+git_clone https://github.com/ctxis/wsuspect-proxy.git
+cd ..
+
 popd
 
 # =======================================================================================
@@ -827,6 +832,7 @@ alias unblock_dir='sudo chmod -R 755'
 alias block_dir='sudo chmod -R 700'
 
 alias recursivegitpull='find . -name ".git" -type d -exec echo {} \; -exec git -C {}/.. pull \;'
+alias gitclone='git clone --recurse-submodules'
 EOF
 
 sed -i -r "s:~/:$ROOT_DIR/:" $ROOT_DIR/.bashrc
