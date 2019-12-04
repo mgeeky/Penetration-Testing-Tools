@@ -456,8 +456,8 @@ def parseOptions(argv):
         Logger.fatal("Both access key and secret key must be specified for Attacker's AWS credentials if profile was not used!")
 
     if args.victim_profile:
-        config['victim']['profile'] = args.profile
-        Logger.info(f"Using victim's profile: {args.profile}")
+        config['victim']['profile'] = args.victim_profile
+        Logger.info(f"Using victim's profile: {args.victim_profile}")
     elif args.victim_access_key and args.victim_secret_key:
         config['victim']['access-key'] = args.victim_access_key
         config['victim']['secret-key'] = args.victim_secret_key
