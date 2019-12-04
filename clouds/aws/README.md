@@ -211,7 +211,6 @@ To examine exfiltrated data:
     0) SSH to the attacker's EC2 instance
         # ssh ec2-user@18.206.230.190
 
-
     1) List block devices mapped:
         # lsblk
     
@@ -220,7 +219,6 @@ To examine exfiltrated data:
 
     3) Mount that device's volume:
         # mount /dev/xvdf1 /exfiltrated
-
 
 attacker $ ssh ec2-user@18.206.230.190
 [...]
