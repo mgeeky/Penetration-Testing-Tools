@@ -826,7 +826,7 @@ alias eslintjs='eslint --no-eslintrc -c ~/.eslintrc.js .'
 alias unblock_dir='sudo chmod -R 755'
 alias block_dir='sudo chmod -R 700'
 
-alias recursivegitpull='find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull \;'
+alias recursivegitpull='find . -name ".git" -type d -exec echo {} \; -exec git -C {}/.. pull \;'
 EOF
 
 sed -i -r "s:~/:$ROOT_DIR/:" $ROOT_DIR/.bashrc
