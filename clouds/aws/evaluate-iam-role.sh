@@ -47,6 +47,7 @@ IFS=$'\n'
 attached_role_policies=($(aws --profile $PROFILE iam list-attached-role-policies --role-name $ROLE_NAME | jq -r '.AttachedPolicies[].PolicyArn'))
 
 dangerous_permissions=()
+all_perms=()
 
 for policy in "${attached_role_policies[@]}" ; do
 	echo -e "\n=============== Attached Policy Arn: $policy ==============="
@@ -56,28 +57,37 @@ for policy in "${attached_role_policies[@]}" ; do
 	policy_version=$(aws --profile $PROFILE iam get-policy-version --policy-arn $policy --version-id $version_id)
 	echo "$policy_version"
 
-	permissions=($(echo "$policy_version" | jq -r '.PolicyVersion.Document.Statement[].Action | if type=="string" then [.] else . end | .[]'))
-	effect=$(echo "$policy_version" | jq -r '.PolicyVersion.Document.Statement[].Effect' )
+	permissions=($(echo "$policy_version" | jq -r '.PolicyVersion.Document.Statement[] | select(.Effect=="Allow") | if .Action|type=="string" then [.Action] else .Action end | .[]'))
 
-	if [[ "$effect" == "Allow" ]]; then
-		for perm in "${permissions[@]}" ; do
-			for dangperm in "${known_dangerous_permissions[@]}"; do
-				if echo "$dangperm" | grep -iq $perm ; then
-					dangerous_permissions+=("$perm")
-				elif echo "$perm" | grep -qP "\w+:\*"; then
-					dangerous_permissions+=("$perm")
-				fi
-			done
+	for perm in "${permissions[@]}" ; do
+		all_perms+=("$perm")
+		for dangperm in "${known_dangerous_permissions[@]}"; do
+			if echo "$dangperm" | grep -iq $perm ; then
+				dangerous_permissions+=("$perm")
+			elif echo "$perm" | grep -qP "\w+:\*"; then
+				dangerous_permissions+=("$perm")
+			fi
 		done
-	fi
+	done
 done
 
-if [[ ${#dangerous_permissions[@]} -gt 0 ]]; then
-	echo -e "\n\n=============== Detected dangerous permissions granted ==============="
-	sorted=($(echo "${dangerous_permissions[@]}" | tr ' ' '\n' | sort -u ))
-	for dangperm in "${sorted[@]}"; do
-		echo -e "\t$dangperm"
+if [[ ${#all_perms[@]} -gt 0 ]]; then
+	echo -e "\n\n=============== All permissions granted to this role ==============="
+	sorted=($(echo "${all_perms[@]}" | tr ' ' '\n' | sort -u ))
+	for perm in "${sorted[@]}"; do
+		echo -e "\t$perm"
 	done
+
+	if [[ ${#dangerous_permissions[@]} -gt 0 ]]; then
+		echo -e "\n\n=============== Detected dangerous permissions granted ==============="
+		sorted=($(echo "${dangerous_permissions[@]}" | tr ' ' '\n' | sort -u ))
+		for dangperm in "${sorted[@]}"; do
+			echo -e "\t$dangperm"
+		done
+	else
+		echo -e "\nNo dangerous permissions were found to be granted."
+	fi
 else
-	echo -e "\nNo dangerous permissions were found to be granted."
+	echo -e "\nNo permissions were found to be granted."
 fi
+
