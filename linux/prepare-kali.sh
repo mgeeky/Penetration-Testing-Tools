@@ -558,6 +558,8 @@ find . -name .git | while read line; do
   popd
 done
 
+if ! grep -q "function killallbyname() {" $ROOT_DIR/.bashrc ; then
+
 # Append some stuff to bashrc
 cat <<'EOF' >> $ROOT_DIR/.bashrc
 
@@ -836,3 +838,5 @@ alias gitclone='git clone --recurse-submodules'
 EOF
 
 sed -i -r "s:~/:$ROOT_DIR/:" $ROOT_DIR/.bashrc
+
+fi
