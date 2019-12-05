@@ -8,6 +8,29 @@ fi
 PROFILE=$1
 ROLE_NAME=$2
 
+known_potentially_dangerous_permissions=(
+	".*:\*"
+	".*:.*Attach.*"
+	".*:.*Create.*"
+	".*:.*Delete.*"
+	".*:.*Reboot.*"
+	".*:.*Command.*"
+	".*:.*Run.*"
+	".*:.*Send.*"
+	".*:.*Batch.*"
+	".*:.*Set.*"
+	".*:.*Invoke.*"
+	".*:.*Add.*"
+	".*:.*Execute.*"
+	".*:.*Start.*"
+	".*:.*Modify.*"
+	".*:.*Register.*"
+	".*:.*Replace.*"
+	".*:.*Change.*"
+	".*:.*Update.*"
+	".*:.*Put.*"
+)
+
 known_dangerous_permissions=(
 	"*:*"
 	"iam:CreatePolicyVersion"
@@ -47,6 +70,7 @@ IFS=$'\n'
 attached_role_policies=($(aws --profile $PROFILE iam list-attached-role-policies --role-name $ROLE_NAME | jq -r '.AttachedPolicies[].PolicyArn'))
 
 dangerous_permissions=()
+potentially_dangerous_permissions=()
 all_perms=()
 
 for policy in "${attached_role_policies[@]}" ; do
@@ -64,8 +88,11 @@ for policy in "${attached_role_policies[@]}" ; do
 		for dangperm in "${known_dangerous_permissions[@]}"; do
 			if echo "$dangperm" | grep -iq $perm ; then
 				dangerous_permissions+=("$perm")
-			elif echo "$perm" | grep -qP "\w+:\*"; then
-				dangerous_permissions+=("$perm")
+			fi
+		done
+		for dangperm in "${known_potentially_dangerous_permissions[@]}"; do
+			if echo "$perm" | grep -Piq "$dangperm" ; then
+				potentially_dangerous_permissions+=("$perm")
 			fi
 		done
 	done
@@ -77,6 +104,16 @@ if [[ ${#all_perms[@]} -gt 0 ]]; then
 	for perm in "${sorted[@]}"; do
 		echo -e "\t$perm"
 	done
+
+	if [[ ${#potentially_dangerous_permissions[@]} -gt 0 ]]; then
+		echo -e "\n\n=============== Detected POTENTIALLY dangerous permissions granted ==============="
+		sorted=($(echo "${potentially_dangerous_permissions[@]}" | tr ' ' '\n' | sort -u ))
+		for dangperm in "${sorted[@]}"; do
+			echo -e "\t$dangperm"
+		done
+	else
+		echo -e "\nNo potentially dangerous permissions were found to be granted."
+	fi
 
 	if [[ ${#dangerous_permissions[@]} -gt 0 ]]; then
 		echo -e "\n\n=============== Detected dangerous permissions granted ==============="
