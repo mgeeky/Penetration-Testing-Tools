@@ -340,6 +340,7 @@ git_clone https://github.com/stufus/ADOffline.git
 git_clone https://github.com/Veil-Framework/Veil.git
 git_clone https://github.com/Veil-Framework/Veil-Evasion.git
 git_clone https://github.com/pentestgeek/phishing-frenzy.git
+git_clone https://github.com/byt3bl33d3r/SprayingToolkit.git
 git_clone https://github.com/trustedsec/social-engineer-toolkit.git
 git_clone https://github.com/bluscreenofjeff/Malleable-C2-Randomizer.git
 git_clone https://github.com/sensepost/ruler.git
