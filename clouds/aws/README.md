@@ -93,7 +93,78 @@ Afterwards, one should see following logs in CloudWatch traces for planted Lambd
 [*] Following S3 object could be removed: (Bucket=90112981864022885796153088027941100000000000000000000000, Key=cloudtrail/AWSLogs/712800000000/CloudTrail/us-west-2/2019/03/20/712800000000_CloudTrail_us-west-2_20190320T1000Z_oxxxxxxxxxxxxc.json.gz)
 ```
 
-- **`evaluate-iam-role.sh`** - Enumerates attached IAM Role policies, goes through all of granted permissions and lists those that are known for Privilege Escalation risks. Based on [Rhino Security Labs work](https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/). [gist](https://gist.github.com/mgeeky/14685d94af7848e64afefe6fd2341a18)
+- **`evaluate-iam-role.sh`** - Enumerates attached IAM Role policies or specified Policy by it's Arn, goes through all of granted permissions and lists those that are known for Privilege Escalation or other risks. If `all` was specified as a role-name, the tool will evaluate all of the user-specified IAM Roles, iteratively. Based on [Rhino Security Labs work](https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/). [gist](https://gist.github.com/mgeeky/14685d94af7848e64afefe6fd2341a18)
+
+```
+attacker $ ./evaluate-iam-role.sh awl CustomSysOpsRole
+[+] Working on specified Role: CustomSysOpsRole
+
+[+] Role (CustomSysOpsRole) has following policies attached:
+	- arn:aws:iam::aws:policy/AmazonRDSFullAccess
+	- arn:aws:iam::aws:policy/AmazonEC2FullAccess
+	- arn:aws:iam::aws:policy/AWSLambdaFullAccess
+	- arn:aws:iam::aws:policy/AmazonS3FullAccess
+	- arn:aws:iam::aws:policy/ReadOnlyAccess
+	- arn:aws:iam::aws:policy/AmazonSSMFullAccess
+	- arn:aws:iam::aws:policy/AmazonMQFullAccess
+	- arn:aws:iam::aws:policy/AWSBackupAdminPolicy
+
+
+[+] =============== Permissions granted ===============
+
+	a4b:Describe*
+	a4b:Get*
+	a4b:List*
+	a4b:Search*
+	acm:Describe*
+	acm:DescribeCertificate
+	acm:Get*
+	acm:List*
+	[...]
+	workdocs:Get*
+	worklink:Describe*
+	worklink:List*
+	workmail:Describe*
+	workmail:Get*
+	workmail:List*
+	workmail:Search*
+	workspaces:Describe*
+	xray:BatchGet*
+	xray:Get*
+	xray:PutTelemetryRecords
+	xray:PutTraceSegments
+
+
+[-] =============== Detected POTENTIALLY dangerous permissions granted ===============
+
+	[...]
+	backup:*
+	backup-storage:*
+	clouddirectory:BatchRead
+	cloudformation:*
+	cloudformation:CreateStack
+	[...]
+	iot:CreateThing
+	iot:CreateTopicRule
+	sns:*
+	sqs:*
+	sqs:SendMessage
+	ssm:*
+	ssmmessages:CreateControlChannel
+	ssmmessages:CreateDataChannel
+	support:*
+	xray:BatchGet*
+	xray:PutTelemetryRecords
+	xray:PutTraceSegments
+
+
+[!] =============== Detected DANGEROUS permissions granted ===============
+
+	cloudformation:CreateStack
+	iam:AttachRolePolicy
+	iam:PassRole
+
+```
 
 - **`exfiltrate-ec2.py`** - This script exploits insecure permissions given to the EC2 IAM Role allowing to exfiltrate target EC2's filesystem data in a form of it's shared EBS snapshot or publicly exposed AMI image.
 
