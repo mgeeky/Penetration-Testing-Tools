@@ -32,7 +32,8 @@ known_potentially_dangerous_permissions=(
 )
 
 known_dangerous_permissions=(
-	"*:*"
+	"\*:\*"
+	"iam:\*"
 	"iam:CreatePolicyVersion"
 	"iam:SetDefaultPolicyVersion"
 	"iam:PassRole"
