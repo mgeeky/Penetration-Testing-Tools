@@ -9,8 +9,6 @@
 
 - **`forticlientsslvpn-expect.sh`** - Forticlient SSL VPN Client launching script utilizing expect. Useful while working for clients exposing their local networks through a Fortinet SSL VPN. [gist](https://gist.githubusercontent.com/mgeeky/8afc0e32b8b97fd6f96fce6098615a93/raw/cf127be09d02e04c00eb578e4ef1219a773d21cf/forticlientsslvpn-expect.sh)
 
-- **`openvas-automate.sh`** - A simple OpenVAS scanner automation script. If you want to use your custom defined scan type - you'll need to edit script's code, especially `targets` array and `if` decision statement in lines 111-137. [gist](https://gist.github.com/mgeeky/a038f809dff4d308db94f5f657908da7)
-
 - **`playRTPStream.sh`** - Using rtpdump to play RTP streams from PCAP files with VLC. This script was useful to extract RTP Streams from sniffed VoIP communication and then with a help of VLC to dump those streams into valid .wav files. (https://github.com/hdiniz/rtpdump). [gist](https://gist.github.com/mgeeky/0b8bd81a3f6fb70eec543bc0bae2f079)
 
 - **`vm-manager.sh`** - A bash script offering several aliases/functions for quick management of a single Virtualbox VM machine. Handy to use it for example to manage a Kali box. By issuing `startkali` the VM will raise, `sshkali` - offers instant SSH into your VM, `getkali` - returns VM's IP address, `iskali` - checks whether VM is running, `stopkali` goes without explanation. [gist](https://gist.github.com/mgeeky/80b1f7addb792796d8bfb67188d72f4a)
