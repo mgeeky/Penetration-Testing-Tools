@@ -120,6 +120,8 @@ Hostname: 10.10.10.9
 
 - **`networkConfigurationCredentialsExtract.py`** - Network-configuration Credentials extraction script - intended to sweep input configuration file and extract keys, hashes, passwords. ([gist](https://gist.github.com/mgeeky/861a8769a261c7fc09a34b7d2bd1e1a0))
 
+- **`nmap-christmas-tree.sh`** - Simple script looking for discrepancies between known-to-be listening TCP port and known-to-be closed one as seen from varying scan strategies.
+
 - **`nmap-grep-to-table.sh`** - Script converting nmap's greppable output (-oG) into a printable per-host tables. ([gist](https://gist.github.com/mgeeky/cd3092cf60fd513d786286a21c6fa915))
 
 - **`nmap-scan-all.sh`** - Simple script to launch nmap scans against given target, using specific options and scripts set.
