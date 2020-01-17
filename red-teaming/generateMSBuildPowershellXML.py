@@ -76,7 +76,7 @@ def getInlineTask(payload, exeFile):
         ]]>
       </Code>''').safe_substitute(
         templateName = templateName,
-        payload2 = base64.b64encode(payload)
+        payload2 = base64.b64encode(payload.encode()).decode()
     )
 
     exeLaunchCode = string.Template('''<ParameterGroup/>
@@ -95,7 +95,7 @@ def getInlineTask(payload, exeFile):
                     method.Invoke(instance, null); 
         ]]>
       </Code>''').safe_substitute(
-        payload2 = base64.b64encode(payload)
+        payload2 = base64.b64encode(payload.encode()).decode()
     )
 
     launchCode = exeLaunchCode if exeFile else powershellLaunchCode
