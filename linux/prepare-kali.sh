@@ -447,6 +447,10 @@ git_clone https://github.com/pimps/wsuxploit.git
 cd wsuxploit
 git_clone https://github.com/ctxis/wsuspect-proxy.git
 cd ..
+git_clone https://github.com/Mr-Un1k0d3r/CatMyPhish.git
+git_clone https://github.com/threatexpress/domainhunter.git
+git_clone https://github.com/t94j0/AIRMASTER.git
+git_clone https://github.com/mdsecactivebreach/Chameleon.git
 
 popd
 
