@@ -34,3 +34,6 @@
 [submodule "red-teaming/Stracciatella"]
 	path = red-teaming/Stracciatella
 	url = https://github.com/mgeeky/Stracciatella.git
+[submodule "red-teaming/malleable_redirector/proxy2"]
+	path = red-teaming/malleable_redirector/proxy2
+	url = https://github.com/mgeeky/proxy2.git
