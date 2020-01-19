@@ -253,6 +253,8 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 
 - **`macro-psh-stdin-author.vbs`** - VBS Social Engineering Macro with Powershell invocation taking arguments from Author property and feeding them to StdIn. ([gist](https://gist.github.com/mgeeky/50c4b7fa22d930a80247fea62755fbd3))
 
+- **`malleable_redirector`** - A [proxy2](https://github.com/mgeeky/proxy2) plugin for resilient, evasive C2 infrastructures covering your redirectors from AV/EDR/Sandbox/IR lurking eyes based on the CobaltStrike's Malleable C2 Profile specified. Combines advantages of classic evasion techniques such as Apache2 Mod_Rewrite/`.htaccess` and deep c2-profile-drive HTTP/HTTPS request inspection
+
 - **`msbuild-powershell-msgbox.xml`** - Example of Powershell execution via MSBuild inline task XML file. On a simple Message-Box script.
  ([gist](https://gist.github.com/mgeeky/617c54a23f0c4e99e6f475e6af070810))
 
