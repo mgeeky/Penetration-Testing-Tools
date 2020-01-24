@@ -64,7 +64,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update ; apt upgrade -y
 apt-get update --fix-missing
 
-apt install -yq -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar libnfc-bin autoconf libnfc-dev tox libmariadb-dev python-m2crypto 
+apt install -yq -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar libnfc-bin autoconf libnfc-dev tox libmariadb-dev python-m2crypto cmake
 
 pip3 install virtualenv awscli wheel boto3 botocore btlejack six
 pip2 install virtualenv wheel boto3 botocore pyinstaller lxml pyip ansi2html
@@ -176,10 +176,24 @@ popd
 # =======================================================================================
 pushd exploitdev
 git_clone https://github.com/sashs/Ropper.git
+cd Ropper
+pip install requirements.txt
+python setup.py install
+cd ..
 git_clone https://github.com/longld/peda.git
 git_clone https://github.com/Gallopsled/pwntools.git
 git_clone https://github.com/packz/ropeme.git
 git_clone https://github.com/mgeeky/Exploit-Development-Tools.git
+git_clone https://github.com/keystone-engine/keystone.git
+cd keystone
+mkdir build
+cd build
+../make-share.sh
+make -j8
+make install
+ldconfig
+kstool x32 "add eax, ebx"
+cd ..
 popd
 
 # =======================================================================================
