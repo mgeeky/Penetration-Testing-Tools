@@ -525,6 +525,7 @@ EOT
 
 git_clone https://github.com/epinna/tplmap.git
 git_clone https://github.com/jekyc/wig.git
+git_clone https://github.com/urbanadventurer/WhatWeb
 git_clone https://github.com/wpscanteam/wpscan.git
 git_clone https://github.com/sullo/nikto.git
 git_clone https://github.com/gw0/PadBuster.git
