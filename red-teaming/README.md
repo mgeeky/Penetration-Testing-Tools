@@ -132,6 +132,8 @@ Loaded $UserHunterShowAll results.
 
 - **`Find-GPODelegatedUsers.ps1`** - One-liner for finding GPO Delegated users that can Edit Settings of that GPO and thus could be used to Abuse GPO Permissions (https://www.harmj0y.net/blog/redteaming/abusing-gpo-permissions/). [gist](https://gist.github.com/mgeeky/5843df09607123772a61e782a6406d54)
 
+- **`Get-UserPasswordEntries.ps1`** - a simple script for finding and decoding `userPassword` properties stored by some legacy SAMBA/linux kerberos implementations.
+
 - **`generateMSBuildPowershellXML.py`** - Powershell via MSBuild inline-task XML payload generation script - To be used during Red-Team assignments to launch Powershell payloads without using `powershell.exe` ([gist](https://gist.github.com/mgeeky/df9f313cfe468e56c59268b958319bcb))
 
     Example output **not minimized**:
