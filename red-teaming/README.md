@@ -54,6 +54,8 @@ $s = New-Object IO.MemoryStream(, [Convert]::FromBase64String('H4sIAMkfcloC/3u/e
 IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Compression.CompressionMode]::Decompress))).ReadToEnd();
 ```
 
+- **`Count-PrivilegedGroupMembers.ps1`** - Counts number of members in predefined (or augumented from an input file) list of privileged, sensitive groups in Active Directory. Purely for statistics and overview purposes.
+
 - **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
 
 - **`Disable-Amsi.ps1`** - Tries to evade AMSI by leveraging couple of publicly documented techniqus, but in an approach to avoid signatured or otherwise considered harmful keywords. 

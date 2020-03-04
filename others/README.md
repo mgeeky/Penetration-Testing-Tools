@@ -5,6 +5,17 @@
 
 - **`Contoso-AD-Structure`** - Simple script intended to create a sample AD structure filled out with users and groups.
 
+- **`correlateCrackedHashes.py`** - Hashcat results correlation utility.
+Takes two files on input. Tries to find every line of the second file within the first file and for every found match - extracts password value from the second file's line. Then prints these correlations.
+In other words - having the following in FileA:
+	 `some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c`
+
+and a line in FileB that would be a result of running hashcat:
+	 `68eacb97d86f0c4621fa2b0e17cabd8c:Test123`
+
+the script will print out:
+	 `some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c,Test123`
+
 - **`encrypt.rb`** - Simple File Encryption utility (with support for Blowfish, GOST, IDEA, AES) capable of encrypting directories. ([gist](https://gist.github.com/mgeeky/751c01c4dac99871f4da))
 
 - **`forticlientsslvpn-expect.sh`** - Forticlient SSL VPN Client launching script utilizing expect. Useful while working for clients exposing their local networks through a Fortinet SSL VPN. [gist](https://gist.githubusercontent.com/mgeeky/8afc0e32b8b97fd6f96fce6098615a93/raw/cf127be09d02e04c00eb578e4ef1219a773d21cf/forticlientsslvpn-expect.sh)
