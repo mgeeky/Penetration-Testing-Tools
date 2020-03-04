@@ -1,3 +1,4 @@
+
 ## Other Penetration-Testing related scripts and tools
 
 
@@ -7,14 +8,15 @@
 
 - **`correlateCrackedHashes.py`** - Hashcat results correlation utility.
 Takes two files on input. Tries to find every line of the second file within the first file and for every found match - extracts password value from the second file's line. Then prints these correlations.
-In other words - having the following in FileA:
-	 `some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c`
 
-and a line in FileB that would be a result of running hashcat:
-	 `68eacb97d86f0c4621fa2b0e17cabd8c:Test123`
+  In other words - having the following in FileA:
+  `some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c`
 
-the script will print out:
-	 `some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c,Test123`
+  and a line in FileB that would be a result of running hashcat:
+  `68eacb97d86f0c4621fa2b0e17cabd8c:Test123`
+
+  the script will print out:
+  `some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c,Test123`
 
 - **`encrypt.rb`** - Simple File Encryption utility (with support for Blowfish, GOST, IDEA, AES) capable of encrypting directories. ([gist](https://gist.github.com/mgeeky/751c01c4dac99871f4da))
 
@@ -52,3 +54,4 @@ Kali
 ```
 
 - **`xor-key-recovery.py`** - Simple XOR brute-force Key recovery script - given a cipher text, plain text and key length - it searches for proper key that could decrypt cipher into text. ([gist](https://gist.github.com/mgeeky/589b2cf781901288dfea0894a780ff98))
+
