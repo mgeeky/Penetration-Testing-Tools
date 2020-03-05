@@ -47,8 +47,9 @@ def markNodes(tx, nodes):
 
     for i in range(len(nodes)):
         n = nodes[i]
-        query += 'MATCH (n {name: "' + n + '"}) SET n.owned = TRUE '
-        if i < len(nodes) - 1: query += 'UNION '
+        query += 'MATCH (n {name: "' + n + '"}) SET n.owned=TRUE RETURN 1'
+        if i < len(nodes) - 1: query += ' UNION'
+        query += '\n'
 
     tx.run(query)
 
