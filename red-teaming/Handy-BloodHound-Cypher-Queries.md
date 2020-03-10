@@ -100,7 +100,7 @@ MATCH (n) WHERE n.description CONTAINS '\\\\' RETURN n.name, n.description
 RETURN shortestPath((O:{owned:True})-[*1..]->(H {highvalue: True}))
 ```
 
-- Riccardo Ancarani's cypher queries (src: [GPOPowerParser](https://github.com/RiccardoAncarani/GPOPowerParser)) useful for any lateral movement insights:
+- [Riccardo Ancarani's](https://github.com/RiccardoAncarani) cypher queries (src: [GPOPowerParser](https://github.com/RiccardoAncarani/GPOPowerParser)) useful for any lateral movement insights:
   - Find all the NTLM relay opportunities for computer accounts:
 ```
 MATCH (u1:Computer)-[:AdminTo]->(c1:Computer {signing: false}) RETURN u1.name, c1.name
