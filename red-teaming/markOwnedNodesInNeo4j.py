@@ -96,6 +96,8 @@ Usage:  ./markOwnedNodesInNeo4j.py <nodes-file>
     totalTime = 0.0
     runs = 0
 
+    print('[+] To be marked: {} nodes.'.format(len(nodes)))
+
     try:
         with driver.session() as session:
             for a in range(0, len(nodes), numberOfNodesToAddPerStep):
