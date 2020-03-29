@@ -37,6 +37,11 @@ MATCH (u:User {hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u
 MATCH (A:User),(B:Group),p=shortestPath((A)-[*1..]->(B)) WHERE A.hasspn=true AND B.name STARTS WITH 'DOMAIN ADMINS' RETURN p
 ```
 
+- Finds owned objects that can control other computers:
+```
+MATCH (m {owned: True}), (n), p=(m)-[:CanPSRemote|ExecuteDCOM|CanRDP|SQLAdmin|AdminTo]->(n) RETURN p
+```
+
 - Return users that have PASSWORD_NOT_REQUIRED flag set in their UserAccountControl field (thus they have an empty password set) and are enabled
 ```
 MATCH (n:User {enabled: True, passwordnotreqd: True}) RETURN n
