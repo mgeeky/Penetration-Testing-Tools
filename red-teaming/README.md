@@ -44,6 +44,8 @@ FullLanguage
 
 - **`clickOnceSharpPickTemplate.cs`** - This is a template for **C# Console Project** containing [SharpPick](https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerPick) technique of loading Powershell code from within C# application. The ClickOnce concept is to generate a windows self-updating Application that is specially privileged ([ClickOnce](https://www.slideshare.net/NetSPI/all-you-need-is-one-a-click-once-love-story-secure360-2015))
 
+- **cobalt-arsenal** - A set of my published Cobalt Strike 4.0+ compatible aggressor scripts. That includes couple of my handy utils I've used on various engagements.
+
 - **`compressedPowershell.py`** - Creates a Powershell snippet containing GZIP-Compressed payload that will get decompressed and executed (IEX)
 . ([gist](https://gist.github.com/mgeeky/e30ceecc2082a11b99c7b24b42bd77fc))
 

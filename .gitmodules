@@ -37,3 +37,6 @@
 [submodule "red-teaming/malleable_redirector/proxy2"]
 	path = red-teaming/malleable_redirector/proxy2
 	url = https://github.com/mgeeky/proxy2.git
+[submodule "red-teaming/cobalt-arsenal"]
+	path = red-teaming/cobalt-arsenal
+	url = https://github.com/mgeeky/cobalt-arsenal.git
