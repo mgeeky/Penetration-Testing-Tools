@@ -184,7 +184,7 @@ if [[ "$ROLE_NAME" == "all" ]]; then
 	echo "[+] Evaluating ALL used IAM Roles"
 	echo
 
-	out=($(aws --profile awl iam list-roles --query 'Roles[*].RoleName' --output text | tr '\t' '\n'))
+	out=($(aws --profile $PROFILE iam list-roles --query 'Roles[*].RoleName' --output text | tr '\t' '\n'))
 
 	for role in "${out[@]}"; do
 		examine_role $role

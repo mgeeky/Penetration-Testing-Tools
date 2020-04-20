@@ -58,7 +58,7 @@ function rds_snapshots() {
 function ami_images() {
 	out=$(_aws ec2 describe-images --owners self --executable-users all)
 	if ! echo "$out" | grep -q '": \[\]'; then
-		echo "---[ Public RDS Snapshots"
+		echo "---[ Public AMI Images"
 		echo "$out"
 		echo
 	fi
