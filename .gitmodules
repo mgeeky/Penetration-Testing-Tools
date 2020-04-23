@@ -40,3 +40,6 @@
 [submodule "red-teaming/cobalt-arsenal"]
 	path = red-teaming/cobalt-arsenal
 	url = https://github.com/mgeeky/cobalt-arsenal.git
+[submodule "windows/PE-library"]
+	path = windows/PE-library
+	url = https://github.com/mgeeky/PE-library
