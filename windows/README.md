@@ -20,6 +20,8 @@
 
 - **`impacket-binaries.sh`** - Simple one-liner that downloads all of the Windows EXE impacket binaries put out in [Impacket Binaries](https://github.com/ropnop/impacket_static_binaries) repo. [gist](https://gist.github.com/mgeeky/2f990f14f1e7cf78fce21b8761234604)
 
+- **`PE-library`** - Simple, lightweight PE (Windows Portable Executable format) structures parsing library that I'm using in my various projects.
+
 - **`pth-carpet.py`** - Pass-The-Hash Carpet Bombing utility - trying every provided hash against every specified machine. ([gist](https://gist.github.com/mgeeky/3018bf3643f80798bde75c17571a38a9))
 
 - **`revshell.c`** - Utterly simple reverse-shell, ready to be compiled by `mingw-w64` on Kali. No security features attached, completely not OPSEC-safe.
