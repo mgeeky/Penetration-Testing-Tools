@@ -149,12 +149,18 @@ Loaded $UserHunterShowAll results.
 
 - **`Get-UserPasswordEntries.ps1`** - a simple script for finding and decoding `userPassword` properties stored by some legacy SAMBA/linux kerberos implementations.
 
-- **`generateMSBuildPowershellXML.py`** - Powershell via MSBuild inline-task XML payload generation script - To be used during Red-Team assignments to launch Powershell payloads without using `powershell.exe` ([gist](https://gist.github.com/mgeeky/df9f313cfe468e56c59268b958319bcb))
+- **`generateMSBuildXML.py`** - Powershell via MSBuild inline-task XML payload generation script - To be used during Red-Team assignments to launch Powershell payloads without using `powershell.exe` ([gist](https://gist.github.com/mgeeky/df9f313cfe468e56c59268b958319bcb))
+
+This script can embed following data within constructed CSharp Task:
+   - Powershell code
+   - raw Shellcode to executed in a separate thread via CreateThread
+   - .NET Assembly reflectively loaded via Assembly.Load
+
 
     Example output **not minimized**:
     
 ```
-C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     Show-Msgbox.ps1
+C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py     Show-Msgbox.ps1
 
         :: Powershell via MSBuild inline-task XML payload generation script
         To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'
@@ -166,7 +172,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!--  Based on Casey Smith work, Twitter: @subTee                              -->
-  <!--  Automatically generated using `generateMSBuildPowershellXML.py` utility  -->
+  <!--  Automatically generated using `generateMSBuildXML.py` utility  -->
   <!--  by Mariusz B. / mgeeky <mb@binary-offensive.com>                         -->
 
   <Target Name="btLDoraXcZV">
@@ -211,7 +217,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py     S
 **minimized**
     
 ```
-C:\Users\IEUser\Desktop\files\video>python generateMSBuildPowershellXML.py Show-Msgbox.ps1 -m                     
+C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py Show-Msgbox.ps1 -m                     
                                                                                                                   
         :: Powershell via MSBuild inline-task XML payload generation script                                       
         To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'       
