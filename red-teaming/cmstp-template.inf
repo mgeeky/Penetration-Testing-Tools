@@ -1,0 +1,12 @@
+[version]
+signature=$chicago$
+ 
+[defaultinstall_singleuser]
+registerocxs=r
+ 
+[r]
+C:\fully\qualified\path\to\payload.dll
+ 
+[strings]
+servicename=foobar
+shortsvcname=foobar
