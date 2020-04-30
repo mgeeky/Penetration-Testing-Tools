@@ -10,6 +10,41 @@ powershell -file build.ps1
 
 ### Step 2: Generate source code file
 
+Included in this directory script is a helper utility allowing one to quickly generate desired csharp source code file to be used for further `csc` compilation.
+
+Usage:
+
+```
+python3 generateRegsvcs.py --help
+
+        :: Regsvcs Code Execution Source code generation utility
+        To be used during Red-Team assignments to launch Powershell/Shellcode payloads via Regsvcs/Regasm.
+        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+
+usage: .\generateRegsvcs.py [options] <inputFile>
+
+positional arguments:
+  inputFile   Input file to be embeded within C# code. May be either Powershell script, raw binary Shellcode or .NET Assembly (PE/EXE) file.
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -e, --exe   Specified input file is an Mono/.Net assembly PE/EXE. WARNING: Launching EXE is currently possible ONLY WITH MONO/.NET assembly EXE/DLL files, not an ordinary native PE/EXE!
+  -r, --raw   Specified input file is a raw Shellcode to be injected in self process in a separate Thread.
+```
+
+Sample use case:
+
+```
+python3 generateRegsvcs.py -r notepad64.bin > program.cs
+
+        :: Regsvcs Code Execution Source code generation utility
+        To be used during Red-Team assignments to launch Powershell/Shellcode payloads via Regsvcs/Regasm.
+        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+
+[?] File specified as raw Shellcode.
+
+```
+
 ```
 python3 generateRegsvcs.py -r payload.bin > program.cs
 ```
