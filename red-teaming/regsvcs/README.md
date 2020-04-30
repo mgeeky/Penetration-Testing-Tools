@@ -45,9 +45,6 @@ python3 generateRegsvcs.py -r notepad64.bin > program.cs
 
 ```
 
-```
-python3 generateRegsvcs.py -r payload.bin > program.cs
-```
 
 ###  Step 3: Compilate library .NET Assembly
 
