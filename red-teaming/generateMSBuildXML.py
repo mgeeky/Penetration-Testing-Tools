@@ -274,7 +274,7 @@ def minimize(output):
 
 def opts(argv):
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <inputFile>')
-    parser.add_argument('inputFile', help = 'Input file to be encoded within XML. May be either Powershell script or PE/EXE file.')
+    parser.add_argument('inputFile', help = 'Input file to be encoded within XML. May be either Powershell script, raw binary Shellcode or .NET Assembly (PE/EXE) file.')
     parser.add_argument('-m', '--minimize', action='store_true', help = 'Minimize the output XML file.')
     parser.add_argument('-b', '--encode', action='store_true', help = 'Base64 encode output XML file.')
     parser.add_argument('-e', '--exe', action='store_true', help = 'Specified input file is an Mono/.Net assembly PE/EXE. WARNING: Launching EXE is currently possible ONLY WITH MONO/.NET assembly EXE/DLL files, not an ordinary native PE/EXE!')
@@ -296,7 +296,7 @@ def main(argv):
 
 ''')
     if len(argv) < 2:
-        print('Usage: ./generateMSBuildPowershellXML.py <inputFile>')
+        print('Usage: ./generateMSBuildXML.py <inputFile>')
         sys.exit(-1)
 
     args = opts(argv)
