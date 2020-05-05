@@ -316,7 +316,7 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
 
 - [**`PhishingPost`**](https://github.com/mgeeky/PhishingPost) - (PHP Script intdended to be used during Phishing campaigns as a credentials collector linked to backdoored HTML <form> action parameter.
 
-- [**`regsvcs`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/regsvcs) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs** code execution primitives. 
+- [**`rogue-dot-net`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/rogue-dot-net) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs**/**InstallUtil** code execution primitives. 
 
 - [**`RobustPentestMacro`**](https://github.com/mgeeky/RobustPentestMacro) - This is a rich-featured Visual Basic macro code for use during Penetration Testing assignments, implementing various advanced post-exploitation techniques.
 
