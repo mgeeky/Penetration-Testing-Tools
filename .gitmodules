@@ -43,3 +43,6 @@
 [submodule "windows/PE-library"]
 	path = windows/PE-library
 	url = https://github.com/mgeeky/PE-library
+[submodule "red-teaming/SharpWMI"]
+	path = red-teaming/SharpWMI
+	url = https://github.com/mgeeky/SharpWMI

@@ -105,6 +105,9 @@ amsiInitFailed
 *Warning:* This scriptlet should be launched first, before `Disable-Amsi.ps1` for better OpSec experience.
 
 
+- **`Download-Cradles-Oneliners.md`** - Various Powershell Download Cradles purposed as one-liners ([gist](https://gist.github.com/mgeeky/3b11169ab77a7de354f4111aa2f0df38))
+
+
 - **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-*`, `Find-*` into _Clixml_ files. Those files (stored in an output directory as separate XML files) can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread. **Warning**: Be careful though, as this script launches many reconnaissance commands one by one, this WILL generate a lot of noise. Microsoft ATA for instance for sure pick you up with _"Reconnaissance using SMB session enumeration"_ after you've launched `Invoke-UserHunter`. 
 
     **WARNING:** This script is compatible with newer version of PowerView (coming from dev branch as of 2018),
@@ -330,6 +333,8 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
     - `Get-ReconData -DirName <DIR>` - Gets names of variables that were created and contains previously imported data.
 
 - **`set-handler.rc`** - Quickly set metasploit's multi-handler + web_delivery (separated) handler for use with powershell. ([gist](https://gist.github.com/mgeeky/bf4d732aa6e602ca9b77d089fd3ea7c9))
+
+- [**`SharpWMI`**](https://github.com/mgeeky/SharpWMI) - This implementation is a refurbished and enhanced version of original SharpWMI by @harmj0y that adds some more flexibility for working with malicious VBS scripts, AMSI evasion, file upload purely via WMI and makes it possible to return output from WMI remotely executed commands. Initially submitted as a [Pull Request #3](https://github.com/GhostPack/SharpWMI/pull/3) to the original repo of that project, however unless it's merged there - will pin my fork here for accountability
 
 - **`Stracciatella`** - Powershell runspace from within C# (aka `SharpPick` technique) with AMSI and Script Block Logging disabled for your pleasure.
 
