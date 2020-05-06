@@ -9,6 +9,8 @@ Windows Script Host (WSH) subsystem can execute VBScript/JScript scritplets usin
 - `wscript.exe` - For general scripts execution. **This one loads AMSI**
 
 
+---
+
 #### VBScript
 
 - **`download-file-and-exec.vbs`** - Downloads a binary file using `Msxml2.ServerXMLHTTP`, stores it to the disk `Adodb.Stream` and then launches it via `Wscript.Shell Run`
@@ -20,8 +22,12 @@ Windows Script Host (WSH) subsystem can execute VBScript/JScript scritplets usin
 - **`wscript-shell-stdin-code-exec.vbs`** - Code execution via `WScript.Shell` in a hidden window through a command passed from StdIn to `powershell`
 
 
+---
+
 #### JScript
 
+
+---
 
 #### XSL
 
@@ -40,6 +46,8 @@ Templates:
 
 
 
+---
+
 #### COM Scriptlets
 
 Sample code execution with `regsvr32` can be following:
@@ -49,6 +57,8 @@ regsvr32 /u /n /s /i:wscript-shell-run-jscript-scriptlet.sct scrobj.dll
 
 - **`wscript-shell-run-jscript-scriptlet.sct`** - SCT file with JSCript code execution via `WScript.Shell.Run`
 
+
+---
 
 #### HTA
 
