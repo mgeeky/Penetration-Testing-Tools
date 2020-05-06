@@ -29,9 +29,7 @@ If xhr.Status = 200 Then
 
     ' STEP 3: Execute file
     cmd = out & " " & parameters
-    MsgBox cmd
     sh.Run cmd, 0, False
-
 End If
 
 Set sh = Nothing

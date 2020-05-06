@@ -15,6 +15,10 @@ Windows Script Host (WSH) subsystem can execute VBScript/JScript scritplets usin
 
 - **`download-file-and-exec.vbs`** - Downloads a binary file using `Msxml2.ServerXMLHTTP`, stores it to the disk `Adodb.Stream` and then launches it via `Wscript.Shell Run`
 
+- **`download-powershell-and-exec-via-stdin`** - Downloads a Powershell script/commands from a given URL and passes them to _Powershell_'s `StdIn`
+
+- **`drop-binary-file-and-launch.vbs`** - Drops embedded base64 encoded binary file to disk and then launches it.
+
 - **`wmi-exec-command.vbs`** - Example of VBScript code execution via WMI class' `Win32_Process` static method `Create`
 
 - **`wscript-shell-code-exec.vbs`** - Code execution via `WScript.Shell` in a hidden window.
