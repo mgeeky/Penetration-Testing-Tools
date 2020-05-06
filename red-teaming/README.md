@@ -52,6 +52,8 @@ cmstp.exe /ni /s cmstp.inf
 
 - **`cobalt-arsenal`** - A set of my published Cobalt Strike 4.0+ compatible aggressor scripts. That includes couple of my handy utils I've used on various engagements.
 
+- [**`code-exec-templates`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/code-exec-templates) - a small collection of template/backbone files for various code-execution techniques (VBScript/JScript embedded in HTA/SCT/XSL/VBS/JS)
+
 - **`compressedPowershell.py`** - Creates a Powershell snippet containing GZIP-Compressed payload that will get decompressed and executed (IEX)
 . ([gist](https://gist.github.com/mgeeky/e30ceecc2082a11b99c7b24b42bd77fc))
 
