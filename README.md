@@ -1,25 +1,31 @@
 ## Penetration Testing Tools, Scripts, CheatSheets
 
-This is a collection of many tools, scripts, cheatsheets and other loots that I've been developing over years for penetration testing and IT Security audits purposes. Many of them actually had been used during real-world assignments, some of them are a collection gathered from various sources (waiting to be used someday). 
+This is a collection of more than a **140+** tools, scripts, cheatsheets and other loots that I've been developing over years for Penetration Testing and IT Security audits purposes. 
+Most of them came handy at least once during my real-world engagements.
 
-**Notice:** In order to clone it properly - use `--recurse-submodules` option:
+**Notice:** In order to clone this repository properly - use `--recurse-submodules` switch:
 ```
 bash$ git clone --recurse-submodules https://github.com/mgeeky/Penetration-Testing-Tools
 ```
 
-This repository does not contain actual exploits. These I will release under separate repository in some point in future.
+Most of these files were initially shared on my [Gists](https://gist.github.com/mgeeky) but eventually got moved into this repository.
 
-Most of these files actually comes straight from my [Gists](https://gist.github.com/mgeeky) - I've decided to move them into separated repository as managmenet of this number of scripts became tough nut to crack.
+Every time I stumbled upon a problem that could be better scripted or resolved programatically - I made effort to do just that and thus improve my technical assurance capabilities or to optimize time spent on repetitive actions during projects I've been delivering. 
 
-This repository is divided further onto following directories:
+The collection is divided further onto following sections:
 
-- `clouds` - Cloud-Security related tools
-- `file-formats` - Contains various file-format related utilities, fuzzers and so on.
-- `linux` - Contains linux-based scripts for various purposes.
-- `networks` - Network devices & services Penetration Testing and auditing scripts
-- `others` - Others related somehow to penetration tests & Audits
-- `red-teaming` - Powershell, Visual Basic, js, phishings and other alike candys
-- `web` - Web-Application auditing, pentesting, fuzzing related.
-- `windows` - Windows utilities, scripts, exploits.
+- `clouds` - Tools I came up with during my cloud assessments
+- `file-formats` - file-format related utilities, fuzzers and alike.
+- `linux` - small bunch of Linux-based scripts and tools.
+- `networks` - Network devices & protocols Penetration Testing toolery
+- `others` - Others related somehow to this craftmanship
+- `red-teaming` - Lots of toolings I've been using during my Purpler/Red-Teaming engagements
+- `web` - Web applications security assessment related utilities.
+- `windows` - Windows goodies, scripts, exploits.
 
-Of course these tools do not contain any customer/client related sensitive informations and there are no assignment-specific tools developed as PoCs. 
+The base of these tools do not contain any customer/client related sensitive information as well as there are no engagement-specific tools developed as PoCs.
+
+```
+Mariusz B. / mgeeky, (@mariuszbit)
+<mb [at] binary-offensive.com>
+```
