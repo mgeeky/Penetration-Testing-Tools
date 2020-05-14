@@ -29,6 +29,8 @@ I've experienced following:
    * transfer to the Citrix Receiver RDP session: `40-60 bytes/s`
    * transfer to LAN RDP session RDP session: `400-800 bytes/s`
 
+Use `--verbose` for additional _field steps explanation_ output.
+
 Sample usage:
 ```
 PS> python3 rdpFileUpload.py -v -f certutil README.md
