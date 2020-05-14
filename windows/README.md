@@ -24,6 +24,68 @@
 
 - **`pth-carpet.py`** - Pass-The-Hash Carpet Bombing utility - trying every provided hash against every specified machine. ([gist](https://gist.github.com/mgeeky/3018bf3643f80798bde75c17571a38a9))
 
+- **`rdpFileUpload.py`** - RDP file upload utility via Keyboard emulation. Uploads specified input file or directory, encodes it and retypes encoded contents by emulating keyboard keypresses into previously focused RDP session window. That will effectively transmit contents of the file onto the remote host without use of any sort of built-in file upload functionality. Remote desktop protocols such as RDP/VNC could be abused in this way by smuggling to the connected host implant files, etc. In case a directory was specified on input, will recursively add every file from that directory and create a Zip archive that will be later uploaded. Average transfer bandwidths largely depend on your connectivity performance and system utilization.
+I've experienced following:
+   * transfer to the Citrix Receiver RDP session: `40-60 bytes/s`
+   * transfer to LAN RDP session RDP session: `400-800 bytes/s`
+
+Sample usage:
+```
+PS> python3 rdpFileUpload.py -v -f certutil README.md
+
+    :: RDP file upload utility via Keyboard emulation.
+    Takes an input file/folder and retypes it into focused RDP session window.
+    That effectively uploads the file into remote host over a RDP channel.
+
+    Mariusz B. / mgeeky '20, (@mariuszbit)
+    <mb@binary-offensive.com>
+
+[+] Will upload file's contents: "README.md"
+
+[+] MD5 checksum of file to be uploaded:        442949e7bef67384161b511c2dd3e6bb
+[+] MD5 checksum of encoded data to be retyped: 667fee7e6528bbd07075e2e54f7fee69
+[.] Size of input file: 4993 - keys to retype: 6926
+[*] Inter-key press interval: 5 miliseconds.
+[*] Every chunk cooldown delay: 0.5 miliseconds.
+[*]
+    ================================================================
+    A) How to proceed now:
+
+        1) In your RDP session, spawn a text editor (notepad, vim)
+        2) Click inside of a text area as you were about to write something.
+        3) Leave your mouse cursor in that RDP session window (client) having that window focused
+
+[.] Do not use your mouse/keyboard until file upload is completed!
+
+[+] We're about to initiate upload process.
+[.] Waiting 10 seconds before we begin...
+
+[+] Starting file retype/upload...
+[*] Mouse position of assumed RDP session window: Point(x=2422, y=1142)
+
+100%|███████████████████████████████████████████████████████████████████| 6926/6926 [01:07<00:00, 45.52characters/s]
+
+[+] FILE UPLOADED.
+[*]
+    ================================================================
+    B) After file was uploaded, next steps are:
+
+        *) Using your text editor: save the file in a remote system as "README.md.b64"
+
+        *) Verify MD5 sum of retyped file to base value 667fee7e6528bbd07075e2e54f7fee69:
+            $ md5sum README.md.b64
+              or
+            PS> Get-FileHash .\README.md.b64 -Algorithm MD5
+
+        *) Base64 decode file using certutil:
+            cmd> certutil -decode README.md.b64 README.md
+
+        *) Verify MD5 sum of final form of uploaded file to expected original value 442949e7bef67384161b511c2dd3e6bb:
+            $ md5sum README.md
+              or
+            PS> Get-FileHash .\README.md -Algorithm MD5
+```
+
 - **`revshell.c`** - Utterly simple reverse-shell, ready to be compiled by `mingw-w64` on Kali. No security features attached, completely not OPSEC-safe.
 
 - **`Simulate-DNSTunnel.ps1`** - Performs DNS Tunnelling simulation for purpose of triggering installed Network IPS and IDS systems, generating SIEM offenses and picking up Blue Teams.
