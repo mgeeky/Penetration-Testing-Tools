@@ -406,7 +406,7 @@ def main(argv):
     Logger.ok('MD5 checksum of encoded data to be retyped: ' + hash2)
     Logger.info(f'Size of input {t}: {len(contents)} - keys to retype: {len(encoded)}')
     Logger.verbose(f'Inter-key press interval: {opts.interval} miliseconds.')
-    Logger.verbose(f'Every chunk cooldown delay: {opts.delay} miliseconds.')
+    Logger.verbose(f'Every chunk cooldown delay: {1000*opts.delay} miliseconds.')
     del contents
 
     Logger.verbose('''
