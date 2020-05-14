@@ -324,7 +324,7 @@ def parseOptions(argv):
     parser.add_argument('-v', '--verbose', action='store_true', help='Displays verbose output containing field steps to follow.')
     parser.add_argument('-D', '--debug', action='store_true', help='Display debug output.')
 
-    parser.add_argument('-f', '--format', choices=outputFormats, default='raw', help=f'Specifies into which format retype input file. Default: retype the file as is. Other formats: {outputFormats} . "certutil" format implies --base64 .')
+    parser.add_argument('-f', '--format', choices=outputFormats, default='raw', help=f'Specifies into which format retype input file. Default: retype the file as is. "certutil" format implies --base64')
 
     timing = parser.add_argument_group('Timing & Performance', 'Adjusts settings impacting program\'s "upload" efficiency')
     timing.add_argument('-w', '--wait', type=int, default=config['wait'], help=f'Hold on before we start retyping file contents for this long (in seconds). Default: {config["wait"]} seconds.')
