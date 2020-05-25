@@ -145,7 +145,7 @@ chmod +x bin/lambdaguard
 cd ..
 git_clone https://github.com/nahamsec/lazys3.git
 git_clone https://github.com/andresriancho/nimbostratus.git
-git_clone https://github.com/duo-labs/cloudmapper.git ; cd cloudmapper/ ; pipenv install --skip-lock ; pipenv shell ; cd ..
+git_clone https://github.com/duo-labs/cloudmapper.git ; cd cloudmapper/ ; pipenv install --skip-lock ; pipenv shell ; exit ; cd ..
 git_clone https://github.com/awslabs/aws-security-benchmark.git
 git_clone https://github.com/VirtueSecurity/aws-extender-cli.git
 git_clone https://github.com/cloudsploit/scans.git
