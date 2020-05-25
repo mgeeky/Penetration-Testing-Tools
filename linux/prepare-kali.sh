@@ -64,7 +64,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update ; apt upgrade -y
 apt-get update --fix-missing
 
-apt install -yq -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar libnfc-bin autoconf libnfc-dev tox libmariadb-dev python-m2crypto cmake
+apt install -yq -m git build-essential binutils-dev vim python3 libunwind-dev python unzip python-pip python3-pip python3-venv python3-setuptools libssl-dev autoconf automake libtool python2.7-dev python3.7-dev python3-tk jq awscli npm graphviz golang neo4j libgconf-2-4 bloodhound lftp chromium heimdal-clients python-ldap rdate pcregrep lftp mingw-w64 bluetooth bluez libbluetooth-dev libudev-dev p7zip git ca-certificates build-essential libreadline5 libreadline-dev libusb-0.1-4 libusb-dev perl pkg-config wget libncurses5-dev gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib libqt4-dev libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev bettercap oscanner tnscmd10g samba samba-common smbclient unrar libnfc-bin autoconf libnfc-dev tox libmariadb-dev python-m2crypto cmake pipenv nodejs
 
 if ! [ -x "$(command -v pip2)" ]; then
   echo 'Error: pip2 is not installed.' >&2
@@ -224,7 +224,7 @@ cd miLazyCracker
 wget http://crapto1.netgarage.org/craptev1-v1.1.tar.xz
 wget http://crapto1.netgarage.org/crapto1-v3.3.tar.xz
 sed -ir 's/apt-get install/apt-get install -y/' miLazyCrackerFreshInstall.sh
-./miLazyCrackerFreshInstall.sh
+#./miLazyCrackerFreshInstall.sh
 cd ..
 git_clone https://github.com/RfidResearchGroup/proxmark3.git
 apt-get remove -y modemmanager
