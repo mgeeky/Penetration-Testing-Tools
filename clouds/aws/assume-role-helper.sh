@@ -12,13 +12,15 @@
 # Configure below variables.
 #
 
-# This profile name must be different among any other profiles oyu have defined in your
-# config and credentials file.
+# Below two values are REQUIRED
 PROFILE_NAME=
 ROLE_NAME=
 
 # If left empty, will be deduced from `aws sts get-caller-identity` output.
 ACCOUNT_NUMBER=
+
+# If left empty, will use ROLE_NAME
+SESSION_NAME=
 
 # If you leave this field empty - it will be deduced from `aws sts get-caller-identity` output
 #SERIAL_MFA=arn:aws:iam::<NUMBER>:mfa/<USER-NAME>
@@ -49,6 +51,9 @@ if [[ "$ACCOUNT_NUMBER" = "" ]]; then
     ACCOUNT_NUMBER=$(echo "$out" | python3 -c "import sys,json; foo=json.loads(sys.stdin.read()); print(foo['Account'])" )
 fi
 
+if [[ "$SESSION_NAME" = "" ]]; then
+    SESSION_NAME=$ROLE_NAME
+fi
 
 ROLE_ARN=arn:aws:iam::$ACCOUNT_NUMBER:role/$ROLE_NAME
 
@@ -59,7 +64,7 @@ echo
 
 if [[ "$code" = "" ]] || [[ "$SERIAL_MFA" == "" ]]; then
     echo "[.] MFA not provided, will attempt to assume role without it."
-    out=$(aws --profile $PROFILE_NAME sts assume-role --role-arn $ROLE_ARN --role-session-name $ROLE_NAME --duration-seconds $DURATION 2>&1)
+    out=$(aws --profile $PROFILE_NAME sts assume-role --role-arn $ROLE_ARN --role-session-name $SESSION_NAME --duration-seconds $DURATION 2>&1)
 else
     echo "[.] Will attempt to assume role with MFA provided."
     out=$(aws --profile $PROFILE_NAME sts assume-role --serial-number $SERIAL_MFA --role-arn $ROLE_ARN --role-session-name $ROLE_NAME --duration-seconds $DURATION --token-code $code 2>&1)
@@ -70,7 +75,7 @@ if [ $? -eq 0 ]; then
     echo "[+] Collected session credentials. They will be valid for: $valid. "
     echo -e "\tPaste below lines to your '~/.aws/credentials' file:"
     echo
-    echo "[$PROFILE_NAME-$ROLE_NAME]"
+    echo "[$PROFILE_NAME-$SESSION_NAME]"
     echo "$out" | python3 -c 'import sys,json; foo=json.loads(sys.stdin.read()); print("aws_access_key_id={}\naws_secret_access_key={}\naws_session_token={}".format(foo["Credentials"]["AccessKeyId"],foo["Credentials"]["SecretAccessKey"],foo["Credentials"]["SessionToken"]))'
     echo
 else
