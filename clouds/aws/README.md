@@ -1,6 +1,9 @@
 
 ## AWS-related penetration testing scripts, tools and Cheatsheets
 
+
+- **`assume-role-helper.sh`** - Calls `aws sts assume-role` using MFA token in order to retrieve session credentials and reformat it into `~/.aws/credentials` file format. That eases copy-and-paste of credentials provided by Assume Role facility into credentials file format. Having creds reformatted, tools such as _s3tk_ that are unable to process MFA tokens could be used using preconfigured profile creds. 
+
 - **`disruptCloudTrailByS3Lambda.py`** - This script attempts to disrupt CloudTrail by planting a Lambda function that will delete every object created in S3 bucket bound to a trail. As soon as CloudTrail creates a new object in S3 bucket, Lambda will kick in and delete that object. No object, no logs. No logs, no Incident Response :-)
 
 One will need to pass AWS credentials to this tool. Also, the account affected should have at least following permissions:
@@ -316,8 +319,6 @@ drwxr-xr-x   3 root root  4096 lis  4 16:18 home
 - **`exfiltrateLambdaTasksDirectory.py`** - Script that creates an in-memory ZIP file from the entire directory `$LAMBDA_TASK_ROOT` (typically `/var/task`) and sends it out in a form of HTTP(S) POST request, within an `exfil` parameter. To be used for exfiltrating AWS Lambda's entire source code.
 
 - **`find-exposed-resources.sh`** - Utterly simple script enumerating some of the resources that could be publicly shared which would count as a security misconfiguration.
-
-- **`get-session-creds-in-config-format.sh`** - Calls `aws sts assume-role` using MFA token in order to then retrieve session credentials and reformat it into `~/.aws/credentials` file format. Having that it's easy to copy-and-paste that script's output into credentials file. Then tools such as _s3tk_ that are unable to process MFA tokens may just use preconfigured profile creds. 
 
 - **`identifyS3Bucket.rb`** - This script attempts to identify passed name whether it resolves to a valid AWS S3 Bucket via different means. This script may come handy when revealing S3 buckets hidden behind HTTP proxies.
 
