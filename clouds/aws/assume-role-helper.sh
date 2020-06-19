@@ -26,7 +26,7 @@ SERIAL_MFA=
 
 # Duration in seconds. Values possible range: 900-43200
 # 1 hour - 3600, 2 hours - 7200, 3 hours - 10800, 6 hours - 21600, 12 hours - 43200
-DURATION=42000
+DURATION=3600
 
 #
 # --------------------------
@@ -70,8 +70,8 @@ if [ $? -eq 0 ]; then
     echo "[+] Collected session credentials. They will be valid for: $valid. "
     echo -e "\tPaste below lines to your '~/.aws/credentials' file:"
     echo
-    echo "[$PROFILE_NAME]"
-    echo "$out" | python33 -c 'import sys,json; foo=json.loads(sys.stdin.read()); print("aws_access_key_id={}\naws_secret_access_key={}\naws_session_token={}".format(foo["Credentials"]["AccessKeyId"],foo["Credentials"]["SecretAccessKey"],foo["Credentials"]["SessionToken"]))'
+    echo "[$PROFILE_NAME-$ROLE_NAME]"
+    echo "$out" | python3 -c 'import sys,json; foo=json.loads(sys.stdin.read()); print("aws_access_key_id={}\naws_secret_access_key={}\naws_session_token={}".format(foo["Credentials"]["AccessKeyId"],foo["Credentials"]["SecretAccessKey"],foo["Credentials"]["SessionToken"]))'
     echo
 else
     echo "[!] Could not obtain assume-role session credentials:"
