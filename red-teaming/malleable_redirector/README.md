@@ -24,8 +24,9 @@ Use wisely, stay safe.
 
 ### Example usage
 
+All settings were moved to the external file:
 ```
-$ python3 proxy2.py -P 80/http -P 443/https -p plugins/malleable_redirector.py --profile jquery-c2.3.14.profile --teamserver-url 1.2.3.4:8080 -v
+$ python3 proxy2.py --config example-config.yaml
 
   [INFO] 19:21:42: Loading 1 plugin...
   [INFO] 19:21:42: Plugin "malleable_redirector" has been installed.
@@ -54,12 +55,201 @@ $ python3 proxy2.py -P 80/http -P 443/https -p plugins/malleable_redirector.py -
   [...]
 ```
 
+Where **example-config.yaml** contains:
+
+```
+plugin: malleable_redirector
+verbose: True
+
+port:
+  - 80/http
+  - 443/https
+
+profile: jquery-c2.3.14.profile
+
+# Let's Encrypt certificates
+ssl_cacert: /etc/letsencrypt/live/attacker.com/fullchain.pem
+ssl_cakey: /etc/letsencrypt/live/attacker.com/privkey.pem
+
+teamserver_url:
+  - 1.2.3.4:8080
+```
+
 The above output contains a line pointing out that there has been an unauthorized, not compliant with our C2 profile inbound request, which got dropped due to incompatible User-Agent string presented:
 ```
   [...]
   [DROP, reason:1] inbound User-Agent differs from the one defined in C2 profile.
   [...]
 ```
+
+
+### Plugin options
+
+Following options are supported:
+
+```
+#
+# ====================================================
+# malleable_redirector plugin related settings
+# ====================================================
+#
+
+#
+# (Required) Path to the Malleable C2 profile file.
+#
+profile: cs.example.profile
+
+#
+# (Required) Address where to redirect legitimate inbound beacon requests.
+# A.k.a. TeamServer's Listener bind address, in a form of:
+#       [inport:][http(s)://]host:port
+#
+# If proxy2 was configured to listen on more than one port, specifying "inport" will 
+# help the plugin decide to which teamserver's listener redirect inbound request. 
+#
+# If 'inport' values are not specified in the below option (teamserver_url) the script
+# will pick destination teamserver at random.
+#
+# Having proxy2 listening on only one port does not mandate to include the "inport" part.
+# This field can be either string or list of strings.
+#
+teamserver_url: 
+  - 1.2.3.4:5555
+
+#
+# What to do with the request originating from anyone else than the beacon: 
+#   - redirect (HTTP 301), 
+#   - reset TCP connection 
+#   - proxy to act as a reverse-proxy (dangerous!)
+# Valid values: 'reset', 'redirect', 'proxy'. 
+#
+# Defaults to: redirect
+#
+drop_action: redirect
+
+#
+# If someone who is not a beacon hits the proxy, or the inbound proxy does not meet 
+# malleable profile's requirements - where we should proxy/redirect his requests. 
+#
+# Default: https://google.com
+#
+action_url: https://google.com
+
+#
+# Log full bodies of dropped requests.
+#
+# Default: False
+#
+log_dropped: False
+
+#
+# Ban peers based on their IPv4 address. The blacklist with IP address to check against is specified
+# in 'ip_addresses_blacklist_file' option.
+#
+# Default: True
+#
+ban_blacklisted_ip_addresses: True
+
+#
+# Specifies external list of CIDRs with IPv4 addresses to ban. Each entry in that file
+# can contain a single IPv4, a CIDR or a line with commentary in following format:
+#     1.2.3.4/24 # Super Security System
+#
+# Default: plugins/malleable_banned_ips.txt
+#
+ip_addresses_blacklist_file: plugins/malleable_banned_ips.txt
+
+#
+# Ban peers based on their IPv4 address' resolved ISP/Organization value or other details. 
+# Whenever a peer connects to our proxy, we'll take its IPv4 address and use one of the specified
+# APIs to collect all the available details about the address. Whenever a banned word 
+# (of a security product) is found in those details - peer will be banned.
+# List of API keys for supported platforms are specified in ''. If there are no keys specified, 
+# only providers that don't require API keys will be used (e.g. ip-api.com, ipapi.co)
+#
+# Default: True
+#
+verify_peer_ip_details: True
+
+#
+# Specifies a list of API keys for supported API details collection platforms. 
+# If 'verify_peer_ip_details' is set to True and there is at least one API key given in this option, the
+# proxy will collect details of inbound peer's IPv4 address and verify them for occurences of banned words
+# known from various security vendors. Do take a note that various API details platforms have their own
+# thresholds for amount of lookups per month. By giving more than one API keys, the script will
+# utilize them in a random order.
+#
+# To minimize number of IP lookups against each platform, the script will cache performed lookups in an
+# external file named 'ip-lookups-cache.json'
+#
+# Supported IP Lookup providers:
+#   - ip-api.com: No API key needed, free plan: 45 requests / minute
+#   - ipapi.co: No API key needed, free plan: up to 30000 IP lookups/month and up to 1000/day.
+#   - ipgeolocation.io: requires an API key, up to 30000 IP lookups/month and up to 1000/day.
+#
+# Default: empty dictionary
+#
+ip_details_api_keys: 
+  ipgeolocation_io:
+
+
+#
+# Restrict incoming peers based on their IP Geolocation information. 
+# Available only if 'verify_peer_ip_details' was set to True. 
+# IP Geolocation determination may happen based on the following supported characteristics:
+#   - organization, 
+#   - continent, 
+#   - continent_code, 
+#   - country, 
+#   - country_code, 
+#   - city, 
+#   - timezone
+#
+# The Peer will be served if at least one geolocation condition holds true for him 
+# (inclusive/alternative arithmetics).
+#
+# If no determinants are specified, IP Geolocation will not be taken into consideration while accepting peers.
+# If determinants are specified, only those peers whose IP address matched geolocation determinants will be accepted.
+#
+# Each of the requirement values may be regular expression. Matching is case-insensitive.
+#
+# Following (continents_code, continent) pairs are supported:
+#    ('AF', 'Africa'),
+#    ('AN', 'Antarctica'),
+#    ('AS', 'Asia'),
+#    ('EU', 'Europe'),
+#    ('NA', 'North america'),
+#    ('OC', 'Oceania'),
+#    ('SA', 'South america)' 
+#
+# Proper IP Lookup details values can be established by issuing one of the following API calls:
+#   $ curl -s 'https://ipapi.co/TARGET-IP-ADDRESS/json/' 
+#   $ curl -s 'http://ip-api.com/json/TARGET-IP-ADDRESS'
+#
+# The organization/isp/as/asn/org fields will be merged into a common organization list of values.
+#
+ip_geolocation_requirements:
+  organization:
+    - Some\s+organization
+  continent:
+  continent_code:
+  country:
+  country_code:
+  city:
+    -
+  timezone:
+
+
+#
+# List of whitelisted IP addresses/CIDR ranges.
+# Inbound packets from these IP address/ranges will always be passed towards specified TeamServer without
+# any sort of verification or validation.
+#
+whitelisted_ip_addresses:
+  - 127.0.0.0/24
+
+```
+
 
 ### TODO:
 
