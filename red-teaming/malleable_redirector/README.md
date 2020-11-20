@@ -12,6 +12,16 @@ This program acts as a HTTP/HTTPS reverse-proxy with several restrictions impose
 
 `malleable_redirector` was created to resolve the problem of effective IR/AV/EDRs/Sandboxes evasion on the C2 redirector's backyard. It comes in a form of a plugin for other project of mine called [proxy2](https://github.com/mgeeky/proxy2), that is a lightweight forward & reverse HTTP/HTTPS proxy.
 
+** Features:**
+
+- Malleable C2 Profile parser able to validate inbound HTTP/S requests strictly according to malleable's contract and drop in case of violation (Malleable Profiles 4.0+ with variants covered)
+- Integrated curated massive blacklist of IPv4 pools and ranges known to be associated with IT Security vendors
+- Ability to query connecting peer's IPv4 address against IP Geolocation/whois information and confront that with predefined regular expressions to rule out peers connecting outside of trusted organizations/countries/cities etc.
+- Built-in Replay attacks mitigation enforced by logging accepted requests' MD5 hashsums into locally stored SQLite database and preventing requests previously accepted.
+- Functionality to ProxyPass requests matching specific URL onto other Hosts
+- Support for multiple Teamservers
+- Support for many reverse-proxying Hosts/redirection sites giving in a randomized order - which lets load-balance traffic or build more versatile infrastructures
+
 The proxy2 in companion with this plugin can act as a CobaltStrike Teamserver C2 redirector, given Malleable C2 profile used during the campaign and teamserver's hostname:port. The plugin will parse supplied malleable profile in order to understand which inbound requests may possibly come from the compatible Beacon or are not compliant with the profile and therefore should be misdirected. Sections such as http-stager, http-get, http-post and their corresponding uris, headers, prepend/append patterns, User-Agent are all used to distinguish between legitimate beacon's request and some Internet noise or IR/AV/EDRs out of bound inquiries. 
 
 The plugin was also equipped with marvelous known bad IP ranges coming from:
@@ -85,9 +95,34 @@ The above output contains a line pointing out that there has been an unauthorize
 
 ### Plugin options
 
-Following options are supported:
+Following options/settings are supported:
 
 ```
+#
+# This is a sample config file for Malleable-Redirector plugin of proxy2 utility.
+#
+
+
+#
+# ====================================================
+# General proxy related settings
+# ====================================================
+#
+
+plugin: malleable_redirector
+
+trace: True
+debug: True
+
+port:
+  - 80/http
+  - 443/https
+
+# Let's Encrypt certificates
+ssl_cacert: /etc/letsencrypt/live/attacker.com/fullchain.pem
+ssl_cakey: /etc/letsencrypt/live/attacker.com/privkey.pem
+
+
 #
 # ====================================================
 # malleable_redirector plugin related settings
@@ -95,9 +130,10 @@ Following options are supported:
 #
 
 #
-# (Required) Path to the Malleable C2 profile file.
+# Path to the Malleable C2 profile file. 
+# If not given, most of the request-validation logic won't be used.
 #
-profile: cs.example.profile
+profile: malleable.profile
 
 #
 # (Required) Address where to redirect legitimate inbound beacon requests.
@@ -116,24 +152,15 @@ profile: cs.example.profile
 teamserver_url: 
   - 1.2.3.4:5555
 
-#
-# What to do with the request originating from anyone else than the beacon: 
-#   - redirect (HTTP 301), 
-#   - reset TCP connection 
-#   - proxy to act as a reverse-proxy (dangerous!)
-# Valid values: 'reset', 'redirect', 'proxy'. 
-#
-# Defaults to: redirect
-#
-drop_action: redirect
 
 #
-# If someone who is not a beacon hits the proxy, or the inbound proxy does not meet 
-# malleable profile's requirements - where we should proxy/redirect his requests. 
+# Report only instead of actually dropping/blocking/proxying bad/invalid requests.
+# If this is true, will notify that the request would be block if that option wouldn't be
+# set. 
 #
-# Default: https://google.com
+# Default: False
 #
-action_url: https://google.com
+report_only: False
 
 #
 # Log full bodies of dropped requests.
@@ -141,6 +168,83 @@ action_url: https://google.com
 # Default: False
 #
 log_dropped: False
+
+#
+# What to do with the request originating not conforming to Beacon, whitelisting or 
+# ProxyPass inclusive statements: 
+#   - 'redirect' it to another host with (HTTP 301), 
+#   - 'reset' a TCP connection with connecting client
+#   - 'proxy' the request, acting as a reverse-proxy against specified action_url 
+#       (may be dangerous if client fetches something it shouldn't supposed to see!)
+#
+# Valid values: 'reset', 'redirect', 'proxy'. 
+#
+# Default: redirect
+#
+drop_action: redirect
+
+#
+# If someone who is not a beacon hits the proxy, or the inbound proxy does not meet 
+# malleable profile's requirements - where we should proxy/redirect his requests. 
+# The protocol HTTP/HTTPS used for proxying will be the same as originating
+# requests' protocol. Redirection in turn respects protocol given in action_url.
+#
+# This value may be a comma-separated list of hosts, or a YAML array to specify that
+# target action_url should be picked at random:
+#   action_url: https://google.com, https://gmail.com, https://calendar.google.com
+#
+# Default: https://google.com
+#
+action_url: 
+  - https://google.com
+
+#
+# ProxyPass alike functionality known from mod_proxy.
+#
+# If inbound request matches given conditions, proxy that request to specified host,
+# fetch response from target host and return to the client. Useful when you want to 
+# pass some requests targeting for instance attacker-hosted files onto another host, but
+# through the one protected with malleable_redirector.
+#
+# Protocol used for ProxyPass will match the one from originating request. Therefore
+# there is no point in prepending host part with http/https schema, as it's going to be
+# ignored anyway.
+# 
+# Syntax:
+#   proxy_pass:
+#     - /url_to_be_passed example.com
+#
+# The first parameter 'url' is a regex (case-insensitive). Must start with '/'.
+# The begin/end regex operands are implicit and will constitute following regex with URL:
+#     '^' + url + '$'
+#
+# Default: No proxy pass rules.
+#
+proxy_pass:
+  - /foobar\d* bing.com
+
+
+#
+# Every time malleable_redirector decides to pass request to the Teamserver, as it conformed
+# malleable profile's contract, a MD5 sum may be computed against that request and saved in sqlite
+# file. Should there be any subsequent request evaluating to a hash value that was seen & stored
+# previously, that request is considered as Replay-Attack attempt and thus should be banned.
+#
+# CobaltStrike's Teamserver has built measures aginst replay-attacks, however malleable_redirector may
+# assist in that activity.
+#
+# Default: False
+#
+mitigate_replay_attack: False
+
+
+#
+# List of whitelisted IP addresses/CIDR ranges.
+# Inbound packets from these IP address/ranges will always be passed towards specified TeamServer without
+# any sort of verification or validation.
+#
+whitelisted_ip_addresses:
+  - 127.0.0.0/24
 
 #
 # Ban peers based on their IPv4 address. The blacklist with IP address to check against is specified
@@ -190,6 +294,7 @@ verify_peer_ip_details: True
 # Default: empty dictionary
 #
 ip_details_api_keys: 
+  #ipgeolocation_io: 0123456789abcdef0123456789abcdef
   ipgeolocation_io:
 
 
@@ -230,29 +335,49 @@ ip_details_api_keys:
 #
 ip_geolocation_requirements:
   organization:
-    - Some\s+organization
+    #- My\s+Target\+Company(?: Inc.)?
   continent:
   continent_code:
   country:
   country_code:
   city:
-    -
   timezone:
 
-
 #
-# List of whitelisted IP addresses/CIDR ranges.
-# Inbound packets from these IP address/ranges will always be passed towards specified TeamServer without
-# any sort of verification or validation.
+# Fine-grained requests dropping policy - lets you decide which checks
+# you want to have enforced and which to skip by setting them to False
 #
-whitelisted_ip_addresses:
-  - 127.0.0.0/24
-
+# Default: all checks enabled
+#
+policy:
+  # [IP: ALLOW, reason:0] Request conforms ProxyPass entry (url="..." host="..."). Passing request to specified host
+  allow_proxy_pass: True
+  # [IP: DROP, reason:1] inbound User-Agent differs from the one defined in C2 profile.
+  drop_invalid_useragent: True
+  # [IP: DROP, reason:2] HTTP header name contained banned word
+  drop_http_banned_header_names: True
+  # [IP: DROP, reason:3] HTTP header value contained banned word:
+  drop_http_banned_header_value: True
+  # [IP: DROP, reason:4b] peer's reverse-IP lookup contained banned word
+  drop_dangerous_ip_reverse_lookup: True
+  # [IP: DROP, reason:5] HTTP request did not contain expected header
+  drop_malleable_without_expected_header: True
+  # [IP: DROP, reason:6] HTTP request did not contain expected header value:
+  drop_malleable_without_expected_header_value: True
+  # [IP: DROP, reason:7] HTTP request did not contain expected (metadata|id|output) section header:
+  drop_malleable_without_expected_request_section: True
+  # [IP: DROP, reason:8] HTTP request was expected to contain (metadata|id|output) section with parameter in URI:
+  drop_malleable_without_request_section_in_uri: True
+  # [IP: DROP, reason:9] Did not found append pattern:
+  drop_malleable_without_prepend_pattern: True
+  # [IP: DROP, reason:10] Did not found append pattern:
+  drop_malleable_without_apppend_pattern: True
 ```
 
 
 ### TODO:
 
+- Implement support for JA3 signatures in both detection & blocking and impersonation to fake nginx/Apache2/custom setups.
 - Add some unique beacons tracking logic to offer flexilibity of refusing staging and communication processes at the proxy's own discretion
 - Introduce day of time constraint when offering redirection capabilities
 - Keep track of metadata/ID payloads to better distinguish connecting peers and avoid replay attack consequences
