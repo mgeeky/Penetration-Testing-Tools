@@ -14,13 +14,16 @@ This program acts as a HTTP/HTTPS reverse-proxy with several restrictions impose
 
 ** Features:**
 
+- Grepable output log entries useful to track peer connectivity events/issues
 - Malleable C2 Profile parser able to validate inbound HTTP/S requests strictly according to malleable's contract and drop in case of violation (Malleable Profiles 4.0+ with variants covered)
+- Ability to unfilter unexpected and unwanted HTTP headers added by interim systems such as proxies and caches (think CloudFlare) in order to conform to a valid Malleable contract. 
 - Integrated curated massive blacklist of IPv4 pools and ranges known to be associated with IT Security vendors
 - Ability to query connecting peer's IPv4 address against IP Geolocation/whois information and confront that with predefined regular expressions to rule out peers connecting outside of trusted organizations/countries/cities etc.
 - Built-in Replay attacks mitigation enforced by logging accepted requests' MD5 hashsums into locally stored SQLite database and preventing requests previously accepted.
 - Functionality to ProxyPass requests matching specific URL onto other Hosts
 - Support for multiple Teamservers
 - Support for many reverse-proxying Hosts/redirection sites giving in a randomized order - which lets load-balance traffic or build more versatile infrastructures
+- Sleepless nights spent on troubleshooting "why my Beacon doesn't work over CloudFlare/CDN/Domain Fronting" are over now thanks to this script and its ability to strip unwanted garbage from our beloved Beacon requests.
 
 The proxy2 in companion with this plugin can act as a CobaltStrike Teamserver C2 redirector, given Malleable C2 profile used during the campaign and teamserver's hostname:port. The plugin will parse supplied malleable profile in order to understand which inbound requests may possibly come from the compatible Beacon or are not compliant with the profile and therefore should be misdirected. Sections such as http-stager, http-get, http-post and their corresponding uris, headers, prepend/append patterns, User-Agent are all used to distinguish between legitimate beacon's request and some Internet noise or IR/AV/EDRs out of bound inquiries. 
 
@@ -259,6 +262,35 @@ mitigate_replay_attack: False
 whitelisted_ip_addresses:
   - 127.0.0.0/24
 
+
+#
+# Maintain a volatile, dynamic list of whitelisted Peers (IPv4 addresses) based on a number of requests
+# they originate that were allowed and passed to Teamserver.
+#
+# This option cuts down request processing time since whenever a request coming from a previously whitelisted
+# peers gets processed, it will be accepted right away having observed that the peer was allowed to pass
+# N requests to the Teamserver on a previous occassions.
+#
+# This whitelist gets cleared along with proxy2 being terminated. It is only held up in script's memory.
+# 
+# Paramters:
+#   - number_of_valid_http_get_requests: defines number of successful http-get requests (polling Teamserver)
+#                                        that determine whether Peer can be trusted.
+#   - number_of_valid_http_post_requests: defines number of successful http-post requests (sending command
+#                                         results to the TS) that determine whether Peer can be trusted.
+#
+# Value of 0 denotes disabled counting of a corresponding type of requests. 
+# Function disabled if configuration option is missing.
+#
+# Default: (dynamic whitelist enabled)
+#       number_of_valid_http_get_requests: 15
+#       number_of_valid_http_post_requests: 5
+#
+add_peers_to_whitelist_if_they_sent_valid_requests:
+  number_of_valid_http_get_requests: 15
+  number_of_valid_http_post_requests: 5
+
+
 #
 # Ban peers based on their IPv4 address. The blacklist with IP address to check against is specified
 # in 'ip_addresses_blacklist_file' option.
@@ -365,6 +397,8 @@ ip_geolocation_requirements:
 policy:
   # [IP: ALLOW, reason:0] Request conforms ProxyPass entry (url="..." host="..."). Passing request to specified host
   allow_proxy_pass: True
+  # [IP: ALLOW, reason:2] Peer's IP was added dynamically to a whitelist based on a number of allowed requests
+  allow_dynamic_peer_whitelisting: True
   # [IP: DROP, reason:1] inbound User-Agent differs from the one defined in C2 profile.
   drop_invalid_useragent: True
   # [IP: DROP, reason:2] HTTP header name contained banned word
@@ -426,10 +460,10 @@ protect_these_headers_from_tampering:
 - Implement support for JA3 signatures in both detection & blocking and impersonation to fake nginx/Apache2/custom setups.
 - Add some unique beacons tracking logic to offer flexilibity of refusing staging and communication processes at the proxy's own discretion
 - Introduce day of time constraint when offering redirection capabilities
-- Keep track of metadata/ID payloads to better distinguish connecting peers and avoid replay attack consequences
 - Test it thoroughly with several enterprise-grade EDRs, Sandboxes and others 
 - Add Proxy authentication and authorization logic on CONNECT/relay.
 - Add Mobile users targeted redirection
+- Add configuration options to define custom HTTP headers to be injected, or ones to be removed
 
 ### Author
 
