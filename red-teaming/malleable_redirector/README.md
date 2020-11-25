@@ -223,6 +223,19 @@ action_url:
 proxy_pass:
   - /foobar\d* bing.com
 
+#
+# If set, removes all HTTP headers sent by Client that are not expected by Teamserver according
+# to the supplied Malleable profile and its client { header ... } section statements. Some CDNs/WebProxy
+# providers such as CloudFlare may add tons of their own metadata headers (like: CF-IPCountry, CF-RAY, 
+# CF-Visitor, CF-Request-ID, etc.) that can make Teamserver unhappy about inbound HTTP Request which could
+# cause its refusal. 
+#
+# We can strip all of these superfluous, not expected by Teamserver HTTP headers delivering a vanilla plain
+# request. This is recommended setting in most scenarios.
+#
+# Default: True
+#
+remove_superfluous_headers: True
 
 #
 # Every time malleable_redirector decides to pass request to the Teamserver, as it conformed
@@ -372,6 +385,39 @@ policy:
   drop_malleable_without_prepend_pattern: True
   # [IP: DROP, reason:10] Did not found append pattern:
   drop_malleable_without_apppend_pattern: True
+  # [IP: DROP, reason:11] Requested URI does not aligns any of Malleable defined variants:
+  drop_malleable_unknown_uris: True
+  # [IP: DROP, reason:12] HTTP request was expected to contain <> section with URI-append containing prepend/append fragments
+  drop_malleable_with_invalid_uri_append: True
+
+
+#
+# If Proxy2 validates inbound request's HTTP headers, according to policy drop_malleable_without_expected_header_value:
+#   "[IP: DROP, reason:6] HTTP request did not contain expected header value:"
+#
+# and senses some header is missing or was overwritten along the wire, the request will be dropped. We can relax this policy
+# a bit however, since there are situations in which Cache systems (such as Cloudflare) could tamper with our requests thus
+# breaking Malleable contracts. What we can do is to specify list of headers, that should be overwritten back to their values
+# defined in provided Malleable profile.
+#
+# So for example, if our profile expects:
+#   header "Accept-Encoding" "gzip, deflate";
+#
+# but we receive a request having following header set instead:
+#   Accept-Encoding: gzip
+#
+# Because it was tampered along the wire by some of the interim systems (such as web-proxies or caches), we can
+# detect that and set that header's value back to what was expected in Malleable profile.
+#
+# In order to protect Accept-Encoding header, as an example, the following configuration could be used:
+#   protect_these_headers_from_tampering:
+#     - Accept-Encoding
+#
+#
+# Default: <empty-list>
+#
+protect_these_headers_from_tampering:
+  - Accept-Encoding
 ```
 
 
