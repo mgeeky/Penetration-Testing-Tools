@@ -6,6 +6,11 @@ Red Teaming business has seen [several](https://bluescreenofjeff.com/2016-04-12-
 
 This piece of code tries to combine many of these great ideas into a one, lightweight utility, mimicking Apache2 in it's roots of being a simple HTTP(S) reverse-proxy. Combining Malleable C2 profiles understanding, knowledge of bad IP addresses pool and a flexibility of easily adding new inspection and misrouting logc - resulted in having a crafty repellent for IR evasion. 
 
+**CAUTION**: Current version of proxy2's HTTP server is not optimized very well, which causes proxy2 to severly slow down on serving subsequent peers. That may result in Beacons not being able to communicate to Teamserver!
+
+If experienced, a way to carry on with operation would be to Ctrl-C kill the proxy2 and re-run it again. Work is in progress on that issue.
+
+
 ### Abstract
 
 This program acts as a HTTP/HTTPS reverse-proxy with several restrictions imposed upon which requests and from whom it should process, similarly to the .htaccess file in Apache2's mod_rewrite.
@@ -112,18 +117,48 @@ Following options/settings are supported:
 # ====================================================
 #
 
-plugin: malleable_redirector
+# Print verbose output. Implied if debug=True. Default: False
+verbose: True
 
-trace: True
-debug: True
+# Print debugging output. Default: False
+debug: False
 
+# Dump HTTP requests and responses. Default: False
+trace: False
+
+# Redirect proxy2's output to file. Default: stdout.
+# Creates a file in the same directory that this config file is situated.
+#output: proxy.log
+
+# If 'output' is specified, tee program's output to file and stdout at the same time.
+# Default: False
+#tee: True
+
+
+#
+# Ports on which proxy2 should bind & listen
+#
 port:
   - 80/http
   - 443/https
 
-# Let's Encrypt certificates
+#
+# SSL certificate CAcert (pem, crt, cert) and private key CAkey
+#
 ssl_cacert: /etc/letsencrypt/live/attacker.com/fullchain.pem
 ssl_cakey: /etc/letsencrypt/live/attacker.com/privkey.pem
+
+
+#
+# Drop invalid HTTP requests
+#
+# (proxy2 option) If a stream that doesn't resemble valid HTTP protocol reaches Proxy2 listener, 
+# should we drop it or process it? By default we drop it.
+#
+# Default: True
+#
+drop_invalid_http_requests: True
+
 
 
 #
@@ -131,6 +166,13 @@ ssl_cakey: /etc/letsencrypt/live/attacker.com/privkey.pem
 # malleable_redirector plugin related settings
 # ====================================================
 #
+
+#
+# Plugin that should be enabled. May be repeated to load more plugins.
+# Multi-plugin support not yet thoroughly tested.
+#
+plugin: malleable_redirector
+
 
 #
 # Path to the Malleable C2 profile file. 
@@ -450,8 +492,8 @@ policy:
 #
 # Default: <empty-list>
 #
-protect_these_headers_from_tampering:
-  - Accept-Encoding
+#protect_these_headers_from_tampering:
+#  - Accept-Encoding
 ```
 
 
@@ -464,6 +506,7 @@ protect_these_headers_from_tampering:
 - Add Proxy authentication and authorization logic on CONNECT/relay.
 - Add Mobile users targeted redirection
 - Add configuration options to define custom HTTP headers to be injected, or ones to be removed
+- Add configuration options to require specifiec HTTP headers to be present in requests passing ProxyPass criteria.
 
 ### Author
 
