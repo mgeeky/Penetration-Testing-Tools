@@ -6,8 +6,6 @@ Red Teaming business has seen [several](https://bluescreenofjeff.com/2016-04-12-
 
 This piece of code tries to combine many of these great ideas into a one, lightweight utility, mimicking Apache2 in it's roots of being a simple HTTP(S) reverse-proxy. Combining Malleable C2 profiles understanding, knowledge of bad IP addresses pool and a flexibility of easily adding new inspection and misrouting logc - resulted in having a crafty repellent for IR evasion. 
 
-**CAUTION**: Current version of proxy2's HTTP server is not optimized very well, which causes proxy2 to severly slow down on serving subsequent peers. That may result in Beacons not being able to communicate to Teamserver!
-
 If experienced, a way to carry on with operation would be to Ctrl-C kill the proxy2 and re-run it again. Work is in progress on that issue.
 
 
