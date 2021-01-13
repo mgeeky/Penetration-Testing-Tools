@@ -75,7 +75,6 @@ def getInlineTask(module, payload, _format, apc, targetProcess):
     taskName = ''.join(random.choice(string.ascii_letters) for x in range(random.randint(5, 15)))
 
     payloadCode = getPayloadCode(payload.decode())
-    sys.stderr.write(payloadCode + '\n')
     launchCode = ''
 
     if _format == 'exe':
