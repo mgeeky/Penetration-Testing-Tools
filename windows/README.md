@@ -3,6 +3,10 @@
 
 - **`awareness.bat`** - Little and quick Windows Situational-Awareness set of commands to execute after gaining initial foothold (coming from APT34: https://www.fireeye.com/blog/threat-research/2016/05/targeted_attacksaga.html ) ([gist](https://gist.github.com/mgeeky/237b48e0bb6546acb53696228ab50794))
 
+- **`Find-CLSIDForProgID.ps1`** - Tries to locate COM object's `ProgID` based on a given CLSID.
+
+- **`find-system-and-syswow64-binaries.py`** - Finds files with specified extension in both System32 and SysWOW64 and then prints their intersection. Useful for finding executables (for process injection purposes) that reside in both directories (such as `WerFault.exe`)
+
 - **`Force-PSRemoting.ps1`** - Forcefully enable WinRM / PSRemoting. [gist](https://gist.github.com/mgeeky/313c22def5c86d7a529f41e5b6ff79b8)
 
 - **`GlobalProtectDisable.cpp`** - Global Protect VPN Application patcher allowing the Administrator user to disable VPN without Passcode. ([gist](https://gist.github.com/mgeeky/54ac676226a1a4bd9fd8653e24adc2e9))
