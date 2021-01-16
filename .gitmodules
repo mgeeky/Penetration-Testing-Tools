@@ -46,3 +46,6 @@
 [submodule "red-teaming/SharpWMI"]
 	path = red-teaming/SharpWMI
 	url = https://github.com/mgeeky/SharpWMI
+[submodule "windows/UnhookMe"]
+	path = windows/UnhookMe
+	url = https://github.com/mgeeky/UnhookMe
