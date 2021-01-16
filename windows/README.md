@@ -96,4 +96,16 @@ PS> python3 rdpFileUpload.py -v -f certutil README.md
 
 - **`Simulate-DNSTunnel.ps1`** - Performs DNS Tunnelling simulation for purpose of triggering installed Network IPS and IDS systems, generating SIEM offenses and picking up Blue Teams.
 
+- **`UnhookMe`** - Dynamically unhooking imports resolver. Implementation of dynamic imports resolver that would be capable of unhooking used functions in-the-fly is yet another step towards strengthening adversary resilience efforts. 
+
+```
+[~] Resolved symbol kernel32.dll!CreateFileA
+[~] Resolved symbol kernel32.dll!ReadProcessMemory
+[~] Resolved symbol kernel32.dll!MapViewOfFile
+[~] Resolved symbol kernel32.dll!VirtualProtectEx
+[#] Found trampoline hook in symbol: MessageBoxW . Restored original bytes from file.
+[~] Resolved symbol user32.dll!MessageBoxW
+```
+
+
 - **`win-clean-logs.bat`** - Batch script to hide malware execution from Windows box. Source: Mandiant M-Trends 2017. ([gist](https://gist.github.com/mgeeky/3561be7e697c62f543910851c0a26d00))
