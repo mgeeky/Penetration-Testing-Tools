@@ -587,6 +587,11 @@ def getSourceFileContents(
 
       public static bool Execute() {
           string fullPath = @"<CMD>";
+
+          if(String.IsNullOrEmpty(fullPath)) {
+              return false;
+          }
+
           ProcessStartInfo psi = new ProcessStartInfo();
           psi.FileName = Path.GetFileName(fullPath);
           psi.WorkingDirectory = Path.GetDirectoryName(fullPath);
@@ -626,7 +631,6 @@ def getSourceFileContents(
               }
           }
 
-          MessageBox.Show("filename: (" + psi.FileName + "), cwd: (" + psi.WorkingDirectory + "), args: (" + args + ")");
           psi.Arguments = args;
           Process.Start(psi);
 
@@ -643,11 +647,54 @@ def getSourceFileContents(
       }
 
       public static bool Execute(string command) {
-          if(!String.IsNullOrEmpty(command)) {
-            Process.Start(Environment.ExpandEnvironmentVariables(command));
-            return true;
+          if(String.IsNullOrEmpty(command)) {
+            return false;
           }
-          return false;
+
+          string fullPath = command;
+          ProcessStartInfo psi = new ProcessStartInfo();
+          psi.FileName = Path.GetFileName(fullPath);
+          psi.WorkingDirectory = Path.GetDirectoryName(fullPath);
+
+          string args = "";
+          if(fullPath[0] == '"')
+          {
+              int pos = fullPath.IndexOf("\\"", 1);
+              if(pos != -1)
+              {
+                  psi.FileName = Path.GetFileName(fullPath.Substring(1, pos));
+                  psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(1, pos));
+
+                  if (pos + 2 < fullPath.Length && fullPath[pos + 2] == ' ') 
+                  {
+                      args = fullPath.Substring(pos + 2);
+                  }
+              }
+              else
+              {
+                  psi.FileName = Path.GetFileName(fullPath.Substring(1));
+                  psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(1));
+              }
+          }
+          else 
+          {
+              int pos = fullPath.IndexOf(" ");
+              if (pos != -1)
+              {
+                  psi.FileName = Path.GetFileName(fullPath.Substring(0, pos));
+                  psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(0, pos));
+
+                  if (pos + 1 < fullPath.Length)
+                  {
+                      args = fullPath.Substring(pos + 1);
+                  }
+              }
+          }
+
+          psi.Arguments = args;
+          Process.Start(psi);
+
+          return true;
       }
 
 '''.replace('<CMD>', payloadCode)
