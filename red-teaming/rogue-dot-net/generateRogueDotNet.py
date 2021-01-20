@@ -54,6 +54,10 @@ import subprocess
 
 COMPILER_BASE = r'%WINDIR%\\Microsoft.NET\\Framework<ARCH>\\<VER>\\csc.exe'
 
+TYPES_NOT_NEEDING_INPUT_FILE = (
+  'run-command'
+)
+
 COMPILERS = {
   'v2' : r'v2.0.50727',
   'v4' : r'v4.0.30319',
@@ -714,7 +718,7 @@ def main(argv):
 
     _format = 'powershell'
 
-    if len(args.inputFile) > 0 and not os.path.isfile(args.inputFile):
+    if len(args.inputFile) > 0 and not os.path.isfile(args.inputFile) and args.type not in TYPES_NOT_NEEDING_INPUT_FILE:
         sys.stderr.write('[?] Input file does not exists.\n\n')
         return False
 
