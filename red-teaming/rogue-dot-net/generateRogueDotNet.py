@@ -616,6 +616,11 @@ def getSourceFileContents(
                   psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(1));
               }
           }
+          else if(fullPath.IndexOf(" ") == -1 && fullPath.IndexOf("\\\\") == -1)
+          {
+              Process.Start(fullPath);
+              return true;
+          }
           else 
           {
               int pos = fullPath.IndexOf(" ");
@@ -676,6 +681,11 @@ def getSourceFileContents(
                   psi.WorkingDirectory = Path.GetDirectoryName(fullPath.Substring(1));
               }
           }
+          else if(fullPath.IndexOf(" ") == -1 && fullPath.IndexOf("\\\\") == -1)
+          {
+              Process.Start(fullPath);
+              return true;
+          }
           else 
           {
               int pos = fullPath.IndexOf(" ");
@@ -703,7 +713,6 @@ def getSourceFileContents(
 
 $assemblyAdditions1
 
-using System.Windows.Forms;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Microsoft.Build.Framework;
@@ -716,7 +725,6 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-
 
 $namespaceStart
   
