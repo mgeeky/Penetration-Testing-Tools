@@ -11,6 +11,11 @@
 
 - **`GlobalProtectDisable.cpp`** - Global Protect VPN Application patcher allowing the Administrator user to disable VPN without Passcode. ([gist](https://gist.github.com/mgeeky/54ac676226a1a4bd9fd8653e24adc2e9))
 
+    Currently supported versions:
+    - 3.1.6.19
+    - 5.0.3.29
+    - 5.1.3.12
+
     Steps are following:
     
     1. Launch the application as an Administrator
@@ -20,7 +25,7 @@
     5. Enter some random meaningless password
     
     After those steps - the GlobalProtect will disable itself cleanly. 
-    From now on, the GlobalProtect will remain disabled until you reboot the machine (or     restart the PanGPA.exe process or PanGPS service).
+    From now on, the GlobalProtect will remain disabled until you reboot the machine (or restart the PanGPA.exe process or PanGPS service).
 
 - **`impacket-binaries.sh`** - Simple one-liner that downloads all of the Windows EXE impacket binaries put out in [Impacket Binaries](https://github.com/ropnop/impacket_static_binaries) repo. [gist](https://gist.github.com/mgeeky/2f990f14f1e7cf78fce21b8761234604)
 

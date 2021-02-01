@@ -23,12 +23,13 @@
 using namespace std;
 
 const wchar_t *processName = L"PanGPA.exe";
-const size_t PatternsNum = 2;
+const size_t PatternsNum = 3;
 const size_t SizeOfReplacingBytes = 2;
 
 const wchar_t *versionsArray[PatternsNum] = {
     L"3.1.6.19",
-    L"5.0.3.29"
+    L"5.0.3.29",
+    L"5.1.3.12"
 };
 
 //
@@ -62,12 +63,26 @@ Look for strings such as:
     "CDisableDialog::CheckPasscode - passcode matched, ok to disable"
     "CDisableDialog::CheckPasscode - passcode mismatch, deny disabling"
 */
-
 const BYTE patternToFind50329[] = {
     0x48, 0x83, 0xc1, 0x78, 0xff, 0x15, 0xba, 0xb3, 0x04, 0x00,
     0x85, 0xc0
 };
 
+
+/*
+.text:000000014009E654 4C 89 B4 24 88 00 00 00                 mov     [rsp+0A8h+var_20], r14
+.text:000000014009E65C 4C 89 BC 24 80 00 00 00                 mov     [rsp+0A8h+var_28], r15
+.text:000000014009E664 85 D2                                   test    edx, edx
+.text:000000014009E666 0F 85 8C 00 00 00                       jnz     loc_14009E6F8
+                        ^--- This is byte to be patched. -------^
+.text:000000014009E66C 83 3D 41 E4 34 00 05                    cmp     cs:dword_1403ECAB4, 5
+.text:000000014009E673 72 78                                   jb      short loc_14009E6ED
+.text:000000014009E675 48 8D 4C 24 60                          lea     rcx, [rsp+0A8h+SystemTime] ; lpSystemTime
+*/
+const BYTE patternToFind51312[] = {
+    0x24, 0x88, 0x00, 0x00, 0x00, 0x4c, 0x89, 0xBC, 0x24, 0x80, 
+    0x00, 0x00, 0x00, 0x85, 0xD2
+};
 
 
 // jne     pangpa.7FF621B7D08F
@@ -90,25 +105,39 @@ const BYTE replacingBytes50329[SizeOfReplacingBytes] = {
     0x74, 0x49
 };
 
+// jnz     loc_14009E6F8
+const BYTE bytesToBeReplaced51312[SizeOfReplacingBytes] = {
+    0x0F, 0x85
+};
+
+// jz     loc_14009E6F8
+const BYTE replacingBytes51312[SizeOfReplacingBytes] = {
+    0x0F, 0x84
+};
+
 
 const BYTE *patternsArray[PatternsNum] = {
     patternToFind31619,
-    patternToFind50329
+    patternToFind50329,
+    patternToFind51312
 };
 
 const size_t patternsSizes[PatternsNum] = {
     sizeof(patternToFind31619),
-    sizeof(patternToFind50329)
+    sizeof(patternToFind50329),
+    sizeof(patternToFind51312)
 };
 
 const BYTE *patternsToBeReplaced[PatternsNum] = {
     bytesToBeReplaced31619,
-    bytesToBeReplaced50329
+    bytesToBeReplaced50329,
+    bytesToBeReplaced51312
 };
 
 const BYTE *replacingBytes[PatternsNum] = {
     replacingBytes31619,
-    replacingBytes50329
+    replacingBytes50329,
+    replacingBytes51312
 };
 
 
