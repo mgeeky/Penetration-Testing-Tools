@@ -49,3 +49,6 @@
 [submodule "windows/UnhookMe"]
 	path = windows/UnhookMe
 	url = https://github.com/mgeeky/UnhookMe
+[submodule "red-teaming/CobaltSplunk"]
+	path = red-teaming/CobaltSplunk
+	url = https://github.com/mgeeky/CobaltSplunk

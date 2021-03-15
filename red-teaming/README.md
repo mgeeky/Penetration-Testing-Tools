@@ -52,6 +52,8 @@ cmstp.exe /ni /s cmstp.inf
 
 - **`cobalt-arsenal`** - A set of my published Cobalt Strike 4.0+ compatible aggressor scripts. That includes couple of my handy utils I've used on various engagements.
 
+- **`CobaltSplunk`** - Originally devised by [Vincent Yiu](https://github.com/vysecurity/CobaltSplunk), heavily reworked by me: a Splunk application that ingests, indexes and exposes several search operators to work with Cobalt Strike logs from within of a Splunk interface. Supports Cobalt Strike 4.3+ log files syntax. Gives a lot of flexibility to work with Teamserver log files, search through them, generate insightful reports/dashboards/pivot tables and much more.
+
 - [**`code-exec-templates`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/code-exec-templates) - a small collection of template/backbone files for various code-execution techniques (VBScript/JScript embedded in HTA/SCT/XSL/VBS/JS)
 
 - **`compressedPowershell.py`** - Creates a Powershell snippet containing GZIP-Compressed payload that will get decompressed and executed (IEX)
