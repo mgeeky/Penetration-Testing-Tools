@@ -132,7 +132,7 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 ping -k 45
 Ever suffered from a poor C3 bandwidth or general performance? Worry not - you can easily clear/remove message queues from all of your channels with this simple trick:
 
 ```
-PS D:\> py .\c3-client.py -f text http://192.168.0.200:52935 channel all clear
+PS D:\> py .\c3-client.py http://192.168.0.200:52935 channel all clear
 
     :: C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
