@@ -1,6 +1,6 @@
 ## F-Secure's C3 Client script
 
-This is a simple [F-Secure C3](https://github.com/FSecureLABS/C3) client Python script offering a few functions to interact with C3 framework in an automated manner.
+This is a simple [F-Secure's C3](https://github.com/FSecureLABS/C3) client Python script offering a few functions to interact with C3 framework in an automated manner.
 
 It connects to the C3 WebController (typically the one that's listening on port _52935_) and allows to issue API requests automating few things for us.
 
@@ -129,7 +129,7 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 ping -k 45
 In this example setup an alarm that triggers upon new Relay checking-in. Whenever that happens, a command is executed with placeholders that will be substituted with values extracted from Relay's metadata:
 
 ```
-PS D:\> py c3-client.py -f text http://192.168.0.200:52935 alarm relay -g gate4 --execute "powershell -file speak.ps1 -message \`"New C3 Relay Inbound: <domain>/<userName>, computer: <computerName>\`""
+PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay -g gate4 --execute "powershell -file speak.ps1 -message \`"New C3 Relay Inbound: <domain>/<userName>, computer: <computerName>\`""
 
     :: C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
