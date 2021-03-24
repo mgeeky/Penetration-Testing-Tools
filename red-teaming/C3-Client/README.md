@@ -43,7 +43,7 @@ optional arguments:
 **Example of a sub-help**:
 
 ```
-PS D:\> py c3-client.py -f text http://192.168.0.200:52935 alarm relay --help
+PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay --help
 
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
