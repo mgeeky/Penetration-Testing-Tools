@@ -14,7 +14,7 @@ The script offers subcommands-kind of CLI interface, so after every command one 
 ```
 PS D:\> py c3-client.py --help
 
-    :: C3 Client - a lightweight automated companion with C3 voyages
+    :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
 
 usage:
@@ -45,7 +45,7 @@ optional arguments:
 ```
 PS D:\> py c3-client.py -f text http://192.168.0.200:52935 alarm relay --help
 
-    :: C3 Client - a lightweight automated companion with C3 voyages
+    :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
 
 usage: Usage: ./c3-client.py [options] <host> <command> [...] alarm relay [-h] [-e EXECUTE] [-x WEBHOOK] [-g gateway_id]
@@ -81,6 +81,8 @@ Currently, following commands are supported:
 - `ping` - ping selected Relays
 
 - `channel` - channel-specific commands
+    - `all`
+        - `clear` - Clear message queue of every supported channel at once
     - `mattermost`
         - `clear` - Clear Mattermost's channel messages to improve bandwidth
     - `ldap`
@@ -105,7 +107,7 @@ This example shows how to keep all of your Relays pinged every 45 seconds:
 ```
 PS D:\> py c3-client.py http://192.168.0.200:52935 ping -k 45
 
-    :: C3 Client - a lightweight automated companion with C3 voyages
+    :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
 
 [.] Sending a ping every 45 seconds.
@@ -131,7 +133,7 @@ In this example setup an alarm that triggers upon new Relay checking-in. Wheneve
 ```
 PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay -g gate4 --execute "powershell -file speak.ps1 -message \`"New C3 Relay Inbound: <domain>/<userName>, computer: <computerName>\`""
 
-    :: C3 Client - a lightweight automated companion with C3 voyages
+    :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
 
 [.] Entering infinite-loop awaiting for new Relays...

@@ -521,6 +521,21 @@ def getLastGatewayCommandID(gateway, secondOrder = True):
 
     return lastId
 
+def onAllChannelsClear(args):
+    channels = {
+        'LDAP' : onLDAPClear,
+        'MSSQL' : onMSSQLClearTable,
+        'Mattermost' : onMattermostPurge,
+        'GoogleDrive' : onGoogleDriveClear,
+        'Github' : onGithubClear,
+        'Dropbox' : onDropboxClear,
+        'UncShareFile' : onUncShareFileClear,
+    }
+
+    for k, v in channels.items():
+        print(f'\n[.] {k}: Clearing messages queue...')
+        v(args)
+
 def onMattermostPurge(args):
     data = {
         'data' : {
@@ -1091,6 +1106,14 @@ def parseArgs(argv):
     parser_channel.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
     
     parser_channel_sub = parser_channel.add_subparsers(help = 'Specify channel', required = True)
+
+    ## All channels
+    all_channels = parser_channel_sub.add_parser('all', help = 'Commands that are common for all channels.')
+    all_channels_parser = all_channels.add_subparsers(help = 'Command to send', required = True)
+
+    ### clear
+    all_channels_clear = all_channels_parser.add_parser('clear', help = 'Clear every channel\'s message queue.')
+    all_channels_clear.set_defaults(func = onAllChannelsClear)
     
     ## Mattermost
     mattermost = parser_channel_sub.add_parser('mattermost', help = 'Mattermost channel specific commands.')
@@ -1171,7 +1194,7 @@ def parseArgs(argv):
 
 def main(argv):
     print('''
-    :: C3 Client - a lightweight automated companion with C3 voyages
+    :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
 ''')
     parseArgs(argv) 
