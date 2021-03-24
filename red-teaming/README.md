@@ -42,6 +42,8 @@ PS > $ExecutionContext.SessionState.LanguageMode
 FullLanguage 
 ```
 
+- [**`C3-Client`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/C3-Client) - A lightweight [F-Secure's C3](https://github.com/FSecureLABS/C3) client script letting you setup an alarm on incoming Relay, continuously ping your Relays, Clear commands queues in various channels, and others. Might be useful while working with the framework.
+
 - **`clickOnceSharpPickTemplate.cs`** - This is a template for **C# Console Project** containing [SharpPick](https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerPick) technique of loading Powershell code from within C# application. The ClickOnce concept is to generate a windows self-updating Application that is specially privileged ([ClickOnce](https://www.slideshare.net/NetSPI/all-you-need-is-one-a-click-once-love-story-secure360-2015))
 
 - **`cmstp-template.inf`** - INF file being a smallest possible template for **CMSTP** code execution technique, as described by [LOLBAS project](https://lolbas-project.github.io/lolbas/Binaries/Cmstp/). Sample usage:
