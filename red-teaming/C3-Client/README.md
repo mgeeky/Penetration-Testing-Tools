@@ -102,6 +102,7 @@ Currently, following commands are supported:
 ### Example Usage
 
 **Example 1**
+
 This example shows how to keep all of your Relays pinged every 45 seconds:
 
 ```
@@ -127,6 +128,49 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 ping -k 45
 ```
 
 **Example 2**
+
+Ever suffered from a poor C3 bandwidth or general performance? Worry not - you can easily clear/remove message queues from all of your channels with this simple trick:
+
+```
+PS D:\> py .\c3-client.py -f text http://192.168.0.200:52935 channel all clear
+
+    :: C3 Client - a lightweight automated companion with C3 voyages
+    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+
+[.] LDAP: Clearing messages queue...
+[+] Cleared LDAP attribute value on C3 channel 3 on Relay matter4 on gateway gate4
+[+] Cleared LDAP attribute value on C3 channel 8001 on Relay matter4 on gateway gate4
+[+] Cleared LDAP attribute value on C3 channel 8000 on Relay ldap9 on gateway gate4
+
+[.] MSSQL: Clearing messages queue...
+[+] Cleared MSSQL Table on C3 channel 4 on Relay matter4 on gateway gate4
+[+] Cleared MSSQL Table on C3 channel 8002 on Relay matter4 on gateway gate4
+[+] Cleared MSSQL Table on C3 channel 8003 on Relay matter4 on gateway gate4
+[+] Cleared MSSQL Table on C3 channel 8000 on Relay mssql1 on gateway gate4
+[+] Cleared MSSQL Table on C3 channel 8000 on Relay mssql1 on gateway gate4
+
+[.] Mattermost: Clearing messages queue...
+[+] Purged all messages from Mattermost C3 channel 8000 on Relay matter4 on gateway gate4
+[+] Purged all messages from Mattermost C3 channel 8000 on Relay matter4 on gateway gate4
+[+] Purged all messages from Mattermost C3 channel 1 on gateway gate4
+[+] Purged all messages from Mattermost C3 channel 4 on gateway gate4
+[+] Purged all messages from Mattermost C3 channel 14 on gateway gate4
+
+[.] GoogleDrive: Clearing messages queue...
+[-] No channels could be found to receive GoogleDrive remove all message files command.
+
+[.] Github: Clearing messages queue...
+[-] No channels could be found to receive Github remove all message files command.
+
+[.] Dropbox: Clearing messages queue...
+[-] No channels could be found to receive Dropbox remove all message files command.
+
+[.] UncShareFile: Clearing messages queue...
+[-] No channels could be found to receive UncShareFile remove all message files command.
+
+```
+
+**Example 3**
 
 In this example setup an alarm that triggers upon new Relay checking-in. Whenever that happens, a command is executed with placeholders that will be substituted with values extracted from Relay's metadata:
 
