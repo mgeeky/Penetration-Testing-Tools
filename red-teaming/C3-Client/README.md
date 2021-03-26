@@ -117,6 +117,9 @@ Currently, following commands are supported:
     - `googledrive`
         - `clear` - Remove All Files to improve bandwidth
 
+- `spawn` - adds peripheral / spawns implant on Relay
+    - `beacon` - Adds peripheral Beacon or in other words spawns new Beacon on Relay
+
 
 ### Example Usage
 

