@@ -2,6 +2,7 @@
 
 import os
 import sys
+import io
 import re
 import time
 import json
@@ -10,6 +11,7 @@ import subprocess
 import argparse
 import random
 import string
+import zipfile
 from datetime import datetime 
 
 
@@ -17,6 +19,7 @@ config = {
     'verbose' : False,  
     'debug' : False,
     'host' : '',
+    'dry_run' : False,
     'command' : '',
     'format' : 'text',
     'httpauth' : '',
@@ -88,7 +91,7 @@ class Logger:
 def printJson(data):
     print(json.dumps(data, sort_keys=True, indent=4))
 
-def getRequest(url, rawResp = False):
+def getRequest(url, rawResp = False, stream = False):
     auth = None
     if config['httpauth']:
         user, _pass = config['httpauth'].split(':')
@@ -98,7 +101,13 @@ def getRequest(url, rawResp = False):
     fullurl = config["host"] + url
     Logger.info(f'GET Request: {fullurl}')
 
-    resp = requests.get(fullurl, headers=headers, auth=auth)
+    try:
+        resp = requests.get(fullurl, headers=headers, auth=auth, stream = stream, timeout = 5)
+    except requests.exceptions.ConnectTimeout as e:
+        Logger.fatal(f'Connection with {config["host"]} timed-out.')
+    except Exception as e:
+        Logger.fatal(f'GET request failed ({url}): {e}')
+
     if rawResp:
         return resp
 
@@ -120,6 +129,18 @@ def postRequest(url, data=None, contentType = 'application/json', rawResp = Fals
     Logger.info(f'POST Request: {fullurl}')
 
     resp = None
+
+    if config['dry_run']:
+        print(f'[?] Dry-run mode: Skipping post request ({url})')
+        if rawResp:
+            class MockResponse():
+                def __init__(self, status_code, text):
+                    self.status_code = status_code
+                    self.text = text
+
+            return MockResponse(201, '')
+        else:
+            return ''
 
     if contentType.endswith('/json'):
         resp = requests.post(fullurl, json=data, headers=headers, auth=auth)
@@ -163,12 +184,11 @@ def printFullGateway(gatewayId):
             for d in c['propertiesText']['arguments']:
                 if d['type'] == 'ip': 
                     addr = d['value']
-                    break
                 elif d['type'] == 'uint16': 
                     port = d['value']
-                    break
 
-            print(f'{indent}    Host:   {addr}:{port}\n')
+            print(f'{indent}    Connector ID:   {c["iid"]}')
+            print(f'{indent}    Host:           {addr}:{port}\n')
 
         num = 0
         print(f'{indent}Channels:')
@@ -465,6 +485,42 @@ def collectRelays(args):
 
     return relays
 
+def processCapability(gateway):
+    caps = getRequest(f'/api/gateway/{gateway["agentId"]}/capability')
+    
+    commandIds = {}
+    channels = {}
+    peripherals = {}
+
+    for gatewayVal in caps['gateway']:
+        for commandVal in gatewayVal['commands']:
+            commandIds[commandVal['name'].lower()] = commandVal['id']
+
+            Logger.dbg(f'Gateway capability: commands: {commandVal["name"]} = {commandVal["id"]}')
+
+    for channel in caps['channels']:
+        channels[channel['name']] = channel['type']
+
+    for peri in caps['peripherals']:
+        peripherals[peri['name']] = peri['type']
+
+    Logger.dbg('Gateway supports following channels: ' + str(', '.join(channels.keys())))
+    Logger.dbg('Gateway supports following peripherals: ' + str(', '.join(peripherals.keys())))
+
+    capability = {
+        'raw' : caps, 
+        'commandIds' : commandIds, 
+        'channels' : channels, 
+        'peripherals' : peripherals,
+    }
+
+    return capability
+        
+def getCommandIdMapping(gateway, command):
+    capability = processCapability(gateway)
+
+    return capability['commandIds'][command.lower()]
+
 def onPing(args):
     if args.keep_pinging > 0:
         while True:
@@ -506,20 +562,17 @@ def _onPing(args):
     else:
         print(f'[+] Pinged {pinged} active relays.\n')
 
-def getLastGatewayCommandID(gateway, secondOrder = True):
+def getLastGatewayCommandID():
     lastId = 0
-    commands = getRequest(f'/api/gateway/{gateway["agentId"]}/command')
-    for comm in commands:
-        if secondOrder:
-            if 'data' in comm.keys():
-                if 'id' in comm['data'].keys():
-                    if comm['data']['id'] > lastId:
-                        lastId = comm['data']['id']
-        else:
+    gateways = getRequest(f'/api/gateway')
+
+    for gateway in gateways:
+        commands = getRequest(f'/api/gateway/{gateway["agentId"]}/command')
+        for comm in commands:
             if comm['id'] > lastId:
                 lastId = comm['id']
 
-    return lastId
+    return lastId + random.randint(5, 25)
 
 def onAllChannelsClear(args):
     channels = {
@@ -873,6 +926,8 @@ def onAlarmRelay(args):
 
     try:
         while True:
+            time.sleep(2)
+
             currRelays = collectRelays(args)
             currRelayIds = set()
             currLastTimestamp = 0
@@ -955,6 +1010,174 @@ def getValueOrRandom(val, N = 6):
     
     return val
 
+def closeRelay(gateway, relay):
+    gateway = getRequest(f'/api/gateway/{gateway["agentId"]}')
+    relayMeta = getRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}')
+    capability = processCapability(gateway)
+
+    print('\n[.] step 1: Closing bound Peripherals')
+    for peri in relayMeta['peripherals']:
+        name = list(capability['peripherals'].keys())[list(capability['peripherals'].values()).index(peri['type'])]
+        Logger.info(f'Closing relay\'s peripheral {name} id:{peri["iid"]}')
+        closePeripheral(gateway, relay, name, peri['iid'])
+
+    print('\n[.] step 2: Closing attached channels')
+    grcChannel = None
+
+    for chan in relayMeta['channels']:
+        if 'isReturnChannel' in chan.keys():
+            chan['url'] = f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{chan["iid"]}/command'
+            grcChannel = chan
+            continue
+
+        chanName = list(capability['channels'].keys())[list(capability['channels'].values()).index(chan['type'])]
+        Logger.info(f'Closing relay\'s channel {chanName} id:{chan["iid"]}')
+
+        chan['url'] = f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{chan["iid"]}/command'
+        closeChannel(chan, chanName)
+
+    if not grcChannel:
+        Logger.fatal(f'Could not determine Gateway-Return Channel of the specified Relay {relay["name"]} / {relay["agentId"]}. \n    Probably its unreachable or already closed.')
+
+    closeChannel(grcChannel, list(capability['channels'].keys())[list(capability['channels'].values()).index(grcChannel['type'])])
+
+    print('\n[.] step 3: closing Relay itself')
+    closeRelay(gateway, relay)
+
+    print('\n[.] step 4: closing a channel being a neighbour for Relay\'s GRC')
+    closed = False
+    for relayNode in gateway['relays'] + [gateway,]:
+        for route in relayNode['routes']:
+            if route['receivingInterface'] == grcChannel['iid']:
+                for chan in relayNode['channels']:
+                    if chan['iid'] == route['outgoingInterface']:
+                        if relayNode["agentId"] == gateway['agentId']:
+                            chan['url'] = f'/api/gateway/{gateway["agentId"]}/channel/{chan["iid"]}/command'
+                        else:
+                            chan['url'] = f'/api/gateway/{gateway["agentId"]}/relay/{relayNode["agentId"]}/channel/{chan["iid"]}/command'
+                            
+                        closeChannel(chan, list(capability['channels'].keys())[list(capability['channels'].values()).index(chan['type'])])
+                        closed = True
+                        break
+                if closed: break
+            if closed: break
+        if closed: break
+
+    if closed: 
+        print('[+] Non-Negotiation channel linked to Relay\'s Gateway-Return Channel was closed.')
+
+def onCloseRelay(args):
+    relays = collectRelays(args)
+    if len(relays) == 0:
+        Logger.fatal('Could not find agent (Gateway or Relay) which should be used to setup a channel.')
+
+    for gateway, relay in relays:
+        print(f'[.] Closing relay {relay["name"]} (in gateway: {gateway["name"]}).')
+        closeRelay(gateway, relay)
+
+def closePeripheral(gateway, relay, peripheralName, peripheralId):
+    data = {
+        "name" : "PeripheralCommandGroup",
+        "data" : {
+            "id" : commandsMap['Close'],
+            "name" : peripheralName,
+            "command" : "Close",
+            "arguments" : []
+        }
+    }
+
+    Logger.info(f'Closing peripheral {peripheralName} (id: {peripheralId}). with following parameters:\n\n' + json.dumps(data, indent = 4))
+
+    ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/peripheral/{peripheralId}/command', data, rawResp = True)
+    if ret.status_code == 201:
+        print(f'[+] Peripheral {peripheralName} id:{peripheralId} was closed.')
+    else:
+        print(f'[-] Peripheral {peripheralName} id:{peripheralId} was not closed: ({ret.status_code}) {ret.text}')
+
+def closeChannel(channel, channelToClose):
+    chanId = ''
+    if 'channelId' in channel.keys(): chanId = channel['channelId']
+    elif 'channel_id' in channel.keys(): chanId = channel['channel_id']
+    elif 'iid' in channel.keys(): chanId = channel['iid']
+
+    data = {
+        "name" : "ChannelCommandGroup",
+        "data" : {
+            "id" : commandsMap['Close'],
+            "name" : channelToClose,
+            "command" : "Close",
+            "arguments" : []
+        }
+    }
+
+    Logger.info(f'Closing {channelToClose} channel (id: {chanId}). with following parameters:\n\n' + json.dumps(data, indent = 4))
+
+    ret = postRequest(channel["url"], data, rawResp = True)
+    if ret.status_code == 201:
+        print(f'[+] Channel {channelToClose} (id: {chanId}) was closed.')
+    else:
+        print(f'[-] Channel {channelToClose} (id: {chanId}) was not closed: ({ret.status_code}) {ret.text}')
+
+def closeNetwork(gateway):
+    data = {
+        "name":"GatewayCommandGroup",
+        "data":{ 
+            "id":commandsMap['ClearNetwork'],
+            "name":"Command",
+            "command":"ClearNetwork",
+            "arguments": [
+                {
+                    "type":"boolean",
+                    "name":"Are you sure?",
+                    "value": True
+                }
+            ]
+        }
+    }
+
+    Logger.info(f'Closing gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
+
+    ret = postRequest(f'/api/gateway/{gateway["agentId"]}/command', data, rawResp = True)
+    if ret.status_code == 201:
+        print(f'[+] Gateway {gateway["name"]} (id: {gateway["agentId"]}) was closed.')
+    else:
+        print(f'[-] Gateway {gateway["name"]} (id: {gateway["agentId"]}) was not closed: ({ret.status_code}) {ret.text}')
+
+def onCloseNetwork(args):
+    gateways = getRequest(f'/api/gateway')
+
+    for _gateway in gateways:
+        gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
+        if gateway['name'].lower() == args.gateway_id.lower() or gateway['agentId'] == args.gateway_id.lower():
+            closeNetwork(gateway)
+
+def onCloseChannel(args):
+    gateway, relay = findAgent(args.agent_id)
+    if not relay and not gateway:
+        Logger.fatal('Could not find agent (Gateway or Relay) which should be used to setup a channel.')
+
+    channelToClose = ''
+    
+    capability = processCapability(gateway)
+    for chan in capability['channels'].keys():
+        for a in sys.argv:
+            if a.lower() == chan.lower():
+                channelToClose = a
+                break
+    
+        if len(channelToClose) > 0: break
+
+    if len(channelToClose) == 0:
+        Logger.fatal('Couldnt identify which channel is to be closed. Specify your channel name in script parameters')
+
+    channels = collectChannelsToSendCommand(args, channelToClose)
+
+    if len(channels) == 0:
+        Logger.fatal("Could not find channel to be close. Adjust your agent ID/Name setting and try again.")
+
+    for channel in channels:
+        closeChannel(channel, channelToClose)
+
 def onMattermostCreate(args):
     server_url = args.server_url
     if server_url.endswith('/'): server_url = server_url[:-1]
@@ -971,8 +1194,8 @@ def onMattermostCreate(args):
     else:
         print(f'[.] Will setup a Mattermost channel on a Gateway named {gateway["name"]} ({gateway["agentId"]})')
 
-    secondCommandId = getLastGatewayCommandID(gateway) + 1
-    commandId = getLastGatewayCommandID(gateway, False) + 1
+    secondCommandId = getCommandIdMapping(gateway, 'AddNegotiationChannelMattermost')
+    commandId = getLastGatewayCommandID()
     Logger.info(f'Issuing a command with ID = {commandId}')
 
     data = {
@@ -1025,8 +1248,281 @@ def onMattermostCreate(args):
     if ret.status_code == 201:
         print('[+] Channel was created.')
     else:
-        print(f'[-] Channel was not created: {ret.text}')
+        print(f'[-] Channel was not created: ({ret.status_code}) {ret.text}')
 
+def onLDAPCreate(args):
+    gateway, relay = findAgent(args.agent_id)
+    if not relay and not gateway:
+        logger.fatal('Could not find agent (Gateway or Relay) which should be used to setup a channel.')
+
+    url = f'/api/gateway/{gateway["agentId"]}/command'
+
+    if relay != None:
+        url = f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command'
+        print(f'[.] Will setup a LDAP channel on a Relay named {relay["name"]} ({relay["agentId"]})')
+    else:
+        print(f'[.] Will setup a LDAP channel on a Gateway named {gateway["name"]} ({gateway["agentId"]})')
+
+    secondCommandId = getCommandIdMapping(gateway, 'AddNegotiationChannelLDAP')
+    commandId = getLastGatewayCommandID()
+    Logger.info(f'Issuing a command with ID = {commandId}')
+
+    data = {
+        "name" : "GatewayCommandGroup",
+        "data" : {
+            "arguments" : [
+                {
+                    "type" : "string",
+                    "name" : "Negotiation Identifier",
+                    "value" : getValueOrRandom(args.negotiation_id),
+                },
+                {
+                    "type" : "string",
+                    "name" : "Data LDAP Attribute",
+                    "value" : args.data_attribute,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Lock LDAP Attribute",
+                    "value" : args.lock_attribute
+                },
+                {
+                    "type" : "uint32",
+                    "name" : "Max Packet Size",
+                    "value" : args.max_size,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Domain Controller",
+                    "value" : args.domain_controller,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Username",
+                    "value" : args.username,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Password",
+                    "value" : args.password,
+                },
+                {
+                    "type" : "string",
+                    "name" : "User DN",
+                    "value" : args.user_dn,
+                }
+            ],
+            "command" : "AddNegotiationChannelLDAP",
+            "id" : secondCommandId,
+            "name" : "Command",
+        },
+        'id' : commandId,
+        'name' : 'GatewayCommandGroup'
+    }
+
+    Logger.info('Will create LDAP channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    
+    ret = postRequest(url, data, rawResp = True)
+
+    if ret.status_code == 201:
+        print('[+] Channel was created.')
+    else:
+        print(f'[-] Channel was not created: ({ret.status_code}) {ret.text}')
+
+
+def onMSSQLCreate(args):
+    gateway, relay = findAgent(args.agent_id)
+    if not relay and not gateway:
+        logger.fatal('Could not find agent (Gateway or Relay) which should be used to setup a channel.')
+
+    url = f'/api/gateway/{gateway["agentId"]}/command'
+
+    if relay != None:
+        url = f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command'
+        print(f'[.] Will setup a MSSQL channel on a Relay named {relay["name"]} ({relay["agentId"]})')
+    else:
+        print(f'[.] Will setup a MSSQL channel on a Gateway named {gateway["name"]} ({gateway["agentId"]})')
+
+    secondCommandId = getCommandIdMapping(gateway, 'AddNegotiationChannelMSSQL')
+    commandId = getLastGatewayCommandID()
+    Logger.info(f'Issuing a command with ID = {commandId}')
+
+    data = {
+        "name" : "GatewayCommandGroup",
+        "data" : {
+            "arguments" : [
+                {
+                    "type" : "string",
+                    "name" : "Negotiation Identifier",
+                    "value" : getValueOrRandom(args.negotiation_id),
+                },
+                {
+                    "type" : "string",
+                    "name" : "Server Name",
+                    "value" : args.server_name,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Database Name",
+                    "value" : args.database_name
+                },
+                {
+                    "type" : "string",
+                    "name" : "Table Name",
+                    "value" : args.table_name,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Username",
+                    "value" : args.username,
+                },
+                {
+                    "type" : "string",
+                    "name" : "Password",
+                    "value" : args.password,
+                },
+                {
+                    "type" : "boolean",
+                    "name" : "Use Integrated Security (SSPI) - use for domain joined accounts",
+                    "value" : args.sspi,
+                }
+            ],
+            "command" : "AddNegotiationChannelMSSQL",
+            "id" : secondCommandId,
+            "name" : "Command",
+        },
+        'id' : commandId,
+        'name' : 'GatewayCommandGroup'
+    }
+
+    Logger.info('Will create MSSQL channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    
+    ret = postRequest(url, data, rawResp = True)
+
+    if ret.status_code == 201:
+        print('[+] Channel was created.')
+    else:
+        print(f'[-] Channel was not created: ({ret.status_code}) {ret.text}')
+
+def onTurnOnTeamserver(args):
+    gateways = getRequest(f'/api/gateway')
+    gateway = None
+
+    for _gateway in gateways:
+        g = getRequest(f'/api/gateway/{_gateway["agentId"]}')
+        if g['name'].lower() == args.gateway_id.lower() or g['agentId'] == args.gateway_id.lower():
+            gateway = g
+            break
+
+    if not gateway:
+        Logger.fatal(f'Could not find Gateway with specified gateway_id: {args.gateway_id}')
+
+    commandId = getCommandIdMapping(gateway, "TurnOnConnectorTeamServer")
+    data = {
+        "name":"GatewayCommandGroup",
+        "data": {
+            "id":commandId,
+            "name":"Command",
+            "command":"TurnOnConnectorTeamServer",
+            "arguments": [ 
+                { 
+                    "type":"ip",
+                    "name":"Address",
+                    "value":args.address
+                },
+                {
+                    "type":"uint16",
+                    "name":"Port",
+                    "value":args.port
+                }
+            ]
+        }
+    }
+
+    Logger.info(f'Will Turn On connector TeamServer on gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
+    
+    ret = postRequest(f'/api/gateway/{gateway["agentId"]}/command', data, rawResp = True)
+
+    if ret.status_code == 201:
+        print('[+] Connection with Teamserver established.')
+    else:
+        print(f'[-] Could not establish connection with Teamserver: ({ret.status_code}) {ret.text}')
+
+def onTurnOffConnector(args):
+    gateways = getRequest(f'/api/gateway')
+    gateway = None
+
+    for _gateway in gateways:
+        g = getRequest(f'/api/gateway/{_gateway["agentId"]}')
+        if g['name'].lower() == args.gateway_id.lower() or g['agentId'] == args.gateway_id.lower():
+            gateway = g
+            break
+
+    if not gateway:
+        Logger.fatal(f'Could not find Gateway with specified gateway_id: {args.gateway_id}')
+
+    data = {
+        "name":"PeripheralCommandGroup",
+        "data": { 
+            "id":commandsMap['Close'],
+            "name":"TeamServer",
+            "command":"TurnOff",
+            "arguments": []
+        }
+    }
+
+    Logger.info(f'Will Turn Off connector TeamServer on gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
+    
+    ret = postRequest(f'/api/gateway/{gateway["agentId"]}/connector/{args.connector_id}/command', data, rawResp = True)
+
+    if ret.status_code == 201:
+        print('[+] Closed connection with Connector.')
+    else:
+        print(f'[-] Could not close connection with connector: ({ret.status_code}) {ret.text}')
+
+
+def onDownloadGateway(args):
+    gateway_name = getValueOrRandom(args.gateway_name)
+    _format = 'exe'
+    arch = 'x64'
+
+    if args.format.lower().startswith('dll'): _format = 'dll'
+    if args.format.lower().endswith('86'): _format = 'x86'
+
+    print(f'[.] Downloading gateway executable in format {args.format} with name: {gateway_name}')
+    url = f'/api/gateway/{_format}/{arch}?name={gateway_name}'
+
+    output = getRequest(url, True, stream = True)
+    data = output.content
+
+    if len(args.override_ip) > 0:
+        data2 = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(data), 'r') as f:
+            with zipfile.ZipFile(data2, 'w') as g:
+                for i in f.infolist():
+                    buf = f.read(i.filename)
+                    if i.filename.lower().endswith('.json'):
+                        conf = json.loads(buf)
+                        conf['API Bridge IP'] = args.override_ip
+                        buf = json.dumps(conf, indent=4)
+                        print(f'[.] Overidden stored in JSON configuration IP address to: {args.override_ip}')
+                    g.writestr(i.filename, buf)
+
+            data = data2.getvalue()
+
+    if args.extract:
+        with zipfile.ZipFile(io.BytesIO(data), 'r') as f:
+            for i in f.infolist():
+                outp = os.path.join(args.outfile, os.path.basename(i.filename))
+                with open(outp, 'wb') as g:
+                    g.write(f.read(i.filename))
+
+        print('[+] Gateway ZIP package downloaded & extracted.')
+    else:
+        with open(args.outfile, 'wb') as f:
+            f.write(data)
+
+        print('[+] Gateway ZIP package downloaded.')
 
 def parseArgs(argv):
     global config
@@ -1042,6 +1538,7 @@ def parseArgs(argv):
     opts.add_argument('-v', '--verbose', action='store_true', help='Display verbose output.')
     opts.add_argument('-d', '--debug', action='store_true', help='Display debug output.')
     opts.add_argument('-f', '--format', choices=['json', 'text'], default='text', help='Output format. Can be JSON or text (default).')
+    opts.add_argument('-n', '--dry-run', action='store_true', help='Do not send any HTTP POST request that could introduce changes in C3 network.')
     opts.add_argument('-A', '--httpauth', metavar = 'user:pass', help = 'HTTP Basic Authentication (user:pass)')
 
     subparsers = opts.add_subparsers(help = 'command help', required = True)
@@ -1057,6 +1554,20 @@ def parseArgs(argv):
     alarm_relay.add_argument('-x', '--webhook', help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
     alarm_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
     alarm_relay.set_defaults(func = onAlarmRelay)
+
+    #
+    # Download
+    #
+    download = subparsers.add_parser('download', help = 'Download options')
+    download_sub = download.add_subparsers(help = 'Download what?', required = True)
+
+    download_gateway = download_sub.add_parser('gateway', help = 'Download gateway')
+    download_gateway.add_argument('-x', '--extract', action='store_true', help = 'Consider outfile as directory path. Then extract downloaded ZIP file with gateway into that directory.')
+    download_gateway.add_argument('-F', '--format', choices=['exe86', 'exe64', 'dll86', 'dll64'], default='exe64', help = 'Gateway executable format. <format><arch>. Formats: exe, dll. Archs: 86, 64. Default: exe64')
+    download_gateway.add_argument('-G', '--gateway-name', metavar='GATEWAY_NAME', default='random', help = 'Name of the Gateway. Default: random name')
+    download_gateway.add_argument('-O', '--override-ip', metavar='IP', help = 'Override gateway configuration IP stored in JSON. By default will use 0.0.0.0')
+    download_gateway.add_argument('outfile', metavar='outfile', help = 'Where to save output file.')
+    download_gateway.set_defaults(func = onDownloadGateway)
 
     #
     # List
@@ -1098,6 +1609,52 @@ def parseArgs(argv):
     parser_ping.set_defaults(func = onPing)
 
     #
+    # Connector
+    # 
+    parser_connector = subparsers.add_parser('connector', help = 'Connector options')
+    parser_connector.add_argument('gateway_id', metavar = 'gateway_id', help = 'Gateway which should be used to manage its connectors.')
+    parser_connector_sub = parser_connector.add_subparsers(help = 'What to do about that Connector?', required = True)
+
+    ## turnon
+    connector_turnon = parser_connector_sub.add_parser('turnon', help = 'Turn on connector (connects to a Teamserver, Covenant, etc).')
+    connector_turnon_sub = connector_turnon.add_subparsers(help = 'What kind of connector?', required = True)
+
+    ### Teamserver
+    turnon_connector_teamserver = connector_turnon_sub.add_parser('teamserver', help = 'Teamserver connector specific options.')
+    turnon_connector_teamserver.add_argument('address', metavar = 'address', help = 'Teamserver externalC2 address')
+    turnon_connector_teamserver.add_argument('port', metavar = 'port', help = 'Teamserver externalC2 port')
+    turnon_connector_teamserver.set_defaults(func = onTurnOnTeamserver)
+
+    ## turnoff
+    connector_turnoff = parser_connector_sub.add_parser('turnoff', help = 'Turn off connector (connects to a Teamserver, Covenant, etc).')
+    connector_turnoff.add_argument('connector_id', metavar = 'connector_id', help = 'Connector\'s ID that should be closed')
+    connector_turnoff.set_defaults(func = onTurnOffConnector)
+    
+    #
+    # Close
+    #
+    parser_close = subparsers.add_parser('close', help = 'Close command.')
+    parser_close_sub = parser_close.add_subparsers(help = 'Close what?', required = True)
+
+    ## Network
+    close_channel = parser_close_sub.add_parser('network', help = 'Close Network / ClearNetwork.')
+    close_channel.add_argument('gateway_id', metavar = 'gateway_id', help = 'Gateway which network is to be closed. Can be ID or Name.')
+    close_channel.set_defaults(func = onCloseNetwork)
+
+    ## Channel
+    close_channel = parser_close_sub.add_parser('channel', help = 'Close a channel.')
+    close_channel.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to find a channel to close. Can be ID or Name.')
+    close_channel.add_argument('-c', '--channel-id', help = 'Specifies ID of the channel to commander. If not given - will issue specified command to all channels in a Gateway/Relay.')
+    close_channel.set_defaults(func = onCloseChannel)
+
+    ## Relay
+    close_channel = parser_close_sub.add_parser('relay', help = 'Close a Relay.')
+    close_channel.add_argument('relay_id', metavar = 'relay_id', help = 'Relay to be closed. Can be ID or Name.')
+    close_channel.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
+    close_channel.set_defaults(func = onCloseRelay)
+
+
+    #
     # Channel
     #
     parser_channel = subparsers.add_parser('channel', help = 'Send Channel-specific command')
@@ -1114,22 +1671,22 @@ def parseArgs(argv):
     ### clear
     all_channels_clear = all_channels_parser.add_parser('clear', help = 'Clear every channel\'s message queue.')
     all_channels_clear.set_defaults(func = onAllChannelsClear)
-    
+
     ## Mattermost
     mattermost = parser_channel_sub.add_parser('mattermost', help = 'Mattermost channel specific commands.')
     mattermost_parser = mattermost.add_subparsers(help = 'Command to send', required = True)
 
     ### Create
-    #mattermost_create = mattermost_parser.add_parser('create', help = 'Setup a Mattermost channel.')
-    #mattermost_create.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to setup a channel. Can be ID or Name.')
-    #mattermost_create.add_argument('server_url', metavar = 'server_url', help = 'Mattermost Server URL, example: http://192.168.0.100:8888')
-    #mattermost_create.add_argument('team_name', metavar = 'team_name', help = 'Mattermost Team name where to create channels.')
-    #mattermost_create.add_argument('access_token', metavar = 'access_token', help = 'Personal Access Token value.')
-    #mattermost_create.add_argument('--negotiation-id', metavar = 'ID', default='random', help = 'Negotiation Identifier. Will be picked at random if left empty.')
-    #mattermost_create.add_argument('--channel-name', metavar = 'CHANNEL', default='random', help = 'Channel name to create. Will be picked at random if left empty.')
-    #mattermost_create.add_argument('--user-agent', metavar = 'USERAGENT', default='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36', 
-    #                                help = 'User-Agent string to use in HTTP requests.')
-    #mattermost_create.set_defaults(func = onMattermostCreate)
+    mattermost_create = mattermost_parser.add_parser('create', help = 'Setup a Mattermost Negotiation channel.')
+    mattermost_create.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to setup a channel. Can be ID or Name.')
+    mattermost_create.add_argument('server_url', metavar = 'server_url', help = 'Mattermost Server URL, example: http://192.168.0.100:8888')
+    mattermost_create.add_argument('team_name', metavar = 'team_name', help = 'Mattermost Team name where to create channels.')
+    mattermost_create.add_argument('access_token', metavar = 'access_token', help = 'Personal Access Token value.')
+    mattermost_create.add_argument('--negotiation-id', metavar = 'ID', default='random', help = 'Negotiation Identifier. Will be picked at random if left empty.')
+    mattermost_create.add_argument('--channel-name', metavar = 'CHANNEL', default='random', help = 'Channel name to create. Will be picked at random if left empty.')
+    mattermost_create.add_argument('--user-agent', metavar = 'USERAGENT', default='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36', 
+                                    help = 'User-Agent string to use in HTTP requests.')
+    mattermost_create.set_defaults(func = onMattermostCreate)
 
     ### Purge
     mattermost_purge = mattermost_parser.add_parser('clear', help = 'Purge all dangling posts/messages from Mattermost channel.')
@@ -1143,6 +1700,19 @@ def parseArgs(argv):
     ldap_clear = ldap_parser.add_parser('clear', help = 'Clear LDAP attribute associated with that channel.')
     ldap_clear.set_defaults(func = onLDAPClear)
 
+    ### Create
+    ldap_create = ldap_parser.add_parser('create', help = 'Setup a LDAP Negotiation channel.')
+    ldap_create.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to setup a channel. Can be ID or Name.')
+    ldap_create.add_argument('--data-attribute', metavar = 'data_attribute', default = 'mSMQSignCertificates', help = 'Data LDAP Attribute. Default: mSMQSignCertificates')
+    ldap_create.add_argument('--lock-attribute', metavar = 'lock_attribute', default = 'primaryInternationalISDNNumber', help = 'Lock LDAP Attribute. Default: primaryInternationalISDNNumber')
+    ldap_create.add_argument('--max-size', metavar = 'max_size', default = 1047552, type = int, help = 'Max Packet Size. Default: 1047552')
+    ldap_create.add_argument('domain_controller', metavar = 'domain_controller', help = 'Domain Controller.')
+    ldap_create.add_argument('username', metavar = 'username', help = 'LDAP username.')
+    ldap_create.add_argument('password', metavar = 'password', help = 'LDAP password.')
+    ldap_create.add_argument('user_dn', metavar = 'user_dn', help = 'User Distinguished Name, example: CN=Jeff Smith,CN=users,DC=fabrikam,DC=com')
+    ldap_create.add_argument('--negotiation-id', metavar = 'ID', default='random', help = 'Negotiation Identifier. Will be picked at random if left empty.')
+    ldap_create.set_defaults(func = onLDAPCreate)
+
     ## MSSQL
     mssql = parser_channel_sub.add_parser('mssql', help = 'MSSQL channel specific commands.')
     mssql_parser = mssql.add_subparsers(help = 'Command to send', required = True)
@@ -1150,6 +1720,18 @@ def parseArgs(argv):
     ### clear
     mssql_clear = mssql_parser.add_parser('clear', help = 'Clear channel\'s DB Table.')
     mssql_clear.set_defaults(func = onMSSQLClearTable)
+
+    ### Create
+    mssql_create = mssql_parser.add_parser('create', help = 'Setup a MSSQL Negotiation channel.')
+    mssql_create.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to setup a channel. Can be ID or Name.')
+    mssql_create.add_argument('server_name', metavar = 'server_name', help = 'MSSQL Server name')
+    mssql_create.add_argument('database_name', metavar = 'database_name', help = 'Database Name.')
+    mssql_create.add_argument('table_name', metavar = 'table_name', help = 'Table Name.')
+    mssql_create.add_argument('username', metavar = 'username', help = 'Database username.')
+    mssql_create.add_argument('password', metavar = 'password', help = 'Database password.')
+    mssql_create.add_argument('sspi', metavar = 'sspi', type=bool, help = 'Use Integrated Security (SSPI) - use for domain joined accounts. Default: false.')
+    mssql_create.add_argument('--negotiation-id', metavar = 'ID', default='random', help = 'Negotiation Identifier. Will be picked at random if left empty.')
+    mssql_create.set_defaults(func = onMSSQLCreate)
 
     ## UncShareFile
     unc = parser_channel_sub.add_parser('uncsharefile', help = 'UncShareFile channel specific commands.')

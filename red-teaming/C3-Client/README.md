@@ -12,7 +12,7 @@ The script offers subcommands-kind of CLI interface, so after every command one 
 **General help**:
 
 ```
-PS D:\> py c3-client.py --help
+PS> py .\c3-client.py --help
 
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
     Mariusz B. / mgeeky, <mb@binary-offensive.com>
@@ -22,12 +22,14 @@ Usage: ./c3-client.py [options] <host> <command> [...]
 
 positional arguments:
   host                  C3 Web API host:port
-  {alarm,list,get,ping,channel}
+  {alarm,list,get,ping,connector,close,channel}
                         command help
     alarm               Alarm options
     list                List options
     get                 Get options
     ping                Ping Relays
+    connector           Connector options
+    close               Close command.
     channel             Send Channel-specific command
 
 optional arguments:
@@ -36,6 +38,7 @@ optional arguments:
   -d, --debug           Display debug output.
   -f {json,text}, --format {json,text}
                         Output format. Can be JSON or text (default).
+  -n, --dry-run         Do not send any HTTP POST request that could introduce changes in C3 network.
   -A user:pass, --httpauth user:pass
                         HTTP Basic Authentication (user:pass)
 ```
@@ -78,16 +81,32 @@ Currently, following commands are supported:
 - `alarm`
     - `relay` - trigger an alarm whenever a new Relay checks-in on a gateway
 
+- `connector` 
+    - `turnon`
+        - `teamserver` - allows to establish connection with a Teamserver
+    - `turnoff` - closes connection with Connector specified by connector_id
+
+- `close`
+    - `network` - sends `ClearNetwork` command to specified Gateway
+    - `channel` - closes selected channel
+    - `relay` - closes selected Relay(s) and all its bound peripherals, channels and Gateway-Return Channel
+
+- `download`
+    - `gateway` - downloads gateway executable
+
 - `ping` - ping selected Relays
 
 - `channel` - channel-specific commands
     - `all`
         - `clear` - Clear message queue of every supported channel at once
     - `mattermost`
+        - `create`- Creates a Mattermost Negotiation channel
         - `clear` - Clear Mattermost's channel messages to improve bandwidth
     - `ldap`
+        - `create` - Creates a LDAP Negotiation Channel
         - `clear` - Clear LDAP attribute to improve bandwidth
     - `mssql`
+        - `create` - Creates a MSSQL Negotiation Channel
         - `clear` - Clear DB Table entries to improve bandwidth
     - `uncsharefile`
         - `clear` - Remove all message files to improve bandwidth
@@ -224,3 +243,10 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay -g gate4 --execut
 
 ```
 
+
+### Author
+
+```
+Mariusz B. / mgeeky, '21
+<mb [at] binary-offensive.com>
+```
