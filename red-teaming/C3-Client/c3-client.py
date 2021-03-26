@@ -159,10 +159,13 @@ def postRequest(url, data=None, contentType = 'application/json', rawResp = Fals
         else:
             return ''
 
-    if contentType.endswith('/json'):
-        resp = requests.post(fullurl, json=data, headers=headers, auth=auth)
-    else:
-        resp = requests.post(fullurl, data=data, headers=headers, auth=auth)
+    for a in range(3):
+        if contentType.endswith('/json'):
+            resp = requests.post(fullurl, json=data, headers=headers, auth=auth)
+        else:
+            resp = requests.post(fullurl, data=data, headers=headers, auth=auth)
+
+        if resp.status_code != 500: break
 
     if rawResp:
         return resp
@@ -913,19 +916,6 @@ def shell(cmd, alternative = False, stdErrToStdout = False, surpressStderr = Fal
             outs, errs = proc.communicate()
 
     status = outs.decode(errors='ignore').strip()
-
-    if len(errs) > 0 and not surpressStderr:
-        error = '''
-Running shell command ({}) failed:
-
----------------------------------------------
-{}
----------------------------------------------
-'''.format(cmd, errs.decode(errors='ignore'))
-
-        if stdErrToStdout:
-            return error
-
     return status
 
 def onAlarmRelay(args):
@@ -965,39 +955,45 @@ def onAlarmRelay(args):
 
                 try:
                     if args.execute != None and len(args.execute) > 0:
-                        cmd = args.execute
-                        cmd = cmd.replace("<computerName>", newestRelay['hostInfo']['computerName'])
-                        cmd = cmd.replace("<isElevated>", str(newestRelay['hostInfo']['isElevated']))
-                        cmd = cmd.replace("<osVersion>", newestRelay['hostInfo']['osVersion'])
-                        cmd = cmd.replace("<domain>", newestRelay['hostInfo']['domain'])
-                        cmd = cmd.replace("<userName>", newestRelay['hostInfo']['userName'])
-                        cmd = cmd.replace("<processId>", str(newestRelay['hostInfo']['processId']))
-                        cmd = cmd.replace("<relayName>", newestRelay['name'])
-                        cmd = cmd.replace("<relayId>", newestRelay['agentId'])
-                        cmd = cmd.replace("<buildId>", newestRelay['buildId'])
-                        cmd = cmd.replace("<timestamp>", str(datetime.fromtimestamp(newestRelay['timestamp'])))
-                        cmd = cmd.replace("<gatewayId>", newestRelay['name'])
+                        for command in args.execute:
+                            cmd = command
+                            cmd = cmd.replace("<computerName>", newestRelay['hostInfo']['computerName'])
+                            cmd = cmd.replace("<isElevated>", str(newestRelay['hostInfo']['isElevated']))
+                            cmd = cmd.replace("<osVersion>", newestRelay['hostInfo']['osVersion'])
+                            cmd = cmd.replace("<domain>", newestRelay['hostInfo']['domain'])
+                            cmd = cmd.replace("<userName>", newestRelay['hostInfo']['userName'])
+                            cmd = cmd.replace("<processId>", str(newestRelay['hostInfo']['processId']))
+                            cmd = cmd.replace("<relayName>", newestRelay['name'])
+                            cmd = cmd.replace("<relayId>", newestRelay['agentId'])
+                            cmd = cmd.replace("<buildId>", newestRelay['buildId'])
+                            cmd = cmd.replace("<timestamp>", str(datetime.fromtimestamp(newestRelay['timestamp'])))
+                            cmd = cmd.replace("<gatewayId>", newestRelay['name'])
 
-                        print(f'[.] Executing command: {cmd}')
-                        shell(cmd)
+                            print(f'[.] Executing command: {cmd}')
+                            print(shell(cmd))
+
+                        print('[.] Commands executed.')
 
                     if args.webhook != None and len(args.webhook) > 0:
-                        data = {
-                            "<computerName>", newestRelay['hostInfo']['computerName'],
-                            "<isElevated>", newestRelay['hostInfo']['isElevated'],
-                            "<osVersion>", newestRelay['hostInfo']['osVersion'],
-                            "<domain>", newestRelay['hostInfo']['domain'],
-                            "<userName>", newestRelay['hostInfo']['userName'],
-                            "<processId>", newestRelay['hostInfo']['processId'],
-                            "<relayName>", newestRelay['name'],
-                            "<relayId>", newestRelay['agentId'],
-                            "<buildId>", newestRelay['buildId'],
-                            "<timestamp>", datetime.fromtimestamp(newestRelay['timestamp']),
-                            "<gatewayId>", newestRelay['name'],
-                        }
+                        for webhook in args.webhook:
+                            data = {
+                                "<computerName>", newestRelay['hostInfo']['computerName'],
+                                "<isElevated>", newestRelay['hostInfo']['isElevated'],
+                                "<osVersion>", newestRelay['hostInfo']['osVersion'],
+                                "<domain>", newestRelay['hostInfo']['domain'],
+                                "<userName>", newestRelay['hostInfo']['userName'],
+                                "<processId>", newestRelay['hostInfo']['processId'],
+                                "<relayName>", newestRelay['name'],
+                                "<relayId>", newestRelay['agentId'],
+                                "<buildId>", newestRelay['buildId'],
+                                "<timestamp>", datetime.fromtimestamp(newestRelay['timestamp']),
+                                "<gatewayId>", newestRelay['name'],
+                            }
 
-                        print(f'[.] Triggering a webhook: {args.webhook}')
-                        requests.post(args.webhook, data = data, headers = headears)
+                            print(f'[.] Triggering a webhook: {webhook}')
+                            requests.post(webhook, data = data, headers = headears)
+
+                        print('[.] Webhooks triggered.')
 
                 except Exception as e:
                     print(f'[-] Exception occured during New-Relay alarm trigger: {e}')
@@ -1019,6 +1015,7 @@ def findAgent(agentId):
                 if r["agentId"].lower() == agentId.lower() or r["name"].lower() == agentId.lower():
                     return g, r
 
+    Logger.fatal('Could not find specified agent.')
     return None
 
 def getValueOrRandom(val, N = 6):
@@ -1172,9 +1169,9 @@ def closeNetwork(gateway):
 
     ret = postRequest(f'/api/gateway/{gateway["agentId"]}/command', data, rawResp = True)
     if ret.status_code == 201:
-        print(f'[+] Gateway {gateway["name"]} (id: {gateway["agentId"]}) was closed.')
+        print(f'[+] Network on gateway {gateway["name"]} (id: {gateway["agentId"]}) was cleared.')
     else:
-        print(f'[-] Gateway {gateway["name"]} (id: {gateway["agentId"]}) was not closed: ({ret.status_code}) {ret.text}')
+        print(f'[-] Network on gateway {gateway["name"]} (id: {gateway["agentId"]}) was not cleared: ({ret.status_code}) {ret.text}')
 
 def onCloseNetwork(args):
     gateways = getRequest(f'/api/gateway')
@@ -1361,6 +1358,58 @@ def onLDAPCreate(args):
     else:
         print(f'[-] Channel was not created: ({ret.status_code}) {ret.text}')
 
+def onUncShareFileCreate(args):
+    gateway, relay = findAgent(args.agent_id)
+    if not relay and not gateway:
+        logger.fatal('Could not find agent (Gateway or Relay) which should be used to setup a channel.')
+
+    url = f'/api/gateway/{gateway["agentId"]}/command'
+
+    if relay != None:
+        url = f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command'
+        print(f'[.] Will setup a UncShareFile channel on a Relay named {relay["name"]} ({relay["agentId"]})')
+    else:
+        print(f'[.] Will setup a UncShareFile channel on a Gateway named {gateway["name"]} ({gateway["agentId"]})')
+
+    secondCommandId = getCommandIdMapping(gateway, 'AddNegotiationChannelUncShareFile')
+    commandId = getLastGatewayCommandID()
+    Logger.info(f'Issuing a command with ID = {commandId}')
+
+    data = {
+        "data" : {
+            "arguments" : [
+                {
+                    "type" : "string",
+                    "name" : "Negotiation Identifier",
+                    "value" : getValueOrRandom(args.negotiation_id),
+                },
+                {
+                    "type" : "string",
+                    "name" : "Filesystem path",
+                    "value" : args.filesystem_path,
+                },
+                {
+                    "type" : "boolean",
+                    "name" : "Clear",
+                    "value" : args.clear,
+                }
+            ],
+            "command" : "AddNegotiationChannelUncShareFile",
+            "id" : secondCommandId,
+            "name" : "Command",
+        },
+        'id' : commandId,
+        'name' : 'GatewayCommandGroup'
+    }
+
+    Logger.info('Will create UncShareFile channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    
+    ret = postRequest(url, data, rawResp = True)
+
+    if ret.status_code == 201:
+        print('[+] Channel was created.')
+    else:
+        print(f'[-] Channel was not created: ({ret.status_code}) {ret.text}')
 
 def onMSSQLCreate(args):
     gateway, relay = findAgent(args.agent_id)
@@ -1628,8 +1677,8 @@ def parseArgs(argv):
     alarm_sub = alarm.add_subparsers(help = 'Alarm on what?', required = True)
 
     alarm_relay = alarm_sub.add_parser('relay', help = 'Trigger an alarm whenever a new Relay checks-in.')
-    alarm_relay.add_argument('-e', '--execute', help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
-    alarm_relay.add_argument('-x', '--webhook', help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
+    alarm_relay.add_argument('-e', '--execute', action='append', help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
+    alarm_relay.add_argument('-x', '--webhook', action='append', help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
     alarm_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
     alarm_relay.set_defaults(func = onAlarmRelay)
 
@@ -1833,6 +1882,13 @@ def parseArgs(argv):
     ### clear
     unc_clear = unc_parser.add_parser('clear', help = 'Clear all message files.')
     unc_clear.set_defaults(func = onUncShareFileClear)
+
+    unc_create = unc_parser.add_parser('create', help = 'Setup a Mattermost Negotiation channel.')
+    unc_create.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to setup a channel. Can be ID or Name.')
+    unc_create.add_argument('filesystem_path', metavar = 'filesystem_path', help = 'Filesystem path')
+    unc_create.add_argument('--clear', type=bool, metavar = 'clear', default = False, help = 'Clear previous messages')
+    unc_create.add_argument('--negotiation-id', metavar = 'ID', default='random', help = 'Negotiation Identifier. Will be picked at random if left empty.')
+    unc_create.set_defaults(func = onUncShareFileCreate)
 
     ## Dropbox
     dropbox = parser_channel_sub.add_parser('dropbox', help = 'Dropbox channel specific commands.')

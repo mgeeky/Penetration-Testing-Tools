@@ -109,6 +109,7 @@ Currently, following commands are supported:
         - `create` - Creates a MSSQL Negotiation Channel
         - `clear` - Clear DB Table entries to improve bandwidth
     - `uncsharefile`
+        - `create` - Creates UncShareFile Negotiation Channel
         - `clear` - Remove all message files to improve bandwidth
     - `dropbox`
         - `clear` - Remove All Files to improve bandwidth
