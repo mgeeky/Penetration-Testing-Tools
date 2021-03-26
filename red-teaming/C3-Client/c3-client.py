@@ -36,6 +36,8 @@ commands = {
     ]
 }
 
+serverValidated = False
+
 # BackendCommons.h: enum class Command : std::uint16_t
 commandsMap = {
     'AddDevice' : 0,
@@ -92,6 +94,8 @@ def printJson(data):
     print(json.dumps(data, sort_keys=True, indent=4))
 
 def getRequest(url, rawResp = False, stream = False):
+    global serverValidated
+
     auth = None
     if config['httpauth']:
         user, _pass = config['httpauth'].split(':')
@@ -103,10 +107,23 @@ def getRequest(url, rawResp = False, stream = False):
 
     try:
         resp = requests.get(fullurl, headers=headers, auth=auth, stream = stream, timeout = 5)
+
+        if not serverValidated:
+            try:
+                gateways = requests.get(config["host"] + '/api/gateway', headers=headers, auth=auth, stream = stream, timeout = 5)
+                if gateways.status_code < 200 or gateways.status_code > 300:
+                    raise Exception()
+
+                serverValidated = True
+            except:
+                Logger.fatal('Server could not be validated. Are you sure your Host value points to a valid C3 webcontroller URL?')
+
     except requests.exceptions.ConnectTimeout as e:
         Logger.fatal(f'Connection with {config["host"]} timed-out.')
     except Exception as e:
         Logger.fatal(f'GET request failed ({url}): {e}')
+
+    Logger.dbg(f'First 512 bytes of response:\n{resp.text[:512]}')
 
     if rawResp:
         return resp
