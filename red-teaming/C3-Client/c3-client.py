@@ -543,7 +543,7 @@ def _onPing(args):
         ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command', data)
 
         if type(ret) == dict and 'relayAgentId' in ret.keys() and ret['relayAgentId'] == relay['agentId']:
-            print(f'[.] Pinged relay: {relay["name"]:10s} from gateway  {gateway["name"]}')
+            print(f'[.] Pinged relay: {relay["name"]} (id: {relay["agentId"]}) from gateway {gateway["name"]}')
             pinged += 1
 
     if pinged == 0:
@@ -1245,31 +1245,62 @@ def onCloseNetwork(args):
             closeNetwork(gateway)
 
 def onCloseChannel(args):
-    gateway, relay = findAgent(args.agent_id)
-    if not relay and not gateway:
-        Logger.fatal('Could not find agent (Gateway or Relay) which should be used to setup a channel.')
+    gateways = getRequest('/api/gateway')
+    channelsToClose = []
 
-    channelToClose = ''
-    
-    capability = processCapability(gateway)
-    for chan in capability['channels'].keys():
-        for a in sys.argv:
-            if a.lower() == chan.lower():
-                channelToClose = a
-                break
-    
-        if len(channelToClose) > 0: break
+    for _gateway in gateways:
+        if len(args.gateway_id) > 0:
+            if _gateway["agentId"].lower() != args.gateway_id.lower() and _gateway["name"].lower() != args.gateway_id.lower():
+                continue
 
-    if len(channelToClose) == 0:
-        Logger.fatal('Couldnt identify which channel is to be closed. Specify your channel name in script parameters')
+        gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
+        capability = processCapability(gateway)
 
-    channels = collectChannelsToSendCommand(args, channelToClose)
+        if len(args.gateway_id) > 0:
+            if gateway["agentId"].lower() == args.agent_id.lower() or gateway["name"].lower() == args.agent_id.lower():
+                for channel in gateway['channels']:
+                    name = list(capability['channels'].keys())[list(capability['channels'].values()).index(channel['type'])]
+                    if len(args.channel_id) == 0 or (name.lower() == args.channel_id.lower() or channel['iid'] == args.channel_id):
+                        _type = 'non-negotiation'
+                        if 'isReturnChannel' in channel.keys() and channel['isReturnChannel']: _type = 'grc'
+                        elif 'isNegotiationChannel' in channel.keys() and channel['isNegotiationChannel']: _type = 'negotiation'
 
-    if len(channels) == 0:
-        Logger.fatal("Could not find channel to be close. Adjust your agent ID/Name setting and try again.")
+                        channelsToClose.append({
+                            'url' : f'/api/gateway/{_gateway["agentId"]}/relay/{relay["agentId"]}/channel/{channel["iid"]}/command',
+                            'name' : name,
+                            'iid' : channel['iid'],
+                            'agent' : relay,
+                            'type' : _type,
+                            'kind' : 'Relay',
+                        })
 
-    for channel in channels:
-        closeChannel(channel, channelToClose)
+        for relay in gateway['relays']:
+            if relay["agentId"].lower() != args.agent_id.lower() and relay["name"].lower() != args.agent_id.lower():
+                continue
+
+            for channel in relay['channels']:
+                name = list(capability['channels'].keys())[list(capability['channels'].values()).index(channel['type'])]
+                if len(args.channel_id) == 0 or (name.lower() == args.channel_id.lower() or channel['iid'] == args.channel_id):
+                    
+                    _type = 'non-negotiation'
+                    if 'isReturnChannel' in channel.keys() and channel['isReturnChannel']: _type = 'grc'
+                    elif 'isNegotiationChannel' in channel.keys() and channel['isNegotiationChannel']: _type = 'negotiation'
+
+                    channelsToClose.append({
+                        'url' : f'/api/gateway/{_gateway["agentId"]}/relay/{relay["agentId"]}/channel/{channel["iid"]}/command',
+                        'name' : name,
+                        'iid' : channel['iid'],
+                        'agent' : relay,
+                        'type' : _type,
+                        'kind' : 'Relay',
+                    })
+
+    if len(channelsToClose) == 0:
+        Logger.fatal('Could not find channels that should have been closed. Try changing search criteria.')
+
+    for channel in channelsToClose:
+        if channel['type'] == 'grc' and not args.close_grc: continue
+        closeChannel(channel, channel['name'])
 
 def onMattermostCreate(args):
     server_url = args.server_url
@@ -1856,7 +1887,9 @@ def parseArgs(argv):
     ## Channel
     close_channel = parser_close_sub.add_parser('channel', help = 'Close a channel.')
     close_channel.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to find a channel to close. Can be ID or Name.')
-    close_channel.add_argument('-c', '--channel-id', default='', help = 'Specifies ID of the channel to commander. If not given - will issue specified command to all channels in a Gateway/Relay.')
+    close_channel.add_argument('-G', '--close-grc', action='store_true', help = 'Close Gateway-Return Channel (Non-negotiation one) as well. By default the GRC channel (the one marked with violet icon) will not be closed to avoid losing connectivity with relay.')
+    close_channel.add_argument('-c', '--channel-id', default='', help = 'Specifies ID (or Name) of the channel to commander. If not given - will issue specified command to all channels in a Relay. If name is given, will update Jitter on all Channels with that name.')
+    close_channel.add_argument('-g', '--gateway-id', default='', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
     close_channel.set_defaults(func = onCloseChannel)
 
     ## Relay
