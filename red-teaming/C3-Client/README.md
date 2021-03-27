@@ -22,12 +22,15 @@ Usage: ./c3-client.py [options] <host> <command> [...]
 
 positional arguments:
   host                  C3 Web API host:port
-  {alarm,list,get,ping,connector,close,channel}
+  {alarm,download,list,get,ping,jitter,spawn,connector,close,channel}
                         command help
     alarm               Alarm options
+    download            Download options
     list                List options
     get                 Get options
     ping                Ping Relays
+    jitter              Set Update Jitter on a channel
+    spawn               Spawn implant options
     connector           Connector options
     close               Close command.
     channel             Send Channel-specific command
