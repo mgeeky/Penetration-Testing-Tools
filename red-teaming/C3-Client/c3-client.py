@@ -159,13 +159,10 @@ def postRequest(url, data=None, contentType = 'application/json', rawResp = Fals
         else:
             return ''
 
-    for a in range(3):
-        if contentType.endswith('/json'):
-            resp = requests.post(fullurl, json=data, headers=headers, auth=auth)
-        else:
-            resp = requests.post(fullurl, data=data, headers=headers, auth=auth)
-
-        if resp.status_code != 500: break
+    if contentType.endswith('/json'):
+        resp = requests.post(fullurl, json=data, headers=headers, auth=auth)
+    else:
+        resp = requests.post(fullurl, data=data, headers=headers, auth=auth)
 
     if rawResp:
         return resp
@@ -402,7 +399,7 @@ def listGatewayRelays(gatewayId, indent = '', onlyActive = False):
 
             print(f'''
 {indent}Relay {num}:\t{g['name']}
-{indent}    Gateway ID: {g['agentId']}
+{indent}    Relay ID:   {g['agentId']}
 {indent}    Build ID:   {g['buildId']}
 {indent}    Is active:  {g['isActive']}{alive}
 {indent}    Timestamp:  {datetime.fromtimestamp(g['timestamp'])}
@@ -592,7 +589,7 @@ def getLastGatewayCommandID():
             if comm['id'] > lastId:
                 lastId = comm['id']
 
-    return lastId + random.randint(5, 25)
+    return lastId + 1
 
 def onAllChannelsClear(args):
     channels = {
@@ -635,6 +632,81 @@ def onMattermostPurge(args):
             else:
                 print(f'[+] Purged all messages from Mattermost C3 channel {channel["channelId"]} on gateway {channel["gateway"]["name"]}')
 
+def onJitter(args):
+    gateways = getRequest('/api/gateway')
+
+    channelsToUpdate = []
+
+    for _gateway in gateways:
+        if len(args.gateway_id) > 0:
+            if _gateway["agentId"].lower() != args.gateway_id.lower() and _gateway["name"].lower() != args.gateway_id.lower():
+                continue
+
+        gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
+        capability = processCapability(gateway)
+
+        if len(args.relay_id) == 0:
+            for channel in gateway['channels']:
+                name = list(capability['channels'].keys())[list(capability['channels'].values()).index(channel['type'])]
+                if len(args.channel_id) == 0 or (name.lower() == args.channel_id.lower() or channel['iid'] == args.channel_id):
+                    channelsToUpdate.append({
+                        'url' : f'/api/gateway/{_gateway["agentId"]}/channel/{channel["iid"]}/command',
+                        'name' : name,
+                        'iid' : channel['iid'],
+                        'agent' : gateway,
+                        'kind' : 'Gateway',
+                    })
+
+        for relay in gateway['relays']:
+            if len(args.relay_id) > 0:
+                if relay["agentId"].lower() != args.relay_id.lower() and relay["name"].lower() != args.relay_id.lower():
+                    continue
+
+            for channel in relay['channels']:
+                name = list(capability['channels'].keys())[list(capability['channels'].values()).index(channel['type'])]
+                if len(args.channel_id) == 0 or (name.lower() == args.channel_id.lower() or channel['iid'] == args.channel_id):
+                    channelsToUpdate.append({
+                        'url' : f'/api/gateway/{_gateway["agentId"]}/relay/{relay["agentId"]}/channel/{channel["iid"]}/command',
+                        'name' : name,
+                        'iid' : channel['iid'],
+                        'agent' : relay,
+                        'kind' : 'Relay',
+                    })
+
+    if len(channelsToUpdate) == 0:
+        Logger.fatal('Could not find channels that should have their Jitter updated. Try changing search criteria.')
+
+    for channel in channelsToUpdate:
+        data = {
+            "name" : "ChannelCommandGroup",
+            "data" : {
+                "id" : commandsMap['UpdateJitter'],
+                "name" : channel['name'],
+                "command" : "Set UpdateDelayJitter",
+                "arguments" : [
+                    {
+                        "type" : "float",
+                        "name" : "Min",
+                        "value" : str(args.min_jitter)
+                    },
+                    {
+                        "type" : "float",
+                        "name" : "Max",
+                        "value" : str(args.max_jitter)
+                    }
+                ]
+            }
+        }
+
+        Logger.info(f'Updating Jitter on channel {channel["name"]} (id: {channel["iid"]}) running on {channel["kind"]} {channel["agent"]["name"]} (id: {channel["agent"]["agentId"]}) to {args.min_jitter}...{args.max_jitter}')
+        ret = postRequest(channel['url'], data = data, rawResp = True)
+
+        if ret.status_code == 201:
+            print(f'[+] Channel {channel["name"]} (id: {channel["iid"]}) running on {channel["kind"]} {channel["agent"]["name"]} (id: {channel["agent"]["agentId"]}) got its Jitter updated to {args.min_jitter}...{args.max_jitter}\n')
+        #else:
+        #    print(f'[-] Could not update channel\'s {channel["name"]} (id: {channel["iid"]}) running on {channel["kind"]} {channel["agent"]["name"]} (id: {channel["agent"]["agentId"]}) Jitter! Result: {ret.status_code} ({ret.text})\n')
+
+            
 def onLDAPClear(args):
     data = {
         'data' : {
@@ -1066,7 +1138,7 @@ def closeRelay(gateway, relay):
         }
     }
 
-    Logger.info(f'Closing Relay {relay["agentId"]} (id: {relay["agentId"]}). with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg(f'Closing Relay {relay["agentId"]} (id: {relay["agentId"]}). with following parameters:\n\n' + json.dumps(data, indent = 4))
 
     ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command', data, rawResp = True)
     if ret.status_code == 201:
@@ -1116,7 +1188,7 @@ def closePeripheral(gateway, relay, peripheralName, peripheralId):
         }
     }
 
-    Logger.info(f'Closing peripheral {peripheralName} (id: {peripheralId}). with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg(f'Closing peripheral {peripheralName} (id: {peripheralId}). with following parameters:\n\n' + json.dumps(data, indent = 4))
 
     ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/peripheral/{peripheralId}/command', data, rawResp = True)
     if ret.status_code == 201:
@@ -1140,7 +1212,7 @@ def closeChannel(channel, channelToClose):
         }
     }
 
-    Logger.info(f'Closing {channelToClose} channel (id: {chanId}). with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg(f'Closing {channelToClose} channel (id: {chanId}). with following parameters:\n\n' + json.dumps(data, indent = 4))
 
     ret = postRequest(channel["url"], data, rawResp = True)
     if ret.status_code == 201:
@@ -1165,7 +1237,7 @@ def closeNetwork(gateway):
         }
     }
 
-    Logger.info(f'Closing gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg(f'Closing gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
 
     ret = postRequest(f'/api/gateway/{gateway["agentId"]}/command', data, rawResp = True)
     if ret.status_code == 201:
@@ -1224,6 +1296,7 @@ def onMattermostCreate(args):
     else:
         print(f'[.] Will setup a Mattermost channel on a Gateway named {gateway["name"]} ({gateway["agentId"]})')
 
+
     secondCommandId = getCommandIdMapping(gateway, 'AddNegotiationChannelMattermost')
     commandId = getLastGatewayCommandID()
     Logger.info(f'Issuing a command with ID = {commandId}')
@@ -1267,11 +1340,10 @@ def onMattermostCreate(args):
             "id" : secondCommandId,
             "name" : "Command",
         },
-        'id' : commandId,
         'name' : 'GatewayCommandGroup'
     }
 
-    Logger.info('Will create Mattermost channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg('Will create Mattermost channel with following parameters:\n\n' + json.dumps(data, indent = 4))
     
     ret = postRequest(url, data, rawResp = True)
 
@@ -1345,11 +1417,10 @@ def onLDAPCreate(args):
             "id" : secondCommandId,
             "name" : "Command",
         },
-        'id' : commandId,
         'name' : 'GatewayCommandGroup'
     }
 
-    Logger.info('Will create LDAP channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg('Will create LDAP channel with following parameters:\n\n' + json.dumps(data, indent = 4))
     
     ret = postRequest(url, data, rawResp = True)
 
@@ -1398,11 +1469,10 @@ def onUncShareFileCreate(args):
             "id" : secondCommandId,
             "name" : "Command",
         },
-        'id' : commandId,
         'name' : 'GatewayCommandGroup'
     }
 
-    Logger.info('Will create UncShareFile channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg('Will create UncShareFile channel with following parameters:\n\n' + json.dumps(data, indent = 4))
     
     ret = postRequest(url, data, rawResp = True)
 
@@ -1471,11 +1541,10 @@ def onMSSQLCreate(args):
             "id" : secondCommandId,
             "name" : "Command",
         },
-        'id' : commandId,
         'name' : 'GatewayCommandGroup'
     }
 
-    Logger.info('Will create MSSQL channel with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg('Will create MSSQL channel with following parameters:\n\n' + json.dumps(data, indent = 4))
     
     ret = postRequest(url, data, rawResp = True)
 
@@ -1518,10 +1587,9 @@ def onSpawnBeacon(args):
                 "id" : secondCommandId,
                 "name" : "Command",
             },
-            'id' : commandId,
         }
 
-        Logger.info('Will spawn Beacon with following parameters:\n\n' + json.dumps(data, indent = 4))
+        Logger.dbg('Will spawn Beacon with following parameters:\n\n' + json.dumps(data, indent = 4))
     
         print(f'[+] Spawning Beacon on relay: {relay["name"]} (id: {relay["agentId"]}) on gateway {gateway["name"]}')
         ret = postRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/command', data, rawResp = True)
@@ -1566,7 +1634,7 @@ def onTurnOnTeamserver(args):
         }
     }
 
-    Logger.info(f'Will Turn On connector TeamServer on gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg(f'Will Turn On connector TeamServer on gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
     
     ret = postRequest(f'/api/gateway/{gateway["agentId"]}/command', data, rawResp = True)
 
@@ -1598,7 +1666,7 @@ def onTurnOffConnector(args):
         }
     }
 
-    Logger.info(f'Will Turn Off connector TeamServer on gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
+    Logger.dbg(f'Will Turn Off connector TeamServer on gateway {gateway["name"]} with following parameters:\n\n' + json.dumps(data, indent = 4))
     
     ret = postRequest(f'/api/gateway/{gateway["agentId"]}/connector/{args.connector_id}/command', data, rawResp = True)
 
@@ -1666,7 +1734,7 @@ def parseArgs(argv):
     opts.add_argument('-d', '--debug', action='store_true', help='Display debug output.')
     opts.add_argument('-f', '--format', choices=['json', 'text'], default='text', help='Output format. Can be JSON or text (default).')
     opts.add_argument('-n', '--dry-run', action='store_true', help='Do not send any HTTP POST request that could introduce changes in C3 network.')
-    opts.add_argument('-A', '--httpauth', metavar = 'user:pass', help = 'HTTP Basic Authentication (user:pass)')
+    opts.add_argument('-A', '--httpauth', metavar = 'user:pass', default='', help = 'HTTP Basic Authentication (user:pass)')
 
     subparsers = opts.add_subparsers(help = 'command help', required = True)
 
@@ -1677,9 +1745,9 @@ def parseArgs(argv):
     alarm_sub = alarm.add_subparsers(help = 'Alarm on what?', required = True)
 
     alarm_relay = alarm_sub.add_parser('relay', help = 'Trigger an alarm whenever a new Relay checks-in.')
-    alarm_relay.add_argument('-e', '--execute', action='append', help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
-    alarm_relay.add_argument('-x', '--webhook', action='append', help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
-    alarm_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
+    alarm_relay.add_argument('-e', '--execute', action='append', default=[], help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
+    alarm_relay.add_argument('-x', '--webhook', action='append', default=[], help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
+    alarm_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', default='', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
     alarm_relay.set_defaults(func = onAlarmRelay)
 
     #
@@ -1692,7 +1760,7 @@ def parseArgs(argv):
     download_gateway.add_argument('-x', '--extract', action='store_true', help = 'Consider outfile as directory path. Then extract downloaded ZIP file with gateway into that directory.')
     download_gateway.add_argument('-F', '--format', choices=['exe86', 'exe64', 'dll86', 'dll64'], default='exe64', help = 'Gateway executable format. <format><arch>. Formats: exe, dll. Archs: 86, 64. Default: exe64')
     download_gateway.add_argument('-G', '--gateway-name', metavar='GATEWAY_NAME', default='random', help = 'Name of the Gateway. Default: random name')
-    download_gateway.add_argument('-O', '--override-ip', metavar='IP', help = 'Override gateway configuration IP stored in JSON. By default will use 0.0.0.0')
+    download_gateway.add_argument('-O', '--override-ip', metavar='IP', default='', help = 'Override gateway configuration IP stored in JSON. By default will use 0.0.0.0')
     download_gateway.add_argument('outfile', metavar='outfile', help = 'Where to save output file.')
     download_gateway.set_defaults(func = onDownloadGateway)
 
@@ -1709,7 +1777,7 @@ def parseArgs(argv):
     list_relays = parser_list_sub.add_parser('relays', help = 'List available relays.')
     list_relays.set_defaults(func = onListRelays)
     list_relays.add_argument('-a', '--active', action='store_true', help = 'List only active relays')
-    list_relays.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
+    list_relays.add_argument('-g', '--gateway-id', metavar='gateway_id', default='', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
 
     #
     # Get
@@ -1724,16 +1792,27 @@ def parseArgs(argv):
     get_relay = parser_get_sub.add_parser('relay', help = 'Get relay\'s data.')
     get_relay.set_defaults(func = onGetRelay)
     get_relay.add_argument('name', help = 'Relay Name or ID')
-    get_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
+    get_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', default='', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
 
     #
     # Ping
     #
     parser_ping = subparsers.add_parser('ping', help = 'Ping Relays')
-    parser_ping.add_argument('-r', '--relay-id', help = 'Specifies which Relay should be pinged. Can be its ID or name.')
-    parser_ping.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
+    parser_ping.add_argument('-r', '--relay-id', default='', help = 'Specifies which Relay should be pinged. Can be its ID or name.')
+    parser_ping.add_argument('-g', '--gateway-id', default='', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
     parser_ping.add_argument('-k', '--keep-pinging', metavar='delay', type=int, default=0, help = 'Keep pinging choosen Relays. Will send a ping every "delay" number of seconds. Default: sends ping only once.')
     parser_ping.set_defaults(func = onPing)
+
+    #
+    # Jitter
+    #
+    parser_jitter = subparsers.add_parser('jitter', help = 'Set Update Jitter on a channel')
+    parser_jitter.add_argument('min_jitter', type=float, help = 'Min Jitter in seconds to set (float value)')
+    parser_jitter.add_argument('max_jitter', type=float, help = 'Max Jitter in seconds to set (float value)')
+    parser_jitter.add_argument('-c', '--channel-id', default='', help = 'Specifies ID (or Name) of the channel to commander. If not given - will issue specified command to all channels in a Relay. If name is given, will update Jitter on all Channels with that name.')
+    parser_jitter.add_argument('-r', '--relay-id', default='', help = 'Specifies which Relay should be pinged. Can be its ID or name.')
+    parser_jitter.add_argument('-g', '--gateway-id', default='', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
+    parser_jitter.set_defaults(func = onJitter)
 
     #
     # Spawn
@@ -1747,7 +1826,7 @@ def parseArgs(argv):
     beacon.add_argument('--pipe-name', metavar = 'pipe_name', default='random', help = 'Beacon Pipe name. Default: random')
     beacon.add_argument('--trials', metavar = 'trials', type=int, default=10, help = 'Beacon connection trials. Default: 10')
     beacon.add_argument('--delay', metavar = 'delay', type=int, default=1000, help = 'Beacon connection delay. Default: 1000')
-    beacon.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
+    beacon.add_argument('-g', '--gateway-id', metavar='gateway_id', default='', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
     beacon.set_defaults(func = onSpawnBeacon)
 
     #
@@ -1786,13 +1865,13 @@ def parseArgs(argv):
     ## Channel
     close_channel = parser_close_sub.add_parser('channel', help = 'Close a channel.')
     close_channel.add_argument('agent_id', metavar = 'agent_id', help = 'Gateway or Relay that will be used to find a channel to close. Can be ID or Name.')
-    close_channel.add_argument('-c', '--channel-id', help = 'Specifies ID of the channel to commander. If not given - will issue specified command to all channels in a Gateway/Relay.')
+    close_channel.add_argument('-c', '--channel-id', default='', help = 'Specifies ID of the channel to commander. If not given - will issue specified command to all channels in a Gateway/Relay.')
     close_channel.set_defaults(func = onCloseChannel)
 
     ## Relay
     close_channel = parser_close_sub.add_parser('relay', help = 'Close a Relay.')
     close_channel.add_argument('relay_id', metavar = 'relay_id', help = 'Relay to be closed. Can be ID or Name.')
-    close_channel.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
+    close_channel.add_argument('-g', '--gateway-id', default='', metavar='gateway_id', help = 'ID (or Name) of the Gateway runs specified Relay. If not given, will return all relays matching criteria from all gateways.')
     close_channel.set_defaults(func = onCloseRelay)
 
 
@@ -1800,9 +1879,9 @@ def parseArgs(argv):
     # Channel
     #
     parser_channel = subparsers.add_parser('channel', help = 'Send Channel-specific command')
-    parser_channel.add_argument('-c', '--channel-id', help = 'Specifies ID of the channel to commander. If not given - will issue specified command to all channels in a Relay.')
-    parser_channel.add_argument('-r', '--relay-id', help = 'Specifies Relay that runs target channel. Can be its ID or name.')
-    parser_channel.add_argument('-g', '--gateway-id', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
+    parser_channel.add_argument('-c', '--channel-id', default='', help = 'Specifies ID of the channel to commander. If not given - will issue specified command to all channels in a Relay.')
+    parser_channel.add_argument('-r', '--relay-id', default='', help = 'Specifies Relay that runs target channel. Can be its ID or name.')
+    parser_channel.add_argument('-g', '--gateway-id', default='', metavar='gateway_id', help = 'ID (or Name) of the Gateway which Relays should be pinged. If not given, will ping all relays in all gateways.')
     
     parser_channel_sub = parser_channel.add_subparsers(help = 'Specify channel', required = True)
 

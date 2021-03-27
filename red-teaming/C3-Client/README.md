@@ -96,6 +96,8 @@ Currently, following commands are supported:
 
 - `ping` - ping selected Relays
 
+- `jitter` - sets jitter on specified channel(s)
+
 - `channel` - channel-specific commands
     - `all`
         - `clear` - Clear message queue of every supported channel at once
