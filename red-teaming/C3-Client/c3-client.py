@@ -443,62 +443,34 @@ Gateway {num}:\t{g['name']}''')
         if config['format'] == 'json':
             printJson(relays)
 
-def collectRelays(args):
+def collectRelays(args, nonFatal = False):
     relays = []
     gateways = getRequest('/api/gateway')
+    gateway_id = ''
+    relay_id = ''
 
-    gateway_id = None
-    if hasattr(args, 'gateway_id') and args.gateway_id != None:
+    if hasattr(args, 'gateway_id'):
         gateway_id = args.gateway_id
 
-    relay_id = None
-    if hasattr(args, 'relay_id') and args.relay_id != None:
+    if hasattr(args, 'relay_id'):
         relay_id = args.relay_id
 
-    if gateway_id != None:
-        gatewayId = ''
-        
-        for g in gateways:
-            if gateway_id.lower() == g['name'].lower():
-                gatewayId = g['agentId']
-                break
-            elif gateway_id.lower() == g['agentId'].lower():
-                gatewayId = g['agentId']
-                break
+    for _gateway in gateways:
+        if len(gateway_id) > 0:
+            if _gateway["agentId"].lower() != gateway_id.lower() and _gateway["name"].lower() != gateway_id.lower():
+                continue
 
-        if gatewayId == '':
-            Logger.err('Gateway with given Name/ID could not be found.')
-            if config['format'] == 'json': print('{}')
-            sys.exit(1)
+        gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
 
-        gateway = getRequest(f'/api/gateway/{gatewayId}')
+        for relay in gateway['relays']:
+            if len(relay_id) > 0:
+                if relay["agentId"].lower() != relay_id.lower() and relay["name"].lower() != relay_id.lower():
+                    continue
 
-        if 'relays' not in gateway.keys():
-            Logger.err('Specified Gateway did not have any Relay.')
-            if config['format'] == 'json': print('{}')
-            sys.exit(1)
+            relays.append((gateway, relay))
 
-        if relay_id != None:
-            for r in gateway['relays']:
-                if relay_id.lower() == r['name'].lower():
-                    relays.append((gateway, r))
-                elif relay_id.lower() == r['agentId'].lower():
-                    relays.append((gateway, r))
-        else:
-            for r in gateway['relays']:
-                relays.append((gateway, r))
-    else:
-        for g in gateways:
-            gr = getRequest(f'/api/gateway/{g["agentId"]}')
-            if 'relays' in gr.keys():
-                for r in gr['relays']:
-                    if relay_id != None:
-                        if relay_id.lower() == r['name'].lower():
-                            relays.append((g, r))
-                        elif relay_id.lower() == r['agentId'].lower():
-                            relays.append((g, r))
-                    else:
-                        relays.append((g, r))
+    if len(relays) == 0 and not nonFatal:
+        Logger.fatal('Could not find Relays matching filter criteria. Try changing gateway, relay criteria.')
 
     return relays
 
@@ -991,7 +963,7 @@ def shell(cmd, alternative = False, stdErrToStdout = False, surpressStderr = Fal
     return status
 
 def onAlarmRelay(args):
-    origRelays = collectRelays(args)
+    origRelays = collectRelays(args, nonFatal = True)
     lastTimestamp = 0
 
     origRelayIds = set()
@@ -1005,25 +977,38 @@ def onAlarmRelay(args):
 
     try:
         while True:
-            time.sleep(2)
-
-            currRelays = collectRelays(args)
+            currRelays = collectRelays(args, nonFatal = True)
             currRelayIds = set()
             currLastTimestamp = 0
-            newestRelay = None
 
             for gateway, relay in currRelays:
                 currRelayIds.add(relay['agentId'])
                 if relay['timestamp'] > currLastTimestamp:
                     currLastTimestamp = relay['timestamp']
-                    newestRelay = relay
 
-            if currLastTimestamp > lastTimestamp and currRelayIds != origRelayIds:
+            relaysDiff = currRelayIds.difference(origRelayIds)
+
+            if currLastTimestamp > lastTimestamp and len(relaysDiff) > 0:
                 lastTimestamp = currLastTimestamp
                 origRelayIds = currRelayIds
 
+                newestRelay = None
+                newestRelayGateway = None
+                newestRelayId = relaysDiff.pop()
+
+                for gateway, relay in currRelays:
+                    if relay['agentId'] == newestRelayId:
+                        newestRelay = relay
+                        newestRelayGateway = gateway
+                        break
+
+                if newestRelay == None:
+                    continue
+
                 print('[+] New Relay checked-in!')
                 printFullRelay(newestRelay, len(currRelays))
+
+                time.sleep(2)
 
                 try:
                     if args.execute != None and len(args.execute) > 0:
@@ -1039,7 +1024,8 @@ def onAlarmRelay(args):
                             cmd = cmd.replace("<relayId>", newestRelay['agentId'])
                             cmd = cmd.replace("<buildId>", newestRelay['buildId'])
                             cmd = cmd.replace("<timestamp>", str(datetime.fromtimestamp(newestRelay['timestamp'])))
-                            cmd = cmd.replace("<gatewayId>", newestRelay['name'])
+                            cmd = cmd.replace("<gatewayId>", newestRelayGateway['agentId'])
+                            cmd = cmd.replace("<gatewayName>", newestRelayGateway['name'])
 
                             print(f'[.] Executing command: {cmd}')
                             print(shell(cmd))
@@ -1059,11 +1045,16 @@ def onAlarmRelay(args):
                                 "<relayId>", newestRelay['agentId'],
                                 "<buildId>", newestRelay['buildId'],
                                 "<timestamp>", datetime.fromtimestamp(newestRelay['timestamp']),
-                                "<gatewayId>", newestRelay['name'],
+                                "<gatewayId>", newestRelayGateway['agentId'],
+                                "<gatewayName>", newestRelayGateway['name'],
                             }
 
                             print(f'[.] Triggering a webhook: {webhook}')
-                            requests.post(webhook, data = data, headers = headears)
+
+                            try:
+                                requests.post(webhook, data = data, headers = headears)
+                            except Exception as e:
+                                print(f'[-] Webhook failed: {e}')
 
                         print('[.] Webhooks triggered.')
 
@@ -1745,7 +1736,7 @@ def parseArgs(argv):
     alarm_sub = alarm.add_subparsers(help = 'Alarm on what?', required = True)
 
     alarm_relay = alarm_sub.add_parser('relay', help = 'Trigger an alarm whenever a new Relay checks-in.')
-    alarm_relay.add_argument('-e', '--execute', action='append', default=[], help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
+    alarm_relay.add_argument('-e', '--execute', action='append', default=[], help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <gatewayId>, <gatewayName>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
     alarm_relay.add_argument('-x', '--webhook', action='append', default=[], help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
     alarm_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', default='', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
     alarm_relay.set_defaults(func = onAlarmRelay)
