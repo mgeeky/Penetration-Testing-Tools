@@ -451,9 +451,11 @@ def collectRelays(args, nonFatal = False):
 
     if hasattr(args, 'gateway_id'):
         gateway_id = args.gateway_id
+        Logger.info(f'Collecting relays from gateway {gateway_id}')
 
     if hasattr(args, 'relay_id'):
         relay_id = args.relay_id
+        Logger.info(f'Collecting relays matching name/ID: {relay_id}')
 
     for _gateway in gateways:
         if len(gateway_id) > 0:
@@ -461,8 +463,6 @@ def collectRelays(args, nonFatal = False):
                 continue
 
         gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
-
-        if 'relays' not in gateway.keys() or len(gateway['relays']) == 0: continue
 
         for relay in gateway['relays']:
             if len(relay_id) > 0:
@@ -852,12 +852,15 @@ def collectChannels(args, channelName):
 
     if hasattr(args, 'gateway_id'):
         gateway_id = args.gateway_id
+        Logger.info(f'Collecting relays from gateway {gateway_id}')
 
     if hasattr(args, 'relay_id'):
         relay_id = args.relay_id
+        Logger.info(f'Collecting relays matching name/ID: {relay_id}')
 
     if hasattr(args, 'channel_id'):
         channel_id = args.channel_id
+        Logger.info(f'Collecting channels matching name/ID: {channel_id}')
 
     for _gateway in gateways:
         if len(gateway_id) > 0:
@@ -967,6 +970,8 @@ def onAlarmRelay(args):
 
     try:
         while True:
+            time.sleep(args.delay)
+
             currRelays = collectRelays(args, nonFatal = True)
             currRelayIds = set()
             currLastTimestamp = 0
@@ -977,6 +982,16 @@ def onAlarmRelay(args):
                     currLastTimestamp = relay['timestamp']
 
             relaysDiff = currRelayIds.difference(origRelayIds)
+
+            Logger.dbg(f'''Alarm loop.
+origRelayIds:       {origRelayIds}
+currRelayIds:       {currRelayIds}
+lengths:            {len(origRelayIds)} vs {len(currRelayIds)}
+relaysDiff:         {relaysDiff}
+lastTimestamp:      {lastTimestamp}
+currLastTimestamp:  {currLastTimestamp}
+New Relay?          {currLastTimestamp > lastTimestamp and len(relaysDiff) > 0}
+''')
 
             if currLastTimestamp > lastTimestamp and len(relaysDiff) > 0:
                 lastTimestamp = currLastTimestamp
@@ -1017,7 +1032,7 @@ def onAlarmRelay(args):
 
                             print(f'[.] Executing command: {cmd}')
 
-                            time.sleep(3)
+                            time.sleep(args.command_delay)
                             print(shell(cmd))
 
                         print('[.] Commands executed.')
@@ -1042,6 +1057,7 @@ def onAlarmRelay(args):
                             print(f'[.] Triggering a webhook: {webhook}')
 
                             try:
+                                time.sleep(args.command_delay)
                                 requests.post(webhook, data = data, headers = headears)
                             except Exception as e:
                                 print(f'[-] Webhook failed: {e}')
@@ -1759,6 +1775,8 @@ def parseArgs(argv):
     alarm_relay.add_argument('-e', '--execute', action='append', default=[], help = 'If new Relay checks in - execute this command. Use following placeholders in your command: <computerName>, <userName>, <domain>, <isElevated>, <osVersion>, <processId>, <relayName>, <relayId>, <buildId>, <gatewayId>, <gatewayName>, <timestamp> to customize executed command\'s parameters. Example: powershell -c "Add-Type -AssemblyName System.Speech; $synth = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'New Relay just checked-in <domain>/<userName>@<computerName>\')"')
     alarm_relay.add_argument('-x', '--webhook', action='append', default=[], help = 'Trigger a Webhook (HTTP POST request) to this URL whenever a new Relay checks-in. The request will contain JSON message with all the fields available, mentioned in --execute option.')
     alarm_relay.add_argument('-g', '--gateway-id', metavar='gateway_id', default='', help = 'ID (or Name) of the Gateway which Relays should be returned. If not given, will result all relays from all gateways.')
+    alarm_relay.add_argument('-D', '--delay', metavar = 'delay', type=int, default=10, help = 'New relays polling delay-time. Will poll new relays every N seconds. Setting this too low may impact Gateway\'s performance. Default: 10 seconds.')
+    alarm_relay.add_argument('-E', '--command-delay', metavar = 'command_delay', type=int, default=5, help = 'Delay before running a command/triggering a webhook (and between consecutive commands/webhooks). Default: 5 seconds')
     alarm_relay.set_defaults(func = onAlarmRelay)
 
     #
