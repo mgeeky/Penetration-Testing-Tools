@@ -1008,8 +1008,6 @@ def onAlarmRelay(args):
                 print('[+] New Relay checked-in!')
                 printFullRelay(newestRelay, len(currRelays))
 
-                time.sleep(2)
-
                 try:
                     if args.execute != None and len(args.execute) > 0:
                         for command in args.execute:
@@ -1028,6 +1026,8 @@ def onAlarmRelay(args):
                             cmd = cmd.replace("<gatewayName>", newestRelayGateway['name'])
 
                             print(f'[.] Executing command: {cmd}')
+
+                            time.sleep(3)
                             print(shell(cmd))
 
                         print('[.] Commands executed.')

