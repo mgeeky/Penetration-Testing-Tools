@@ -589,7 +589,7 @@ def onMattermostPurge(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'mattermost')
+    channels = collectChannels(args, 'mattermost')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive Mattermost purge command.')
@@ -675,9 +675,6 @@ def onJitter(args):
 
         if ret.status_code == 201:
             print(f'[+] Channel {channel["name"]} (id: {channel["iid"]}) running on {channel["kind"]} {channel["agent"]["name"]} (id: {channel["agent"]["agentId"]}) got its Jitter updated to {args.min_jitter}...{args.max_jitter}\n')
-        #else:
-        #    print(f'[-] Could not update channel\'s {channel["name"]} (id: {channel["iid"]}) running on {channel["kind"]} {channel["agent"]["name"]} (id: {channel["agent"]["agentId"]}) Jitter! Result: {ret.status_code} ({ret.text})\n')
-
             
 def onLDAPClear(args):
     data = {
@@ -690,7 +687,7 @@ def onLDAPClear(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'ldap')
+    channels = collectChannels(args, 'ldap')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive LDAP clear attribute command.')
@@ -716,7 +713,7 @@ def onMSSQLClearTable(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'table name')
+    channels = collectChannels(args, 'mssql')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive MSSQL clear DB table command.')
@@ -742,7 +739,7 @@ def onUncShareFileClear(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'filesystem path')
+    channels = collectChannels(args, 'uncsharefile')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive UncShareFile remove all message files command.')
@@ -768,7 +765,7 @@ def onDropboxClear(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'dropbox token')
+    channels = collectChannels(args, 'dropbox')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive Dropbox remove all message files command.')
@@ -794,7 +791,7 @@ def onGithubClear(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'github token')
+    channels = collectChannels(args, 'github')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive Github remove all message files command.')
@@ -820,7 +817,7 @@ def onGoogleDriveClear(args):
         'name' : 'ChannelCommandGroup'
     }
 
-    channels = collectChannelsToSendCommand(args, 'github token')
+    channels = collectChannels(args, 'googledrive')
 
     if len(channels) == 0:
         print('[-] No channels could be found to receive GoogleDrive remove all message files command.')
@@ -835,88 +832,77 @@ def onGoogleDriveClear(args):
             else:
                 print(f'[+] Cleared GoogleDrive message files on C3 channel {channel["channelId"]} on gateway {channel["gateway"]["name"]}')
 
-def collectChannelsToSendCommand(args, channelKeyword):
-    relays = collectRelays(args)
-    gateways = getRequest('/api/gateway')
+def getDeviceName(gateway, devicesType, deviceType):
+    capability = processCapability(gateway)
+    name = list(capability[devicesType].keys())[list(capability[devicesType].values()).index(deviceType)]
 
-    channel_id = None
-    if hasattr(args, 'channel_id') and args.channel_id != None:
-        channel_id = args.channel_id 
+    return name
 
+def collectChannels(args, channelName):
     channels = []
+    gateways = getRequest('/api/gateway')
+    gateway_id = ''
+    relay_id = ''
+    channel_id = ''
 
-    for gateway, relay in relays:
-        if 'channels' in relay.keys():
-            channel_num = 0
+    if hasattr(args, 'gateway_id'):
+        gateway_id = args.gateway_id
 
-            for c in relay['channels']:
-                channel_num += 1
-                Logger.dbg(f'Iterating over channel {c["iid"]} on Relay ...')
-                if channel_id != None:
-                    if c['iid'] == channel_id:
-                        Logger.dbg(f'Adding channel {c["iid"]} in Relay {relay["name"]}.')
-                        channels.append({
-                            'url' : f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{c["iid"]}/command',
-                            'gateway' : gateway,
-                            'relay' : relay,
-                            'channelId' : c['iid'],
-                        })
-                        continue
-                else:
-                    for arg in c['propertiesText']['arguments']:
-                        if type(arg) == dict:
-                            if channelKeyword in arg['name'].lower() or ("description" in arg.keys() and channelKeyword in arg['description'].lower()):
-                                Logger.dbg(f'Adding channel {c["iid"]} in Relay {relay["name"]}.')
-                                channels.append({
-                                    'url' : f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{c["iid"]}/command',
-                                    'gateway' : gateway,
-                                    'relay' : relay,
-                                    'channelId' : c['iid'],
-                                })
-                                break
+    if hasattr(args, 'relay_id'):
+        relay_id = args.relay_id
+
+    if hasattr(args, 'channel_id'):
+        channel_id = args.channel_id
 
     for _gateway in gateways:
+        if len(gateway_id) > 0:
+            if _gateway["agentId"].lower() != gateway_id.lower() and _gateway["name"].lower() != gateway_id.lower():
+                continue
+
         gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
 
-        if type(gateway) != dict: 
-            continue
-
-        if 'channels' in gateway.keys():
-            channel_num = 0
-            hadGatewayId = False            
-
-            if hasattr(args, 'gateway_id') and args.gateway_id != None:
-                hadGatewayId = True
-                if (args.gateway_id == gateway['agentId'].lower()) or (args.gateway_id == gateway['name'].lower()):
-                    pass
-                else:
+        for channel in gateway['channels']:
+            if len(channel_id) > 0:
+                if channel["iid"].lower() != channel_id.lower():
                     continue
 
-            Logger.dbg(f'Checking channels bound to Gateway {gateway["name"]} / {gateway["agentId"]}')
+            name = getDeviceName(gateway, 'channels', channel['type'])
 
-            for c in gateway['channels']:
-                channel_num += 1
-                Logger.dbg(f'Iterating over channel {c["iid"]} in Gateway...')
-                if channel_id != None:
-                    if c['iid'] == channel_id:
-                        Logger.dbg(f'Adding channel {c["iid"]} in gateway {gateway["name"]}.')
-                        channels.append({
-                            'url' : f'/api/gateway/{gateway["agentId"]}/channel/{c["iid"]}/command',
-                            'gateway' : gateway,
-                            'channelId' : c['iid'],
-                        })
-                        break
-                else:
-                    for arg in c['propertiesText']['arguments']:
-                        if type(arg) == dict:
-                            if channelKeyword in arg['name'].lower() or ("description" in arg.keys() and channelKeyword in arg['description'].lower()):
-                                Logger.dbg(f'Adding channel {c["iid"]} in gateway {gateway["name"]}.')
-                                channels.append({
-                                    'url' : f'/api/gateway/{gateway["agentId"]}/channel/{c["iid"]}/command',
-                                    'gateway' : gateway,
-                                    'channelId' : c['iid'],
-                                })
-                                break
+            if name.lower() != channelName.lower():
+                continue
+
+            Logger.dbg(f'Adding channel {c["iid"]} in Relay {relay["name"]}.')
+            channels.append({
+                'url' : f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{channel["iid"]}/command',
+                'gateway' : gateway,
+                'relay' : relay,
+                'channelId' : channel['iid'],
+            })
+
+        for relay in gateway['relays']:
+            if len(relay_id) > 0:
+                if relay["agentId"].lower() != relay_id.lower() and relay["name"].lower() != relay_id.lower():
+                    continue
+
+            if 'channels' in relay.keys():
+                for channel in relay['channels']:
+                    if len(channel_id) > 0:
+                        if channel["iid"].lower() != channel_id.lower():
+                            continue
+
+                    name = getDeviceName(gateway, 'channels', channel['type'])
+
+                    if name.lower() != channelName.lower():
+                        continue
+
+                    Logger.dbg(f'Adding channel {channel["iid"]} in Relay {relay["name"]}.')
+                    channels.append({
+                        'url' : f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{channel["iid"]}/command',
+                        'gateway' : gateway,
+                        'relay' : relay,
+                        'channelId' : channel['iid'],
+                    })
+
     return channels
 
 def shell(cmd, alternative = False, stdErrToStdout = False, surpressStderr = False):
@@ -1090,11 +1076,10 @@ def getValueOrRandom(val, N = 6):
 def closeRelay(gateway, relay):
     gateway = getRequest(f'/api/gateway/{gateway["agentId"]}')
     relayMeta = getRequest(f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}')
-    capability = processCapability(gateway)
 
     print('\n[.] step 1: Closing bound Peripherals')
     for peri in relayMeta['peripherals']:
-        name = list(capability['peripherals'].keys())[list(capability['peripherals'].values()).index(peri['type'])]
+        name = getDeviceName(gateway, 'peripherals', peri['type'])
         Logger.info(f'Closing relay\'s peripheral {name} id:{peri["iid"]}')
         closePeripheral(gateway, relay, name, peri['iid'])
 
@@ -1107,7 +1092,7 @@ def closeRelay(gateway, relay):
             grcChannel = chan
             continue
 
-        chanName = list(capability['channels'].keys())[list(capability['channels'].values()).index(chan['type'])]
+        chanName = getDeviceName(gateway, 'channels', chan['type'])
         Logger.info(f'Closing relay\'s channel {chanName} id:{chan["iid"]}')
 
         chan['url'] = f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{chan["iid"]}/command'
@@ -1116,7 +1101,7 @@ def closeRelay(gateway, relay):
     if not grcChannel:
         Logger.fatal(f'Could not determine Gateway-Return Channel of the specified Relay {relay["name"]} / {relay["agentId"]}. \n    Probably its unreachable or already closed.')
 
-    closeChannel(grcChannel, list(capability['channels'].keys())[list(capability['channels'].values()).index(grcChannel['type'])])
+    closeChannel(grcChannel, getDeviceName(gateway, 'channels', grcChannel['type']))
 
     print('\n[.] step 3: closing Relay itself')
     data = {
@@ -1149,7 +1134,7 @@ def closeRelay(gateway, relay):
                         else:
                             chan['url'] = f'/api/gateway/{gateway["agentId"]}/relay/{relayNode["agentId"]}/channel/{chan["iid"]}/command'
                             
-                        closeChannel(chan, list(capability['channels'].keys())[list(capability['channels'].values()).index(chan['type'])])
+                        closeChannel(chan, getDeviceName(gateway, 'channels', chan['type']))
                         closed = True
                         break
                 if closed: break
@@ -1259,7 +1244,7 @@ def onCloseChannel(args):
         if len(args.gateway_id) > 0:
             if gateway["agentId"].lower() == args.agent_id.lower() or gateway["name"].lower() == args.agent_id.lower():
                 for channel in gateway['channels']:
-                    name = list(capability['channels'].keys())[list(capability['channels'].values()).index(channel['type'])]
+                    name = getDeviceName(gateway, 'channels', channel['type'])
                     if len(args.channel_id) == 0 or (name.lower() == args.channel_id.lower() or channel['iid'] == args.channel_id):
                         _type = 'non-negotiation'
                         if 'isReturnChannel' in channel.keys() and channel['isReturnChannel']: _type = 'grc'
@@ -1279,7 +1264,7 @@ def onCloseChannel(args):
                 continue
 
             for channel in relay['channels']:
-                name = list(capability['channels'].keys())[list(capability['channels'].values()).index(channel['type'])]
+                name = getDeviceName(gateway, 'channels', channel['type'])
                 if len(args.channel_id) == 0 or (name.lower() == args.channel_id.lower() or channel['iid'] == args.channel_id):
                     
                     _type = 'non-negotiation'
