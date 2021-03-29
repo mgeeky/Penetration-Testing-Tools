@@ -462,6 +462,8 @@ def collectRelays(args, nonFatal = False):
 
         gateway = getRequest(f'/api/gateway/{_gateway["agentId"]}')
 
+        if 'relays' not in gateway.keys() or len(gateway['relays']) == 0: continue
+
         for relay in gateway['relays']:
             if len(relay_id) > 0:
                 if relay["agentId"].lower() != relay_id.lower() and relay["name"].lower() != relay_id.lower():
@@ -511,14 +513,17 @@ def getCommandIdMapping(gateway, command):
     return capability['commandIds'][command.lower()]
 
 def onPing(args):
-    if args.keep_pinging > 0:
-        while True:
-            print(f'[.] Sending a ping every {args.keep_pinging} seconds.')
+    try:
+        if args.keep_pinging > 0:
+            while True:
+                print(f'[.] Sending a ping every {args.keep_pinging} seconds.')
+                _onPing(args)
+                time.sleep(args.keep_pinging)
+        else:
+            print('[.] Pinging only once...')
             _onPing(args)
-            time.sleep(args.keep_pinging)
-    else:
-        print('[.] Pinging only once...')
-        _onPing(args)
+    except KeyboardInterrupt as e:
+        print('[.] User stopped Pinging process.')
 
 def _onPing(args):
     relays = collectRelays(args)
@@ -871,11 +876,10 @@ def collectChannels(args, channelName):
             if name.lower() != channelName.lower():
                 continue
 
-            Logger.dbg(f'Adding channel {c["iid"]} in Relay {relay["name"]}.')
+            Logger.dbg(f'Adding channel {channel["iid"]} in Gateway {gateway["name"]}.')
             channels.append({
-                'url' : f'/api/gateway/{gateway["agentId"]}/relay/{relay["agentId"]}/channel/{channel["iid"]}/command',
+                'url' : f'/api/gateway/{gateway["agentId"]}/channel/{channel["iid"]}/command',
                 'gateway' : gateway,
-                'relay' : relay,
                 'channelId' : channel['iid'],
             })
 
