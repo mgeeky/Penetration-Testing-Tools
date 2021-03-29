@@ -52,3 +52,6 @@
 [submodule "red-teaming/CobaltSplunk"]
 	path = red-teaming/CobaltSplunk
 	url = https://github.com/mgeeky/CobaltSplunk
+[submodule "red-teaming/SharpWebServer"]
+	path = red-teaming/SharpWebServer
+	url = https://github.com/mgeeky/SharpWebServer
