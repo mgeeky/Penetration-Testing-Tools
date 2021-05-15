@@ -34,9 +34,6 @@
 [submodule "red-teaming/Stracciatella"]
 	path = red-teaming/Stracciatella
 	url = https://github.com/mgeeky/Stracciatella.git
-[submodule "red-teaming/malleable_redirector/proxy2"]
-	path = red-teaming/malleable_redirector/proxy2
-	url = https://github.com/mgeeky/proxy2.git
 [submodule "red-teaming/cobalt-arsenal"]
 	path = red-teaming/cobalt-arsenal
 	url = https://github.com/mgeeky/cobalt-arsenal.git
@@ -55,3 +52,6 @@
 [submodule "red-teaming/SharpWebServer"]
 	path = red-teaming/SharpWebServer
 	url = https://github.com/mgeeky/SharpWebServer
+[submodule "red-teaming/RedWarden"]
+	path = red-teaming/RedWarden
+	url = https://github.com/mgeeky/RedWarden

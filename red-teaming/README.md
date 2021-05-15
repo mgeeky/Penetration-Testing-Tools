@@ -294,8 +294,6 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 
 - **`macro-psh-stdin-author.vbs`** - VBS Social Engineering Macro with Powershell invocation taking arguments from Author property and feeding them to StdIn. ([gist](https://gist.github.com/mgeeky/50c4b7fa22d930a80247fea62755fbd3))
 
-- **`malleable_redirector`** - A [proxy2](https://github.com/mgeeky/proxy2) plugin for resilient, evasive C2 infrastructures covering your redirectors from AV/EDR/Sandbox/IR lurking eyes based on the CobaltStrike's Malleable C2 Profile specified. Combines advantages of classic evasion techniques such as Apache2 Mod_Rewrite/`.htaccess` and deep c2-profile-drive HTTP/HTTPS request inspection
-
 - **`markOwnedNodesInNeo4j.py`** - This script takes an input file containing Node names to be marked in Neo4j database as owned = True. The strategy for working with neo4j and Bloodhound becomes fruitful during complex Active Directory Security Review assessments or Red Teams. Imagine you've kerberoasted a number of accounts, access set of workstations or even cracked userPassword hashes. Using this script you can quickly instruct Neo4j to mark that principals as owned, which will enrich your future use of BloodHound.
 
 ```
@@ -326,6 +324,8 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
     - `-Message "Some luring sentence"` - to include some luring message
 
 - [**`PhishingPost`**](https://github.com/mgeeky/PhishingPost) - (PHP Script intdended to be used during Phishing campaigns as a credentials collector linked to backdoored HTML <form> action parameter.
+
+- **`RedWarden`** - A [proxy2](https://github.com/mgeeky/RedWarden) Cobalt Strike C2 Reverse proxy fending off Blue Teams, AVs, EDRs, scanners through packet inspection and malleable profile correlation.
 
 - [**`rogue-dot-net`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/rogue-dot-net) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs**/**InstallUtil** code execution primitives. 
 
