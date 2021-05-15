@@ -325,7 +325,7 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
 
 - [**`PhishingPost`**](https://github.com/mgeeky/PhishingPost) - (PHP Script intdended to be used during Phishing campaigns as a credentials collector linked to backdoored HTML <form> action parameter.
 
-- **`RedWarden`** - A [proxy2](https://github.com/mgeeky/RedWarden) Cobalt Strike C2 Reverse proxy fending off Blue Teams, AVs, EDRs, scanners through packet inspection and malleable profile correlation.
+- [**`RedWarden`**](https://github.com/mgeeky/RedWarden) - A Cobalt Strike C2 Reverse proxy fending off Blue Teams, AVs, EDRs, scanners through packet inspection and malleable profile correlation.
 
 - [**`rogue-dot-net`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/rogue-dot-net) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs**/**InstallUtil** code execution primitives. 
 
