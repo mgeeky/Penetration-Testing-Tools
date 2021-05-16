@@ -26,7 +26,7 @@ Takes two files on input. Tries to find every line of the second file within the
 
 - **`vm-manager.sh`** - A bash script offering several aliases/functions for quick management of a single Virtualbox VM machine. Handy to use it for example to manage a Kali box. By issuing `startkali` the VM will raise, `sshkali` - offers instant SSH into your VM, `getkali` - returns VM's IP address, `iskali` - checks whether VM is running, `stopkali` goes without explanation. [gist](https://gist.github.com/mgeeky/80b1f7addb792796d8bfb67188d72f4a)
 
-```
+```bash
 user@my-box $ startkali
 [>] Launching kali in headless
 [>] Awaiting for machine to get up...

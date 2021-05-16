@@ -3,7 +3,7 @@
 - **`CDPFlooder.py`** - CDP Flooding tool, intended to take out entire segment switched by some old Cisco switches, vulnerable to Denial of Service after receiving big amount of invalid CDP packets.
 
 The effect will be similar to:
-```
+```shell
 SW2960#show cdp traffic 
 CDP counters :
 	Total packets output: 361, Input: 11824
@@ -28,7 +28,7 @@ victim's premises or to aid Password-Spraying efforts against exposed OWA
 interface. 
 
 Sample run:
-```
+```powershell
 PS D:\> python3 .\exchangeRecon.py 10.10.10.9
 
         :: Exchange Fingerprinter
@@ -136,7 +136,7 @@ TODO:
 - Implement sniffer hunting for used protocols and their auth strings
 - Implement semi-auto mode that is first learning a network, then choosing specific attacks
 
-```
+```bash
 bash $ python RoutingAttackKit.py
 
         :: Routing Protocols Exploitation toolkit
@@ -236,7 +236,7 @@ Capturing on 'eth0'
 
     Sample output:
 
-```
+```bash
 $ ./VLANHopperDTP.py --help
 
         :: VLAN Hopping via DTP Trunk negotiation 

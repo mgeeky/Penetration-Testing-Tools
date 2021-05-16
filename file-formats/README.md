@@ -2,7 +2,7 @@
 
 - **`tamperUpx.py`** - A small utility that corrupts UPX-packed executables, making them much harder to be decompressed & restored.
 
-```
+```powershell
 c:\>py -3 tamperUpx.py foo-upx.exe foo-upx-corrupted.exe
 
     :: tamperUpx - a small utility that corrupts UPX-packed executables,

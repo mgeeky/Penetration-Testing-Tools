@@ -31,7 +31,7 @@
 
 - **`padding-oracle-tests.py`** - Padding Oracle test-cases generator utility aiding process of manual inspection of cryptosystem's responses. ([gist](https://gist.github.com/mgeeky/5dfa475af2c970197a62ad070ba5deee))
 
-```
+```python
 #   Simple utility that aids the penetration tester when manually testing Padding Oracle condition
 #   of a target cryptosystem, by generating set of test cases to fed the cryptosystem with.
 #
@@ -84,7 +84,7 @@ Using sample: "4a5451344a5459314a545a6a4a545a6a4a545a6d4a5449774a5463334a545a6d4
 
 When `DEBUG` is turned on, the output may also look like:
 
-```
+```bash
 $ ./reencode.py JTQxJTQxJTQxJTQx
 [.] Trying: URLEncoder (peeled off: 0). Current form: "JTQxJTQxJTQxJTQx"
 [.] Trying: HexEncoded (peeled off: 0). Current form: "JTQxJTQxJTQxJTQx"

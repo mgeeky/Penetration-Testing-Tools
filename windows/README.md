@@ -41,7 +41,8 @@ I've experienced following:
 Use `--verbose` for additional _field steps explanation_ output.
 
 Sample usage:
-```
+
+```powershell
 PS> python3 rdpFileUpload.py -v -f certutil README.md
 
     :: RDP file upload utility via Keyboard emulation.
