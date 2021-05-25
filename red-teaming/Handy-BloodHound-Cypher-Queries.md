@@ -37,9 +37,9 @@ MATCH (u:User {hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u
 MATCH (A:User),(B:Group),p=shortestPath((A)-[*1..]->(B)) WHERE A.hasspn=true AND B.name STARTS WITH 'DOMAIN ADMINS' RETURN p
 ```
 
-- Finds owned objects that can control other computers:
+- Pull GPOs linked to users being member of a specified group:
 ```
-MATCH (m {owned: True}), (n), p=(m)-[:CanPSRemote|ExecuteDCOM|CanRDP|SQLAdmin|AdminTo]->(n) RETURN p
+MATCH p = (:GPO)-[:GpLink]->(d)-[:Contains*1..]->(u:User)-[:MemberOf*1..]->(g:Group {name:'GROUP_NAME@CONTOSO.LOCAL'}) RETURN p
 ```
 
 - Return users that have PASSWORD_NOT_REQUIRED flag set in their UserAccountControl field (thus they have an empty password set) and are enabled
@@ -105,7 +105,66 @@ MATCH (n) WHERE n.description CONTAINS '\\\\' RETURN n.name, n.description
 RETURN shortestPath((O:{owned:True})-[*1..]->(H {highvalue: True}))
 ```
 
-- [Riccardo Ancarani's](https://github.com/RiccardoAncarani) cypher queries (src: [GPOPowerParser](https://github.com/RiccardoAncarani/GPOPowerParser)) useful for any lateral movement insights:
+- Find all users that have direct or indirect admin privileges over a computer:
+```
+MATCH (u:User)-[r:AdminTo|MemberOf*1..]->(c:Computer) RETURN u.name
+```
+
+- Returns username and number of computers where it has admin rights to for top 10 users (author: [jeffmcjunkin](https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12) ):
+```
+MATCH 
+(U:User)-[r:MemberOf|:AdminTo*1..]->(C:Computer)
+WITH
+U.name as n,
+COUNT(DISTINCT(C)) as c 
+RETURN n,c
+ORDER BY c DESC
+LIMIT 10
+```
+
+- Returns group and number of computers that group has admin rights to - for top 10 groups (author: [jeffmcjunkin](https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12) ):
+```
+MATCH 
+(G:Group)-[r:MemberOf|:AdminTo*1..]->(C:Computer)
+WITH
+G.name as n,
+COUNT(DISTINCT(C)) as c 
+RETURN n,c
+ORDER BY c DESC
+LIMIT 10
+```
+
+- Show all users that are administrators on more than one machine (author: [jeffmcjunkin](https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12) ):
+```
+MATCH 
+(U:User)-[r:MemberOf|:AdminTo*1..]->(C:Computer)
+WITH
+U.name as n,
+COUNT(DISTINCT(C)) as c 
+WHERE c>1
+RETURN n
+ORDER BY c DESC
+```
+
+- Show all users that are administrative on at least one machine, ranked by the number of machines they are admin on. (author: [jeffmcjunkin](https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12) ):
+```
+MATCH (u:User)
+WITH u
+OPTIONAL MATCH (u)-[r:AdminTo]->(c:Computer)
+WITH u,COUNT(c) as expAdmin
+OPTIONAL MATCH (u)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c:Computer)
+WHERE NOT (u)-[:AdminTo]->(c)
+WITH u,expAdmin,COUNT(DISTINCT(c)) as unrolledAdmin
+RETURN u.name,expAdmin,unrolledAdmin,expAdmin + unrolledAdmin as totalAdmin
+ORDER BY totalAdmin ASC
+```
+
+- Find all other Rights Domain Users shouldn't have (author: [jeffmcjunkin](https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12) ):
+```
+MATCH p=(m:Group)-[r:Owns|:WriteDacl|:GenericAll|:WriteOwner|:ExecuteDCOM|:GenericWrite|:AllowedToDelegate|:ForceChangePassword]->(n:Computer) WHERE m.name STARTS WITH 'DOMAIN USERS' RETURN p
+```
+
+- Riccardo Ancarani's cypher queries (src: [GPOPowerParser](https://github.com/RiccardoAncarani/GPOPowerParser)) useful for any lateral movement insights:
   - Find all the NTLM relay opportunities for computer accounts:
 ```
 MATCH (u1:Computer)-[:AdminTo]->(c1:Computer {signing: false}) RETURN u1.name, c1.name
@@ -118,3 +177,31 @@ MATCH (u:User)-[:CanRDP]->(c:Computer) WITH u,c
 OPTIONAL MATCH (u)-[:MemberOf*1..]->(g:Group)-[:CanRDP]->(c) WITH u,c
 MATCH (u)-[:CanPrivesc]->(c) RETURN u.name, c.name
 ```
+
+## CREATE Nodes and Edges
+
+- Add `HasSession` edge for user `ALICE@DOMAIN` being logged onto `COMPUTER@DOMAIN` : 
+```
+MATCH (A:Computer {name: "COMPUTER@DOMAIN"}) 
+MATCH (B:User {name: "ALICE@DOMAIN"})
+CREATE (A)-[:HasSession]->(B)
+```
+
+- Adds `HasSession` relationship on all domain controllers to Domain Admins group:
+```
+MATCH (u:Computer)-[:MemberOf*1..]->(g:Group) WHERE g.name starts with "DOMAIN CONTROLLERS" 
+MATCH (h:Group) WHERE h.name starts with "DOMAIN ADMINS" 
+CREATE (u)-[:HasSession]->(h)
+```
+
+- Adds `AdminTo` relationship from User to Computer:
+```
+MATCH (A:User {name: "ALICE@DOMAIN"})
+MATCH (B:Computer {name: "COMPUTER.DOMAIN"})
+CREATE (A)-[:AdminTo]->(B)
+```
+
+## Other sources of great Cypher Queries:
+- Hausec - https://hausec.com/2019/09/09/bloodhound-cypher-cheatsheet/
+- Jeffmcjunkin - https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12
+- seajaysec - https://gist.github.com/seajaysec/c7f0995b5a6a2d30515accde8513f77d 
