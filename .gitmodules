@@ -55,3 +55,6 @@
 [submodule "red-teaming/RedWarden"]
 	path = red-teaming/RedWarden
 	url = https://github.com/mgeeky/RedWarden
+[submodule "red-teaming/ElusiveMice"]
+	path = red-teaming/ElusiveMice
+	url = https://github.com/mgeeky/ElusiveMice

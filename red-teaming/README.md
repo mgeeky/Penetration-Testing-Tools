@@ -113,6 +113,7 @@ amsiInitFailed
 
 - **`Download-Cradles-Oneliners.md`** - Various Powershell Download Cradles purposed as one-liners ([gist](https://gist.github.com/mgeeky/3b11169ab77a7de354f4111aa2f0df38))
 
+- **`ElusiveMice`** - Cobalt Strike's User-Defined Reflective Loader with AV/EDRs evasion in mind. Utilizes AMSI, ETW and WLDP (Windows Lockdown Policy) memory patches that thwart some optics monitored by EDRs.
 
 - **`Export-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-*`, `Find-*` into _Clixml_ files. Those files (stored in an output directory as separate XML files) can later be extracted from attacked environment and loaded to a new powershell runspace using the same script. Very useful when we want to obtain as many data as possible, then exfiltrate that data, review it in our safe place and then get back to attacked domain for lateral spread. **Warning**: Be careful though, as this script launches many reconnaissance commands one by one, this WILL generate a lot of noise. Microsoft ATA for instance for sure pick you up with _"Reconnaissance using SMB session enumeration"_ after you've launched `Invoke-UserHunter`. 
 
