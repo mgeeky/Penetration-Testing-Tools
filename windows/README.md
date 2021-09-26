@@ -102,6 +102,8 @@ PS> python3 rdpFileUpload.py -v -f certutil README.md
 
 - **`Simulate-DNSTunnel.ps1`** - Performs DNS Tunnelling simulation for purpose of triggering installed Network IPS and IDS systems, generating SIEM offenses and picking up Blue Teams.
 
+- **`ThreadStackSpoofer`** - A PoC implementation for an advanced in-memory evasion technique that spoofs Thread Call Stack. This technique allows to bypass thread-based memory examination rules and better hide shellcodes while in-process memory.
+
 - **`UnhookMe`** - Dynamically unhooking imports resolver. Implementation of dynamic imports resolver that would be capable of unhooking used functions in-the-fly is yet another step towards strengthening adversary resilience efforts. 
 
 ```

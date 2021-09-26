@@ -58,3 +58,6 @@
 [submodule "red-teaming/ElusiveMice"]
 	path = red-teaming/ElusiveMice
 	url = https://github.com/mgeeky/ElusiveMice
+[submodule "windows/ThreadStackSpoofer"]
+	path = windows/ThreadStackSpoofer
+	url = https://github.com/mgeeky/ThreadStackSpoofer
