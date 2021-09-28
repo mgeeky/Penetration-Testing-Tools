@@ -25,8 +25,14 @@ The collection is divided further onto following sections:
 
 The base of these tools do not contain any customer/client related sensitive information as well as there are no engagement-specific tools developed as PoCs.
 
+---
 
-☕ If you like what I do and appreciate my hard work which always gives back to the community - [consider buying me a](https://github.com/sponsors/mgeeky) coffee _(or better a beer)_ as a way of saying thank you! 💪
+☕ Show Support
+
+If you like what I do and appreciate my hard work which always gives back to the community
+[consider buying me a](https://github.com/sponsors/mgeeky) coffee _(or better a beer)_ as a way of saying thank you! 💪
+
+---
 
 ```
 Mariusz B. / mgeeky, (@mariuszbit)
