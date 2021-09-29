@@ -61,3 +61,6 @@
 [submodule "windows/ThreadStackSpoofer"]
 	path = windows/ThreadStackSpoofer
 	url = https://github.com/mgeeky/ThreadStackSpoofer
+[submodule "windows/ShellcodeFluctuation"]
+	path = windows/ShellcodeFluctuation
+	url = https://github.com/mgeeky/ShellcodeFluctuation
