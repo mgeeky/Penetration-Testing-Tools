@@ -36,7 +36,15 @@ try:
     import dns.resolver
 
 except ImportError:
-    print('[!] You need to install dnspython: $ pip3 install dnspython')
+    print('''
+[!] You need to install dnspython: 
+        # pip3 install dnspython
+
+    If problem remains, re-install dnspython:
+        # pip3 uninstall dnspython
+        # pip3 install dnspython
+''')
+
     sys.exit(1)
 
 options = {
@@ -216,8 +224,7 @@ class SMTPHeadersAnalysis:
         'spm', 
         'atp', 
         'defend', 
-        'assassin', 
-        'rbl'
+        'assassin',
     )
 
     Headers_Known_For_Breaking_Line = (
@@ -251,6 +258,7 @@ class SMTPHeadersAnalysis:
         'X-Spam-Level',
         'X-Spam-Flag',
         'X-Spam-Report',
+        'ARC-Authentication-Results',
     )
 
     auth_result = {
@@ -832,6 +840,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['Bad Keywords In Headers']                 = self.testBadKeywords()
         self.results['From Address Analysis']                   = self.testFrom()
         self.results['Authentication-Results']                  = self.testAuthenticationResults()
+        self.results['ARC-Authentication-Results']              = self.testARCAuthenticationResults()
         self.results['Received-SPF']                            = self.testReceivedSPF()
         self.results['Mail Client Version']                     = self.testXMailer()
         self.results['X-Forefront-Antispam-Report']             = self.testForefrontAntiSpamReport()
@@ -884,28 +893,30 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     hhh = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), header, flags=re.I)
 
                     tmp += f'\t({num0:02}) {self.logger.colored("Header", "magenta")}: {hhh}\n'
-                    tmp += f'\t     Value:  {value[:80]}\n\n'
+                    tmp += f'\t     Keyword:  {dodgy}\n\n'
+                    tmp += f'\t     Value:    {value[:80]}\n\n'
                     shown.add(header)
                     break
 
                 elif dodgy in value.lower() and header not in SMTPHeadersAnalysis.Handled_Spam_Headers:
                     num0 += 1
                     hhh = header
-                    tmp += f'\t({num0:02}) Header: {hhh}\n'
+                    tmp += f'\t({num0:02}) Header:   {hhh}\n'
 
                     pos = value.lower().find(dodgy)
                     ctx = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), value, flags=re.I)
 
                     if len(ctx) > 80:
                         a = pos-40
-                        b = pos+len(dodgy)+40
+                        b = -10 + pos + len(dodgy) + 30
                         
                         if a < 0: a = 0
                         if b > len(ctx): b = len(ctx)
 
                         ctx = value[a:b]
 
-                    tmp += f'\t     {self.logger.colored("Value", "magenta")}:  {ctx}\n\n'
+                    tmp += f'\t     Keyword:  {dodgy}\n\n'
+                    tmp += f'\t       {self.logger.colored("Value", "magenta")}:  {ctx}\n\n'
                     shown.add(header)
                     break
 
@@ -1046,7 +1057,12 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             result += f'\t                       (first hop\'s domain: {self.logger.colored(firstHopDomain1, "cyan")})\n\n'
 
             if firstHopDomain1.lower() != senderDomain.lower():
-                response = dns.resolver.resolve(domain, 'TXT')
+                response = None
+                try:
+                    response = dns.resolver.resolve(domain, 'TXT')
+                except dns.resolver.NoAnswer as e:
+                    response = []
+
                 spf = False
 
                 for answer in response:
@@ -1718,6 +1734,15 @@ More information:
         (num, header, value) = self.getHeader('Authentication-Results')
         if num == -1: return []
 
+        return self._testAuthenticationResults(num, header, value)
+
+    def testARCAuthenticationResults(self):
+        (num, header, value) = self.getHeader('ARC-Authentication-Results')
+        if num == -1: return []
+
+        return self._testAuthenticationResults(num, header, value)
+
+    def _testAuthenticationResults(self, num, header, value):
         value = SMTPHeadersAnalysis.flattenLine(value)
         tests = {}
         result = ''
