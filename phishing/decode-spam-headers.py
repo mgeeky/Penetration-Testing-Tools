@@ -1115,7 +1115,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         (num, header, value) = self.getHeader('x-originating-ip')
         if num == -1: return []
 
-        result = f'- Connecting Client leaved its IP address!\n'
+        result = f'- Connecting Client leaved its IP address: '
 
         if '[' == value[0] and value[-1] == ']':
             value = value[1:-1]
@@ -1127,9 +1127,9 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             pass
 
         if len(resolved) > 0:
-            result += f'\t- X-Originating-IP: {self.logger.colored(value, "red")} (resolved: {resolved})\n'
+            result += f'{self.logger.colored(value, "red")} (resolved: {resolved})\n'
         else:
-            result += f'\t- X-Originating-IP: {self.logger.colored(value, "red")}\n'
+            result += f'{self.logger.colored(value, "red")}\n'
 
         if len(result) == 0:
             return []
