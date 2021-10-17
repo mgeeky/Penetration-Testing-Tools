@@ -24,6 +24,7 @@ import json
 import textwrap
 import socket
 import time
+import base64
 import packaging.version
 
 from dateutil import parser
@@ -867,7 +868,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
     @staticmethod
     def printable(input_str):
-        return all(ord(c) < 127 and c in string.printable for c in input_str)
+        return all(c < 127 and chr(c) in string.printable for c in input_str)
 
     @staticmethod
     def extractDomain(fqdn):
@@ -882,12 +883,14 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if num == -1: return []
 
         parts = value.split('|')
+        result = ''
+
         for p in parts:
             if p.startswith('eyJ'):
                 decoded = base64.b64decode(p)
                 if SMTPHeadersAnalysis.printable(decoded):
                     result += f'\t- Headers contained Feedback Loop object used by marketing systems to offer ISPs way to notify the sender that recipient marked that e-mail as Junk/Spam.\n'
-                    result += json.dumps(json.loads(decoded), indent=4) + '\n'
+                    result += '\n' + json.dumps(json.loads(decoded), indent=4) + '\n'
 
         if len(result) == 0:
             return []
