@@ -9,9 +9,31 @@
 # but also by the Offensive security consultants performing Phishing Awareness Trainings, before sending
 # a campaign to analyse negative constructs in their e-mails.
 #
+# The script can decode many different SPAM related headers, among the others:
+#   - Authentication-Results
+#   - X-Forefront-Antispam-Report
+#   - X-Mailer
+#   - X-Microsoft-Antispam-Mailbox-Delivery
+#   - X-Microsoft-Antispam-Message-Info
+#   - X-Microsoft-Antispam
+#   - X-MS-Exchange-Transport-EndToEndLatency
+#   - X-MS-Oob-TLC-OOBClassifiers
+#   - X-MS-Exchange-AtpMessageProperties
+#   - X-Exchange-Antispam-Report-CFA-Test
+#   - X-Microsoft-Antispam-Report-CFA-Test
+#   - X-MS-Exchange-AtpMessageProperties
+#   - X-Spam-Status
+#   - X-Spam-Level
+#   - X-Spam-Flag
+#   - X-Spam-Report
+#   - ARC-Authentication-Results
+#   - X-MSFBL
+#   - X-Ovh-Spam-Reason
+#   - X-VR-SPAMCAUSE
+#   - X-VR-SPAMSCORE
+#
 # Usage:
 #   ./decode-spam-headers [options] <smtp-headers.txt>
-#
 #
 # Mariusz B. / mgeeky, '21
 # <mb [at] binary-offensive.com>
