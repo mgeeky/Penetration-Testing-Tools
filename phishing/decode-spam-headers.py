@@ -988,44 +988,44 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         self.headers = self.collect(text)
 
-        self.results['Received - Mail Servers Flow']            = self.testReceived()
-        self.results['Extracted IP addresses']                  = self.testExtractIP()
-        self.results['Extracted Domains']                       = self.testResolveIntoIP()
-        self.results['Bad Keywords In Headers']                 = self.testBadKeywords()
-        self.results['From Address Analysis']                   = self.testFrom()
-        self.results['Authentication-Results']                  = self.testAuthenticationResults()
-        self.results['ARC-Authentication-Results']              = self.testARCAuthenticationResults()
-        self.results['Received-SPF']                            = self.testReceivedSPF()
-        self.results['Mail Client Version']                     = self.testXMailer()
-        self.results['User-Agent Version']                      = self.testUserAgent()
-        self.results['X-Forefront-Antispam-Report']             = self.testForefrontAntiSpamReport()
-        self.results['X-Microsoft-Antispam-Mailbox-Delivery']   = self.testAntispamMailboxDelivery()
-        self.results['X-Microsoft-Antispam Bulk Mail']          = self.testMicrosoftAntiSpam()
-        self.results['End-to-End Latency - Message Delivery Time'] = self.testTransportEndToEndLatency()
-        self.results['X-MS-Oob-TLC-OOBClassifiers']             = self.testTLCOObClasifiers()
-        self.results['MS Defender ATP Message Properties']      = self.testATPMessageProperties()
-        self.results['Domain Impersonation']                    = self.testDomainImpersonation()
-        self.results['X-Exchange-Antispam-Report-CFA-Test']     = self.testAntispamReportCFA()
-        self.results['Spam Diagnostics Metadata']               = self.testSpamDiagnosticMetadata()
-        self.results['SpamAssassin Spam Status']                = self.testSpamAssassinSpamStatus()
-        self.results['SpamAssassin Spam Level']                 = self.testSpamAssassinSpamLevel()
-        self.results['SpamAssassin Spam Flag']                  = self.testSpamAssassinSpamFlag()
-        self.results['SpamAssassin Spam Report']                = self.testSpamAssassinSpamReport()
-        self.results['Message Feedback Loop']                   = self.testMSFBL()
-        self.results['OVH\'s X-VR-SPAMCAUSE']                   = self.testSpamCause()
-        self.results['OVH\'s X-Ovh-Spam-Reason']                = self.testOvhSpamReason()
-        self.results['OVH\'s X-Ovh-Spam-Score']                 = self.testOvhSpamScore()
-        self.results['X-Virus-Scan']                            = self.testXVirusScan()
-        self.results['X-Spam-Checker-Version']                  = self.testXSpamCheckerVersion()
-        self.results['X-IronPort-AV']                           = self.testXIronPortAV()
-        self.results['X-Mimecast-Spam-Score']                   = self.testXMimecastSpamScore()
+        self.results['Received - Mail Servers Flow']                = self.testReceived()
+        self.results['Extracted IP addresses']                      = self.testExtractIP()
+        self.results['Extracted Domains']                           = self.testResolveIntoIP()
+        self.results['Bad Keywords In Headers']                     = self.testBadKeywords()
+        self.results['From Address Analysis']                       = self.testFrom()
+        self.results['Authentication-Results']                      = self.testAuthenticationResults()
+        self.results['ARC-Authentication-Results']                  = self.testARCAuthenticationResults()
+        self.results['Received-SPF']                                = self.testReceivedSPF()
+        self.results['Mail Client Version']                         = self.testXMailer()
+        self.results['User-Agent Version']                          = self.testUserAgent()
+        self.results['X-Forefront-Antispam-Report']                 = self.testForefrontAntiSpamReport()
+        self.results['X-Microsoft-Antispam-Mailbox-Delivery']       = self.testAntispamMailboxDelivery()
+        self.results['X-Microsoft-Antispam Bulk Mail']              = self.testMicrosoftAntiSpam()
+        self.results['X-Exchange-Antispam-Report-CFA-Test']         = self.testAntispamReportCFA()
+        self.results['Domain Impersonation']                        = self.testDomainImpersonation()
+        self.results['SpamAssassin Spam Status']                    = self.testSpamAssassinSpamStatus()
+        self.results['SpamAssassin Spam Level']                     = self.testSpamAssassinSpamLevel()
+        self.results['SpamAssassin Spam Flag']                      = self.testSpamAssassinSpamFlag()
+        self.results['SpamAssassin Spam Report']                    = self.testSpamAssassinSpamReport()
+        self.results['OVH\'s X-VR-SPAMCAUSE']                       = self.testSpamCause()
+        self.results['OVH\'s X-Ovh-Spam-Reason']                    = self.testOvhSpamReason()
+        self.results['OVH\'s X-Ovh-Spam-Score']                     = self.testOvhSpamScore()
+        self.results['X-Virus-Scan']                                = self.testXVirusScan()
+        self.results['X-Spam-Checker-Version']                      = self.testXSpamCheckerVersion()
+        self.results['X-IronPort-AV']                               = self.testXIronPortAV()
+        self.results['X-Mimecast-Spam-Score']                       = self.testXMimecastSpamScore()
+        self.results['Spam Diagnostics Metadata']                   = self.testSpamDiagnosticMetadata()
+        self.results['MS Defender ATP Message Properties']          = self.testATPMessageProperties()
+        self.results['Message Feedback Loop']                       = self.testMSFBL()
+        self.results['End-to-End Latency - Message Delivery Time']  = self.testTransportEndToEndLatency()
+        self.results['X-MS-Oob-TLC-OOBClassifiers']                 = self.testTLCOObClasifiers()
 
         if self.decode_all:
-            self.results['X-Microsoft-Antispam-Message-Info']   = self.testMicrosoftAntiSpamMessageInfo()
-            self.results['Decoded Mail-encoded header values']  = self.testDecodeEncodedHeaders()
+            self.results['X-Microsoft-Antispam-Message-Info']       = self.testMicrosoftAntiSpamMessageInfo()
+            self.results['Decoded Mail-encoded header values']      = self.testDecodeEncodedHeaders()
 
-        self.results['Other unrecognized Spam Related Headers'] = self.testSpamRelatedHeaders()
-        self.results['Other interesting headers']               = self.testInterestingHeaders()
+        self.results['Other unrecognized Spam Related Headers']     = self.testSpamRelatedHeaders()
+        self.results['Other interesting headers']                   = self.testInterestingHeaders()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -1105,8 +1105,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             'value': value,
             'analysis' : result
         }
-
-    
 
     def testSpamDiagnosticMetadata(self):
         (num, header, value) = self.getHeader('SpamDiagnosticMetadata')
@@ -1855,11 +1853,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                         tmp += '\t' + SMTPHeadersAnalysis.ForeFront_Bulk_Confidence_Levels[levels[0]] + '\n'
                         break
 
-            tmp += f'''
-    More information:
-        - https://docs.microsoft.com/en-us/microsoft-365/security/office-365-security/bulk-complaint-level-values
-
-'''
             result += tmp
 
         return {
@@ -1998,16 +1991,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         if addscl:
             result += tmpfoo
-            
-        result += f'''
-
-More information:
-    - https://docs.microsoft.com/en-us/microsoft-365/security/office-365-security/anti-spam-message-headers
-    - https://docs.microsoft.com/en-us/exchange/antispam-and-antimalware/antispam-protection/antispam-stamps
-    - https://docs.microsoft.com/en-us/microsoft-365/security/office-365-security/spam-confidence-levels
-    - https://docs.microsoft.com/en-us/exchange/monitoring/trace-an-email-message/run-a-message-trace-and-view-results
-
-'''
 
         if len(result) == 0:
             return []
