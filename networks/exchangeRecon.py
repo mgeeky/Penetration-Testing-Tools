@@ -605,7 +605,29 @@ class ExchangeRecon:
         Verstring('Exchange Server 2019 CU2', 'June 18, 2019', '15.2.397.3  15.02.0397.003'),
         Verstring('Exchange Server 2019 CU1', 'February 12, 2019', '15.2.330.5  15.02.0330.005'),
         Verstring('Exchange Server 2019 RTM', 'October 22, 2018', '15.2.221.12 15.02.0221.012'),
-        Verstring('Exchange Server 2019 Preview', 'July 24, 2018', '15.2.196.0  15.02.0196.000')
+        Verstring('Exchange Server 2019 Preview', 'July 24, 2018', '15.2.196.0  15.02.0196.000'),
+        Verstring('Exchange Server 2019 CU11', 'October 12, 2021', '15.2.986.9'),
+        Verstring('Exchange Server 2019 CU11', 'September 28, 2021', '15.2.986.5'),
+        Verstring('Exchange Server 2019 CU10', 'October 12, 2021', '15.2.922.14'),
+        Verstring('Exchange Server 2019 CU10', 'July 13, 2021', '15.2.922.13'),
+        Verstring('Exchange Server 2019 CU10', 'June 29, 2021', '15.2.922.7'),
+        Verstring('Exchange Server 2019 CU9', 'July 13, 2021', '15.2.858.15'),
+        Verstring('Exchange Server 2019 CU9', 'May 11, 2021', '15.2.858.12'),
+        Verstring('Exchange Server 2019 CU9', 'April 13, 2021', '15.2.858.10'),
+        Verstring('Exchange Server 2019 CU9', 'March 16, 2021', '15.2.858.5'),
+        Verstring('Exchange Server 2019 CU8', 'May 11, 2021', '15.2.792.15'),
+        Verstring('Exchange Server 2019 CU8', 'April 13, 2021', '15.2.792.13'),
+        Verstring('Exchange Server 2019 CU8', 'March 2, 2021', '15.2.792.10'),
+        Verstring('Exchange Server 2019 CU8', 'December 15, 2020', '15.2.792.3'),
+        Verstring('Exchange Server 2019 CU7', 'March 2, 2021', '15.2.721.13'),
+        Verstring('Exchange Server 2019 CU7', 'September 15, 2020', '15.2.721.2'),
+        Verstring('Exchange Server 2019 CU6', 'March 2, 2021', '15.2.659.12'),
+        Verstring('Exchange Server 2019 CU6', 'June 16, 2020', '15.2.659.4'),
+        Verstring('Exchange Server 2019 CU5', 'March 2, 2021', '15.2.595.8'),
+        Verstring('Exchange Server 2019 CU5', 'March 17, 2020', '15.2.595.3'),
+        Verstring('Exchange Server 2019 CU4', 'March 2, 2021', '15.2.529.13'),
+        Verstring('Exchange Server 2019 CU4', 'December 17, 2019', '15.2.529.5'),
+        Verstring('Exchange Server 2019 CU3', 'March 2, 2021', '15.2.464.15')
     )
 
     def __init__(self, hostname):
