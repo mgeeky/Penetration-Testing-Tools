@@ -1783,18 +1783,24 @@ More information:
 
         for (num, header, value) in self.headers:
             v = SMTPHeadersAnalysis.flattenLine(value)
-            if '=?us-ascii?Q?' in v:
+            m = re.search(r'\=\?[a-z0-9\-]+\?Q\?', v, re.I)
+            if m:
                 num0 += 1
 
                 value_decoded = emailheader.decode_header(value)[0][0].decode()
+
                 hhh = self.logger.colored(header, 'magenta')
                 tmp += f'\t({num0:02}) Header: {hhh}\n'
                 tmp += f'\t     Value:\n\n'
                 tmp += value_decoded + '\n\n'
 
-                tmp += f'\t     Base64 decoded Hexdump:\n\n'
-                tmp += SMTPHeadersAnalysis.hexdump(base64.b64decode(value_decoded))
-                tmp += '\n\n\n'
+                try:
+                    x = SMTPHeadersAnalysis.hexdump(base64.b64decode(value_decoded.encode()))
+                    tmp += f'\t     Base64 decoded Hexdump:\n\n'
+                    tmp += x
+                    tmp += '\n\n\n'
+                except:
+                    pass
 
                 shown.add(header)
 
