@@ -32,6 +32,10 @@
 #   - X-VR-SPAMCAUSE
 #   - X-VR-SPAMSCORE
 #   - X-Virus-Scanned
+#   - X-Spam-Checker-Version
+#   - X-IronPort-AV
+#   - X-Mimecast-Spam-Score
+#   - User-Agent
 #
 # Usage:
 #   ./decode-spam-headers [options] <smtp-headers.txt>
@@ -241,16 +245,26 @@ class SMTPHeadersAnalysis:
     )
 
     Header_Keywords_That_May_Contain_Spam_Info = (
-        'spam', 
-        'phishing', 
-        'bulk', 
-        'attack', 
-        'spm', 
-        'atp', 
-        'defend', 
-        'assassin',
-        'virus',
-        'scan'
+        'spam', 'phishing', 'bulk', 'attack', 'defend', 'assassin', 'virus', 'scan', 'mimecast', 
+        'ironport', 'forefront', '360totalsecurity', 'acronis', 'adaware', 'adsbot-google', 
+        'aegislab', 'ahnlab', 'altavista', 'anti-virus', 'antivirus', 'antiy', 'apexone', 
+        'appengine-google', 'arcabit', 'avast', 'avg', 'avira', 'baidu', 'baiduspider', 
+        'barracuda', 'bingbot', 'bitdefender', 'bitdefender', 'bluvector', 'carbon', 
+        'carbonblack', 'check point', 'checkpoint', 'clamav', 'code42', 'comodo', 'countercept', 
+        'countertack', 'crowdstrike', 'crowdstrike', 'curl', 'cybereason', 'cybereason', 
+        'cylance', 'cylance', 'cynet360', 'cyren', 'defender', 'druva', 'drweb', 'duckduckbot', 
+        'egambit', 'emsisoft', 'emsisoft', 'encase', 'endgame', 'endgame', 'ensilo', 'escan', 
+        'eset', 'exabot', 'f-secure', 'facebookexternalhit', 'falcon', 'fidelis', 'fireeye', 
+        'forcepoint', 'fortigate', 'fortil', 'fortinet', 'gdata', 'gdata', 'googlebot', 
+        'gravityzone', 'huntress', 'ia_archiver', 'ikarussecurity', 'ivanti', 'juniper', 
+        'k7antivirus', 'k7computing', 'kaspersky', 'kingsoft', 'lightcyber', 'lynx', 
+        'malwarebytes', 'mcafee', 'mj12bot', 'msnbot', 'nanoav', 'netwitness', 'paloalto', 
+        'paloaltonetworks', 'panda', 'proofpoint', 'python-urllib', 'scanner', 'scanning', 
+        'secureage', 'secureworks', 'security', 'sentinelone', 'sentinelone', 'simplepie', 
+        'slackbot-linkexpanding', 'slurp', 'sogou', 'sonicwall', 'sophos', 'superantispyware', 
+        'symantec', 'tachyon', 'tencent', 'totaldefense', 'trapmine', 'trend micro', 'trendmicro', 
+        'trusteer', 'trustlook', 'virusblokada', 'virustotal', 'virustotalcloud', 'webroot', 
+        'wget', 'yandex', 'yandexbot', 'zillya', 'zonealarm', 'zscaler', 
     )
 
     Interesting_Headers = (
@@ -258,6 +272,19 @@ class SMTPHeadersAnalysis:
         'sendgrid',
         'mailchimp',
         'x-ses',
+        'x-avas',
+        'X-Gmail-Labels',
+        'X-Originating-IP',
+        'X-vrfbldomain',
+        'mandrill',
+        'bulk',
+        'sendinblue',
+        'amazonses',
+        'mailjet',
+        'postmark',
+        'postfix',
+        'dovecot',
+        'roundcube',
     )
 
     Headers_Known_For_Breaking_Line = (
@@ -297,6 +324,9 @@ class SMTPHeadersAnalysis:
         'X-VR-SPAMSCORE',
         'X-VR-SPAMCAUSE',
         'X-Virus-Scanned',
+        'X-Spam-Checker-Version',
+        'X-IronPort-AV',
+        'X-Mimecast-Spam-Score',
     )
 
     auth_result = {
@@ -307,6 +337,86 @@ class SMTPHeadersAnalysis:
         'neutral': logger.colored('The message was signed, but the signature or signatures contained syntax errors or were not otherwise able to be processed.', 'magenta'),
         'temperror': logger.colored('The message could not be verified due to some error that is likely transient in nature, such as a temporary inability to retrieve a public key.', 'red'),
         'permerror': logger.colored('The message could not be verified due to some error that is unrecoverable, such as a required header field being absent.', 'red'), 
+    }
+
+    IronPort_AV = {
+        'i' : (
+            'Version Information',
+            (
+                'Product Version',
+                'Number of IDEs',
+                'IDE Serial   '
+            )
+        ),
+
+        'E' : (
+            'AV scanning engine',
+            ''
+        ),
+
+        'e' : (
+            'Errors',
+            {
+                "i" : 'ignored',
+                "u" : logger.colored('unscannable', 'red'),
+                "e" : 'encrypted',
+                "t" : 'timeout',
+                "f" : 'fatal',
+                "j" : 'savi-bug (ignored)',
+                "s" : 'savi-bug (unscannable)',
+                "z" : 'unknown',
+            }
+        ),
+
+        'v' : (
+            'Virus List',
+            (
+                'extension',
+                'type code list'
+            )
+        ),
+
+        'd' : (
+            'File details',
+            (
+                'extension',
+                'type code list'
+            )
+        ),
+
+        'a' : (
+            'Message actions',
+            {
+                '_map' : {
+                    'N' : 'notification',
+                    'H' : 'headers',
+                    'T' : 'time',
+                    ':' : 'action'
+                },
+
+                'action' : {
+                    "a" : 'archived ?',
+                    "s" : logger.colored('sent', 'green'),
+                    "d" : logger.colored('dropped', 'red'),
+                    "f" : 'forwarded',
+                    "x" : 'certain errors (timed-out, rpc conn fails, etc)',
+                },
+
+                'notification' : {
+                    "s" : 'sender',
+                    "r" : 'recipient',
+                    "o" : 'other',
+                },
+
+                'headers' : {
+                    "s" : 'subject modified',
+                    "h" : 'custom header modified',
+                },
+
+                'time' : {
+                },
+            }
+        )
     }
 
     Forefront_Antispam_Report = {
@@ -417,6 +527,11 @@ class SMTPHeadersAnalysis:
                 'SPM' : logger.colored('The message was marked as spam by spam filtering.', 'red'),
             }
         ),
+    }
+
+    Spam_Diagnostics_Metadata = {
+        'NSPM' : logger.colored('Not Spam', 'green'),
+        'SPAM' : logger.colored('SPAM', 'red'),
     }
 
     Anti_Spam_Rules_ReverseEngineered = {
@@ -882,30 +997,35 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['ARC-Authentication-Results']              = self.testARCAuthenticationResults()
         self.results['Received-SPF']                            = self.testReceivedSPF()
         self.results['Mail Client Version']                     = self.testXMailer()
+        self.results['User-Agent Version']                      = self.testUserAgent()
         self.results['X-Forefront-Antispam-Report']             = self.testForefrontAntiSpamReport()
         self.results['X-Microsoft-Antispam-Mailbox-Delivery']   = self.testAntispamMailboxDelivery()
         self.results['X-Microsoft-Antispam Bulk Mail']          = self.testMicrosoftAntiSpam()
-        
-        if self.decode_all:
-            self.results['X-Microsoft-Antispam-Message-Info']   = self.testMicrosoftAntiSpamMessageInfo()
-            self.results['Decoded Mail-encoded header values']  = self.testDecodeEncodedHeaders()
-
         self.results['End-to-End Latency - Message Delivery Time'] = self.testTransportEndToEndLatency()
         self.results['X-MS-Oob-TLC-OOBClassifiers']             = self.testTLCOObClasifiers()
         self.results['MS Defender ATP Message Properties']      = self.testATPMessageProperties()
         self.results['Domain Impersonation']                    = self.testDomainImpersonation()
-        self.results['Other unrecognized Spam Related Headers'] = self.testSpamRelatedHeaders()
         self.results['X-Exchange-Antispam-Report-CFA-Test']     = self.testAntispamReportCFA()
+        self.results['Spam Diagnostics Metadata']               = self.testSpamDiagnosticMetadata()
         self.results['SpamAssassin Spam Status']                = self.testSpamAssassinSpamStatus()
         self.results['SpamAssassin Spam Level']                 = self.testSpamAssassinSpamLevel()
         self.results['SpamAssassin Spam Flag']                  = self.testSpamAssassinSpamFlag()
         self.results['SpamAssassin Spam Report']                = self.testSpamAssassinSpamReport()
         self.results['Message Feedback Loop']                   = self.testMSFBL()
-        self.results['Other interesting headers']               = self.testInterestingHeaders()
         self.results['OVH\'s X-VR-SPAMCAUSE']                   = self.testSpamCause()
         self.results['OVH\'s X-Ovh-Spam-Reason']                = self.testOvhSpamReason()
         self.results['OVH\'s X-Ovh-Spam-Score']                 = self.testOvhSpamScore()
         self.results['X-Virus-Scan']                            = self.testXVirusScan()
+        self.results['X-Spam-Checker-Version']                  = self.testXSpamCheckerVersion()
+        self.results['X-IronPort-AV']                           = self.testXIronPortAV()
+        self.results['X-Mimecast-Spam-Score']                   = self.testXMimecastSpamScore()
+
+        if self.decode_all:
+            self.results['X-Microsoft-Antispam-Message-Info']   = self.testMicrosoftAntiSpamMessageInfo()
+            self.results['Decoded Mail-encoded header values']  = self.testDecodeEncodedHeaders()
+
+        self.results['Other unrecognized Spam Related Headers'] = self.testSpamRelatedHeaders()
+        self.results['Other interesting headers']               = self.testInterestingHeaders()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -976,6 +1096,142 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if num == -1: return []
 
         result = f'- Message was scanned with an Anti-Virus.'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    
+
+    def testSpamDiagnosticMetadata(self):
+        (num, header, value) = self.getHeader('SpamDiagnosticMetadata')
+        if num == -1: return []
+
+        result = f'- SpamDiagnosticMetadata: Antispam stamps in Exchange Server 2016.\n'
+
+        if value.strip() in SMTPHeadersAnalysis.Spam_Diagnostics_Metadata.keys():
+            result += f'     {value}: ' + SMTPHeadersAnalysis.Spam_Diagnostics_Metadata[value.strip()] + '\n'
+        else:
+            result += f'     {value}\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    def testXIronPortAV(self):
+        (num, header, value) = self.getHeader('X-IronPort-AV')
+        if num == -1: return []
+
+        result = f'- Cisco IronPort Anti-Virus interface.\n'
+        value = SMTPHeadersAnalysis.flattenLine(value)
+
+        parsed = {}
+        for a in value.split(';'):
+            k, v = a.split('=')
+            k = k.strip()
+            v = v.strip()
+
+            if v[0] == '"' and v[-1] == '"':
+                v = v[1:-1].replace(' ', '')
+
+            parsed[k] = v
+
+        for k, v in parsed.items():
+            result += f'\n\t- ' + SMTPHeadersAnalysis.IronPort_AV[k][0] + ':\n'
+            elem = SMTPHeadersAnalysis.IronPort_AV[k][1]
+
+            if k == 'i':
+                vs = v.split(',')
+                for i in range(len(elem)):
+                    result += f'\t\t- {elem[i]}:\t{vs[i]}\n'
+
+            elif k == 'E':
+                v0 = self.logger.colored(v, 'red')
+                result += f'\t\t- {v0}\n'
+
+            elif k == 'e':
+                vs = v.split("'")
+                err = 'error'
+                if vs[1] in elem.keys():
+                    err = elem[vs[1]]
+
+                result += f'\t\t- {err}: {vs[0]}\n'
+
+            elif k == 'v':
+                result += f'\t\t- {v}\n'
+
+            elif k == 'd':
+                result += f'\t\t- {v}\n'
+
+            elif k == 'a':
+                if ':' not in v:
+                   result += f'\t\t- {v}\n'
+                   continue
+
+                pos = 0
+                vs = v.split(':')
+
+                result += f'\t\t- {vs[0]}\n\n'
+
+                _map = SMTPHeadersAnalysis.IronPort_AV[k][1]['_map']
+                action = _map[':']
+
+                result += f'\t\t- {action} section:\n'
+
+                while pos < len(vs[1]):
+                    c = vs[1][pos]
+
+                    if c in _map.keys():
+                        action = _map[c]
+                        result += f'\n\t\t- {action} section:\n'
+                        pos += 1
+
+                        if action == 'time':
+                            ts = vs[1][pos:]
+
+                            ts2 = ''
+                            try:
+                                ts2 = datetime.utcfromtimestamp(int(ts)).strftime('%Y-%m-%d %H:%M:%S')
+                            except:
+                                pass
+
+                            result += f'\t\t\t\t{ts}, {ts2}\n'
+                            break
+
+                        continue
+
+                    if c in SMTPHeadersAnalysis.IronPort_AV[k][1][action].keys():
+                        h = SMTPHeadersAnalysis.IronPort_AV[k][1][action][c]
+                        result += f'\t\t\t- {c}: {h}\n'
+                    else:
+                        result += f'\t\t\t- {c}\n' 
+
+                    pos += 1          
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    def testXSpamCheckerVersion(self):
+        (num, header, value) = self.getHeader('X-Spam-Checker-Version')
+        if num == -1: return []
+
+        result = f'- SpamAssassin version.'
 
         if len(result) == 0:
             return []
@@ -1095,6 +1351,8 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         num0 = 0
         shown = set()
 
+        handled = [x.lower() for x in SMTPHeadersAnalysis.Handled_Spam_Headers]
+
         for num, header, value in self.headers:
             value = SMTPHeadersAnalysis.flattenLine(value)
 
@@ -1105,7 +1363,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                 if header in shown: 
                     break
 
-                if dodgy in header.lower() and header not in SMTPHeadersAnalysis.Handled_Spam_Headers:
+                if dodgy in header.lower() and header.lower() not in handled:
                     num0 += 1
                     hhh = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), header, flags=re.I)
 
@@ -1115,7 +1373,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     shown.add(header)
                     break
 
-                elif dodgy in value.lower() and header not in SMTPHeadersAnalysis.Handled_Spam_Headers:
+                elif dodgy in value.lower() and header.lower() not in handled:
                     num0 += 1
                     hhh = header
                     tmp += f'\t({num0:02}) Header:   {hhh}\n'
@@ -1166,6 +1424,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         parsed['_result'] = self.logger.colored(value.strip().split(',')[0], col)
 
         pos = len(parsed['_result'])+2
+        stop = False
 
         while pos < len(value):
             pose = value.find('=', pos)
@@ -1179,7 +1438,16 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                 pos += l
 
             if k == 'tests':
-                v = value[pose+1:].replace(' ', '').replace('\n', '').split(',')
+                v0 = value[pose+1:].replace('\t', ' ').replace('\n', ' ')
+                m = re.search(r'\s+([a-z_]+\=)', v0)
+
+                if m:
+                    pos0 = value.find(m.group(1), pose+1)
+                    v = value[pose+1:pos0].replace(' ', '').replace('\n', '').split(',')
+                    pos = pos0
+                else:
+                    v = v0.replace(' ', '').replace('\n', '').split(',')
+                    stop = True
             else:
                 sp = value.find(' ', pose)
                 if sp == -1: break
@@ -1188,7 +1456,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                 pos = sp + 1
 
             parsed[k] = v
-            if k == 'tests':
+            if stop:
                 break
 
         for k, v in parsed.items():
@@ -1922,6 +2190,33 @@ More information:
         vvv = self.logger.colored(value, 'magenta')
         result = f'- X-Mailer header was present and contained value: {vvv}\n'
         result +  '  This header typically indicates sending client\'s name (similar to User-Agent).'
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    def testUserAgent(self):
+        (num, header, value) = self.getHeader('User-Agent')
+        if num == -1: return []
+
+        vvv = self.logger.colored(value, 'magenta')
+        result = f'- User-Agent header was present and contained value: {vvv}\n'
+        result +  '  This header typically indicates sending client\'s name (similar to X-Mailer).'
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    def testXMimecastSpamScore(self):
+        (num, header, value) = self.getHeader('X-Mimecast-Spam-Score')
+        if num == -1: return []
+
+        vvv = self.logger.colored(value, 'magenta')
+        result = f'- Mimecast attached following Spam score: {vvv}\n'
 
         return {
             'header' : header,
