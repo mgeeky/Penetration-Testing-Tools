@@ -35,7 +35,7 @@
 
   Sample run:
 
-  ```
+```
   PS> py decode-spam-headers.py headers.txt
 
 ------------------------------------------
@@ -252,7 +252,7 @@ ANALYSIS:
         - WARNING! Potential Domain Impersonation!
                 - Mail's domain should resolve to:      amazonaws.com
                 - But instead first hop resolved to:    arubacloud.pl
-  ```
+```
 
 - **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
 
