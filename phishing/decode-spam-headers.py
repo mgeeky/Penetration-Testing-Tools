@@ -1871,7 +1871,8 @@ More information:
         (num, header, value) = self.getHeader('X-Mailer')
         if num == -1: return []
 
-        result = f'- X-Mailer header was present and contained value: "{value}".\n'
+        vvv = self.logger.colored(value, 'magenta')
+        result = f'- X-Mailer header was present and contained value: {vvv}\n'
         result +  '  This header typically indicates sending client\'s name (similar to User-Agent).'
 
         return {
