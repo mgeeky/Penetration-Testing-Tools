@@ -77,8 +77,8 @@ ANALYSIS:
 
           --> (1) "attacker" <attacker@attacker.com>
 
-              |_> (2) ec2-11-22-33-44.eu-west-3.compute.amazonaws.com. (11.22.33.44)
-                      time: 01 Jan 2021 12:34:18
+               |_> (2) SMTP-SERVICE (44.55.66.77)
+                      time: 01 Jan 2021 12:34:20
 
                   |_> (3) mail-wr1-f51.google.com (209.85.221.51)
                           time: 01 Jan 2021 12:34:20
