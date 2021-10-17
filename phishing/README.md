@@ -32,6 +32,7 @@
   - `ARC-Authentication-Results`
   - `X-MSFBL`
   - `X-Ovh-Spam-Reason`
+  - `X-VR-SPAMCAUSE`
   - `X-VR-SPAMSCORE`
   - and more...
 

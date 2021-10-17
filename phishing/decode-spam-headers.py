@@ -270,6 +270,7 @@ class SMTPHeadersAnalysis:
         'X-MSFBL',
         'X-Ovh-Spam-Reason',
         'X-VR-SPAMSCORE',
+        'X-VR-SPAMCAUSE',
     )
 
     auth_result = {
