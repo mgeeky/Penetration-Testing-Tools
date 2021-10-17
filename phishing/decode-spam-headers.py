@@ -266,6 +266,7 @@ class SMTPHeadersAnalysis:
         'symantec', 'tachyon', 'tencent', 'totaldefense', 'trapmine', 'trend micro', 'trendmicro', 
         'trusteer', 'trustlook', 'virusblokada', 'virustotal', 'virustotalcloud', 'webroot', 
         'wget', 'yandex', 'yandexbot', 'zillya', 'zonealarm', 'zscaler', 
+        'dlp-',
     )
 
     Interesting_Headers = (
@@ -287,6 +288,7 @@ class SMTPHeadersAnalysis:
         'dovecot',
         'roundcube',
         '-IP',
+        'check',
     )
 
     Headers_Known_For_Breaking_Line = (
@@ -1154,12 +1156,16 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         m1 = re.search(r'\=\?[a-z0-9\-]+\?Q\?', v1, re.I)
         if m1:
-            v1d = emailheader.decode_header(v1)[0][0].decode()
+            v1d = emailheader.decode_header(value)[0][0]
+            if type(v1d) == bytes:
+                v1d = v1d.decode()
             v1 = v1d
 
         m2 = re.search(r'\=\?[a-z0-9\-]+\?Q\?', v2, re.I)
         if m2:
-            v2d = emailheader.decode_header(v2)[0][0].decode()
+            v2d = emailheader.decode_header(value)[0][0]
+            if type(v2d) == bytes:
+                v2d = v2d.decode()
             v2 = v2d
 
         result += f'\t- Subject:      {self.logger.colored(v1, "green")}\n'
@@ -1433,7 +1439,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     num0 += 1
                     hhh = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), header, flags=re.I)
 
-                    tmp += f'\t({num0:02}) {self.logger.colored("Header", "magenta")}: {hhh}\n'
+                    tmp += f'\t({num0:02}) {self.logger.colored("Header", "magenta")}:   {hhh}\n'
                     tmp += f'\t     Keyword:  {dodgy}\n'
                     tmp += f'\t     Value:    {value[:120]}\n\n'
                     shown.add(header)
@@ -2106,7 +2112,9 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             if m:
                 num0 += 1
 
-                value_decoded = emailheader.decode_header(value)[0][0].decode()
+                value_decoded = emailheader.decode_header(value)[0][0]
+                if type(value_decoded) == bytes:
+                    value_decoded = value_decoded.decode()
 
                 hhh = self.logger.colored(header, 'magenta')
                 tmp += f'\t({num0:02}) Header: {hhh}\n'
@@ -2140,10 +2148,14 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         (num, header, value) = self.getHeader('X-Microsoft-Antispam-Message-Info')
         if num == -1: return []
 
-        value = emailheader.decode_header(value)[0][0].decode()
+        value = emailheader.decode_header(value)[0][0]
+        if type(value) == bytes:
+            value = value.decode()
+
         result = '- Base64 encoded & encrypted Antispam Message Info:\n\n'
         result += value
 
+        tmp = ''
         tmp += f'\n\n\t- Base64 decoded Hexdump:\n\n'
         tmp += SMTPHeadersAnalysis.hexdump(base64.b64decode(value))
         tmp += '\n\n\n'
@@ -2342,18 +2354,32 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         }
 
     def testAuthenticationResults(self):
-        (num, header, value) = self.getHeader('Authentication-Results')
-        if num == -1: return []
-
-        return self._testAuthenticationResults(num, header, value)
+        return self._testAuthenticationResults('Authentication-Results')
 
     def testARCAuthenticationResults(self):
-        (num, header, value) = self.getHeader('ARC-Authentication-Results')
-        if num == -1: return []
+        return self._testAuthenticationResults('ARC-Authentication-Results')
 
-        return self._testAuthenticationResults(num, header, value)
+    def _testAuthenticationResults(self, targetHeader):
+        headersCounted = 0
+        headersCountedAll = 0
 
-    def _testAuthenticationResults(self, num, header, value):
+        for (num, header, value) in self.headers:
+            if header.lower() == targetHeader.lower():
+                headersCountedAll += 1
+
+        for (num, header, value) in self.headers:
+            if header.lower() == targetHeader.lower():
+                headersCounted += 1
+                out = self._testAuthenticationResultsWorker(num, header, value)
+                if out != []:
+                    analysis = out['analysis']
+                    result = f'- There were {self.logger.colored(headersCountedAll, "magenta")} headers named {self.logger.colored(targetHeader, "magenta")}. The {headersCounted}. one is considered problematic:\n'
+                    out['analysis'] = result + '\n' + analysis
+                    return out
+
+        return []
+
+    def _testAuthenticationResultsWorker(self, num, header, value):
         value = SMTPHeadersAnalysis.flattenLine(value)
         tests = {}
         result = ''
@@ -2369,7 +2395,10 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                 expected.append('bestguesspass')
 
             if k in tests.keys() and tests[k] not in expected:
-                result += self.logger.colored(f'- {k.upper()} test failed:', 'red') + ' Should be "pass", but was: "' + tests[k] + '"\n'
+                p =  self.logger.colored('pass', 'green')
+                p2 = self.logger.colored(tests[k], 'red')
+
+                result += self.logger.colored(f'- {k.upper()} test failed:', 'red') + f' Should be "{p}", but was: "' + p2 + '"\n'
 
                 if tests[k] in SMTPHeadersAnalysis.auth_result.keys():
                     result += '\t- Meaning: ' + SMTPHeadersAnalysis.auth_result[tests[k]] + '\n\n'
