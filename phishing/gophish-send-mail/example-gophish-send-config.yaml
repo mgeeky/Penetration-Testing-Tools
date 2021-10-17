@@ -1,0 +1,8 @@
+gophish_addr: https://127.0.0.1:3100
+token: 1b07b71b0ba50...API_KEY...efe720a1ab79
+
+file: test.html
+template_name: existing-template-name
+
+sender: sender@attacker.com
+recipient: recipient@contoso.com

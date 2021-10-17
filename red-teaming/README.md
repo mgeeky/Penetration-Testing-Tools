@@ -72,8 +72,6 @@ IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s, [IO.Com
 
 - **`Create-Lnk.ps1`** - Uttertly simple script to create LNK files. Handy when one needs to create some dodgy shortcuts acting as yet another stage in code execution step.
 
-- **`delete-warning-div-macro.vbs`** - VBA Macro function to be used as a Social Engineering trick removing "Enable Content" warning message as the topmost floating text box with given name. ([gist](https://gist.github.com/mgeeky/9cb6acdec31c8a70cc037c84c77a359c))
-
 - **`Disable-Amsi.ps1`** - Tries to evade AMSI by leveraging couple of publicly documented techniqus, but in an approach to avoid signatured or otherwise considered harmful keywords. 
 
 Using a hash-lookup approach when determining prohibited symbol names, we are able to avoid relying on blacklisted values and having them hardcoded within the script. This implementation iterates over all of the assemblies, their exposed types, methods and fields in order to find those that are required but by their computed hash-value rather than direct name. Since hash-value computation algorithm was open-sources and is simple to manipulate, the attacker becomes able to customize hash-lookup scheme the way he likes.
@@ -289,12 +287,6 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 
 - **`Invoke-Command-Cred-Example.ps1`** - Example of using PSRemoting with credentials passed directly from command line. ([gist](https://gist.github.com/mgeeky/de4ecf952ddce774d241b85cfbf97faf))
 
-- **`MacroDetectSandbox.vbs`** - Visual Basic script responsible for detecting Sandbox environments, as presented in modern Trojan Droppers implemented in Macros. ([gist](https://gist.github.com/mgeeky/61e4dfe305ab719e9874ca442779a91d))
-
-- **`Macro-Less-Cheatsheet.md`** - Macro-Less Code Execution in MS Office via DDE (Dynamic Data Exchange) techniques Cheat-Sheet ([gist](https://gist.github.com/mgeeky/981213b4c73093706fc2446deaa5f0c5))
-
-- **`macro-psh-stdin-author.vbs`** - VBS Social Engineering Macro with Powershell invocation taking arguments from Author property and feeding them to StdIn. ([gist](https://gist.github.com/mgeeky/50c4b7fa22d930a80247fea62755fbd3))
-
 - **`markOwnedNodesInNeo4j.py`** - This script takes an input file containing Node names to be marked in Neo4j database as owned = True. The strategy for working with neo4j and Bloodhound becomes fruitful during complex Active Directory Security Review assessments or Red Teams. Imagine you've kerberoasted a number of accounts, access set of workstations or even cracked userPassword hashes. Using this script you can quickly instruct Neo4j to mark that principals as owned, which will enrich your future use of BloodHound.
 
 ```bash
@@ -318,20 +310,9 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
 
 - **`muti-stage-1.md`** - Multi-Stage Penetration-Testing / Red Teaming Malicious Word document creation process. ([gist](https://gist.github.com/mgeeky/6097ea56e0f541aa7d98161e2aa76dfb))
 
-- **`Phish-Creds.ps1`** - Powershell oneline Credentials Phisher - to be used in malicious Word Macros/VBA/HTA or other RCE commands on seized machine. ([gist](https://gist.github.com/mgeeky/a404d7f23c85954650d686bb3f02abaf))
-
-    One can additionally add, right after `Get-Credential` following parameters that could improve pretext's quality during social engineering attempt:
-    - `-Credential domain\username` - when we know our victim's domain and/or username - we can supply this info to the dialog
-    - `-Message "Some luring sentence"` - to include some luring message
-
-- [**`PhishingPost`**](https://github.com/mgeeky/PhishingPost) - (PHP Script intdended to be used during Phishing campaigns as a credentials collector linked to backdoored HTML <form> action parameter.
-
 - [**`RedWarden`**](https://github.com/mgeeky/RedWarden) - A Cobalt Strike C2 Reverse proxy fending off Blue Teams, AVs, EDRs, scanners through packet inspection and malleable profile correlation.
 
 - [**`rogue-dot-net`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/rogue-dot-net) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs**/**InstallUtil** code execution primitives. 
-
-- [**`RobustPentestMacro`**](https://github.com/mgeeky/RobustPentestMacro) - This is a rich-featured Visual Basic macro code for use during Penetration Testing assignments, implementing various advanced post-exploitation techniques.
-
 
 - **`Save-ReconData.ps1`** - Powershell script leveraging [PowerSploit Recon](https://github.com/PowerShellMafia/PowerSploit) module (PowerView) to save output from Reconnaissance cmdlets like `Get-*`, `Find-*` into _Clixml_ files. It differs from `Export-ReconData.ps1` in that it supports only older PowerView version from before 12 dec 2016. 
     Exposed functions:
@@ -446,14 +427,3 @@ mimikatz(powershell) # ;
 
 - **`SubstitutePageMacro.vbs`** - This is a template for the Malicious Macros that would like to substitute primary contents of the document (like luring/fake warnings to "Enable Content") and replace document's contents with what is inside of an AutoText named `RealDoc` (configured via variable `autoTextTemplateName` ). ([gist](https://gist.github.com/mgeeky/3c705560c5041ab20c62f41e917616e6))
 
-- **`warnings\EN-Word.docx`** and **`warnings\EN-Excel.docx`**  - Set of ready-to-use Microsoft Office Word shapes that can be pasted / inserted into malicious documents for enticing user into clicking "Enable Editing" and "Enable Content" buttons.
-
-- **`WMIPersistence.vbs`** - Visual Basic Script implementing WMI Persistence method (as implemented in SEADADDY malware and further documented by Matt Graeber) to make the Macro code schedule malware startup after roughly 3 minutes since system gets up. ([gist](https://gist.github.com/mgeeky/d00ba855d2af73fd8d7446df0f64c25a))
-
-- **`Various-Macro-Based-RCEs.md`** - Various Visual Basic Macros-based Remote Code Execution techniques to get your meterpreter invoked on the infected machine. ([gist](https://gist.github.com/mgeeky/61e4dfe305ab719e9874ca442779a91d))
-
-- **`vba-macro-mac-persistence.vbs`** - (WIP) Working on VBA-based MacPersistance functionality for MS Office for Mac Macros. ([gist](https://gist.github.com/mgeeky/dd184e7f50dfab5ac97b4855f23952bc))
-
-- **`vba-windows-persistence.vbs`** - VBA Script implementing two windows persistence methods - via WMI EventFilter object and via simple Registry Run. ([gist](https://gist.github.com/mgeeky/07ffbd9dbb64c80afe05fb45a0f66f81))
-
-- [**`VisualBasicObfuscator`**](https://github.com/mgeeky/VisualBasicObfuscator) - Visual Basic Code universal Obfuscator intended to be used during penetration testing assignments.
