@@ -31,6 +31,7 @@
 #   - X-Ovh-Spam-Reason
 #   - X-VR-SPAMCAUSE
 #   - X-VR-SPAMSCORE
+#   - X-Virus-Scanned
 #
 # Usage:
 #   ./decode-spam-headers [options] <smtp-headers.txt>
@@ -248,6 +249,8 @@ class SMTPHeadersAnalysis:
         'atp', 
         'defend', 
         'assassin',
+        'virus',
+        'scan'
     )
 
     Interesting_Headers = (
@@ -293,6 +296,7 @@ class SMTPHeadersAnalysis:
         'X-Ovh-Spam-Reason',
         'X-VR-SPAMSCORE',
         'X-VR-SPAMCAUSE',
+        'X-Virus-Scanned',
     )
 
     auth_result = {
@@ -901,6 +905,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['OVH\'s X-VR-SPAMCAUSE']                   = self.testSpamCause()
         self.results['OVH\'s X-Ovh-Spam-Reason']                = self.testOvhSpamReason()
         self.results['OVH\'s X-Ovh-Spam-Score']                 = self.testOvhSpamScore()
+        self.results['X-Virus-Scan']                            = self.testXVirusScan()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -965,6 +970,21 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
             lines.append(line)
         return '\n'.join(lines)
+
+    def testXVirusScan(self):
+        (num, header, value) = self.getHeader('X-Virus-Scanned')
+        if num == -1: return []
+
+        result = f'- Message was scanned with an Anti-Virus.'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
 
     def testOvhSpamScore(self):
         (num, header, value) = self.getHeader('X-VR-SPAMSCORE')

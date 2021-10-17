@@ -34,6 +34,7 @@
   - `X-Ovh-Spam-Reason`
   - `X-VR-SPAMCAUSE`
   - `X-VR-SPAMSCORE`
+  - `X-Virus-Scanned`
   - and more...
 
   Most of these headers are not fully documented, therefore the script is unable to pinpoint all the details, but at least it collects all I could find on them.
