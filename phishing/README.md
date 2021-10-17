@@ -33,6 +33,31 @@
 
   Most of these headers are not fully documented, therefore the script is unable to pinpoint all the details, but at least it collects all I could find on them.
 
+  Help:
+
+```
+PS> py .\decode-spam-headers.py --help
+usage: decode-spam-headers.py [options] <file>
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required arguments:
+  infile                Input file to be analysed
+
+Options:
+  -o OUTFILE, --outfile OUTFILE
+                        Output file with report
+  -f {json,text}, --format {json,text}
+                        Analysis report format. JSON, text. Default: text
+  -N, --nocolor         Dont use colors in text output.
+  -v, --verbose         Verbose mode.
+  -d, --debug           Debug mode.
+
+Tests:
+  -r, --resolve         Resolve IPv4 addresses / Domain names.
+```
+
   Sample run:
 
 ```

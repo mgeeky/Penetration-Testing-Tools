@@ -1853,7 +1853,7 @@ def opts(argv):
     global logger
 
     o = argparse.ArgumentParser(
-        usage = 'analyse-smtp-headers.py [options] <file>'
+        usage = 'decode-spam-headers.py [options] <file>'
     )
     
     req = o.add_argument_group('Required arguments')
