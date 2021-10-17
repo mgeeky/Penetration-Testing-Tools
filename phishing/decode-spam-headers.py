@@ -36,6 +36,7 @@
 #   - X-IronPort-AV
 #   - X-Mimecast-Spam-Score
 #   - User-Agent
+#   - X-Originating-IP
 #
 # Usage:
 #   ./decode-spam-headers [options] <smtp-headers.txt>
@@ -285,6 +286,7 @@ class SMTPHeadersAnalysis:
         'postfix',
         'dovecot',
         'roundcube',
+        '-IP',
     )
 
     Headers_Known_For_Breaking_Line = (
@@ -327,6 +329,7 @@ class SMTPHeadersAnalysis:
         'X-Spam-Checker-Version',
         'X-IronPort-AV',
         'X-Mimecast-Spam-Score',
+        'X-Originating-IP',
     )
 
     auth_result = {
@@ -993,10 +996,12 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['Extracted Domains']                           = self.testResolveIntoIP()
         self.results['Bad Keywords In Headers']                     = self.testBadKeywords()
         self.results['From Address Analysis']                       = self.testFrom()
+        self.results['Subject and Thread Topic Difference']         = self.testSubjecThreadTopic()
         self.results['Authentication-Results']                      = self.testAuthenticationResults()
         self.results['ARC-Authentication-Results']                  = self.testARCAuthenticationResults()
         self.results['Received-SPF']                                = self.testReceivedSPF()
         self.results['Mail Client Version']                         = self.testXMailer()
+        self.results['X-Originating-IP']                            = self.testXOriginatingIP()
         self.results['User-Agent Version']                          = self.testUserAgent()
         self.results['X-Forefront-Antispam-Report']                 = self.testForefrontAntiSpamReport()
         self.results['X-Microsoft-Antispam-Mailbox-Delivery']       = self.testAntispamMailboxDelivery()
@@ -1103,6 +1108,69 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         return {
             'header' : header,
             'value': value,
+            'analysis' : result
+        }
+
+    def testXOriginatingIP(self):
+        (num, header, value) = self.getHeader('x-originating-ip')
+        if num == -1: return []
+
+        result = f'- Connecting Client leaved its IP address!\n'
+
+        if '[' == value[0] and value[-1] == ']':
+            value = value[1:-1]
+
+        resolved = ''
+        try:
+            resolved = socket.gethostbyaddr(value)
+        except Exception as e:
+            pass
+
+        if len(resolved) > 0:
+            result += f'\t- X-Originating-IP: {self.logger.colored(value, "red")} (resolved: {resolved})\n'
+        else:
+            result += f'\t- X-Originating-IP: {self.logger.colored(value, "red")}\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    def testSubjecThreadTopic(self):
+        (num1, header1, value1) = self.getHeader('Subject')
+        (num2, header2, value2) = self.getHeader('Thread-Topic')
+        if num1 == -1 or num2 == -1: return []
+
+        if value1.lower().strip() == value2.lower().strip(): return []
+
+        result = f'- Subject and Thread-Topic headers differ! Possibly {self.logger.colored("target changed Subject","red")} to reflect External E-mail!\n'
+
+        v1 = value1
+        v2 = value2
+
+        m1 = re.search(r'\=\?[a-z0-9\-]+\?Q\?', v1, re.I)
+        if m1:
+            v1d = emailheader.decode_header(v1)[0][0].decode()
+            v1 = v1d
+
+        m2 = re.search(r'\=\?[a-z0-9\-]+\?Q\?', v2, re.I)
+        if m2:
+            v2d = emailheader.decode_header(v2)[0][0].decode()
+            v2 = v2d
+
+        result += f'\t- Subject:      {self.logger.colored(v1, "green")}\n'
+        result += f'\t- Thread-Topic: {self.logger.colored(v2, "magenta")}\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : f'{header1}, {header2}',
+            'value': f'\n{header1}:\n\t{value1}\n\n    {header2}:\n\t{value2}',
             'analysis' : result
         }
 

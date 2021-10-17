@@ -39,6 +39,7 @@
   - `X-IronPort-AV`
   - `X-Mimecast-Spam-Score`
   - `User-Agent`
+  - `X-Originating-IP`
   - and more...
 
   Most of these headers are not fully documented, therefore the script is unable to pinpoint all the details, but at least it collects all I could find on them.
