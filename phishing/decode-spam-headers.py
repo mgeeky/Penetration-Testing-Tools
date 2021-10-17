@@ -228,6 +228,13 @@ class SMTPHeadersAnalysis:
         'assassin',
     )
 
+    Interesting_Headers = (
+        'mailgun',
+        'sendgrid',
+        'mailchimp',
+        'x-ses',
+    )
+
     Headers_Known_For_Breaking_Line = (
         'Received',
         'Authentication-Results',
@@ -260,6 +267,7 @@ class SMTPHeadersAnalysis:
         'X-Spam-Flag',
         'X-Spam-Report',
         'ARC-Authentication-Results',
+        'X-MSFBL',
     )
 
     auth_result = {
@@ -859,6 +867,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['SpamAssassin Spam Flag']                  = self.testSpamAssassinSpamFlag()
         self.results['SpamAssassin Spam Report']                = self.testSpamAssassinSpamReport()
         self.results['Message Feedback Loop']                   = self.testMSFBL()
+        self.results['Other interesting headers']               = self.testInterestingHeaders()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -901,7 +910,19 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             'analysis' : result
         }
 
+    def testInterestingHeaders(self):
+        return self._testListRelatedHeaders(
+            'Other Interesting SMTP headers that were not processed', 
+            SMTPHeadersAnalysis.Interesting_Headers
+        )
+
     def testSpamRelatedHeaders(self):
+        return self._testListRelatedHeaders(
+            'Other Spam related SMTP headers that were not processed', 
+            SMTPHeadersAnalysis.Header_Keywords_That_May_Contain_Spam_Info
+        )
+
+    def _testListRelatedHeaders(self, msg, listOfValues):
         result = ''
         tmp = ''
         num0 = 0
@@ -913,7 +934,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             if header in shown: 
                 continue
 
-            for dodgy in SMTPHeadersAnalysis.Header_Keywords_That_May_Contain_Spam_Info:
+            for dodgy in listOfValues:
                 if header in shown: 
                     break
 
@@ -922,8 +943,8 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     hhh = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), header, flags=re.I)
 
                     tmp += f'\t({num0:02}) {self.logger.colored("Header", "magenta")}: {hhh}\n'
-                    tmp += f'\t     Keyword:  {dodgy}\n\n'
-                    tmp += f'\t     Value:    {value[:80]}\n\n'
+                    tmp += f'\t     Keyword:  {dodgy}\n'
+                    tmp += f'\t     Value:    {value[:120]}\n\n'
                     shown.add(header)
                     break
 
@@ -935,7 +956,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     pos = value.lower().find(dodgy)
                     ctx = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), value, flags=re.I)
 
-                    if len(ctx) > 80:
+                    if len(ctx) > 120:
                         a = pos-40
                         b = -10 + pos + len(dodgy) + 30
                         
@@ -944,13 +965,13 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
                         ctx = value[a:b]
 
-                    tmp += f'\t     Keyword:  {dodgy}\n\n'
+                    tmp += f'\t     Keyword:  {dodgy}\n'
                     tmp += f'\t       {self.logger.colored("Value", "magenta")}:  {ctx}\n\n'
                     shown.add(header)
                     break
 
         if len(tmp) > 0:
-            result = '- Other Spam related SMTP headers that were not processed:\n\n'
+            result = f'- {msg}:\n\n'
             result += tmp + '\n'
 
         if len(result) == 0:
