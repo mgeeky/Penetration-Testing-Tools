@@ -268,6 +268,8 @@ class SMTPHeadersAnalysis:
         'X-Spam-Report',
         'ARC-Authentication-Results',
         'X-MSFBL',
+        'X-Ovh-Spam-Reason',
+        'X-VR-SPAMSCORE',
     )
 
     auth_result = {
@@ -869,6 +871,8 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['Message Feedback Loop']                   = self.testMSFBL()
         self.results['Other interesting headers']               = self.testInterestingHeaders()
         self.results['OVH\'s X-VR-SPAMCAUSE']                   = self.testSpamCause()
+        self.results['OVH\'s X-Ovh-Spam-Reason']                = self.testOvhSpamReason()
+        self.results['OVH\'s X-Ovh-Spam-Score']                 = self.testOvhSpamScore()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -878,7 +882,8 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
     @staticmethod
     def printable(input_str):
-        return all(c < 127 and chr(c) in string.printable for c in input_str)
+        istr = str(input_str)
+        return all(ord(c) < 127 and c in string.printable for c in istr)
 
     @staticmethod
     def extractDomain(fqdn):
@@ -904,6 +909,46 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                 break
         return chr(sum(ord(c) for c in pair) - key - offset)
 
+    def testOvhSpamScore(self):
+        (num, header, value) = self.getHeader('X-VR-SPAMSCORE')
+        if num == -1: return []
+
+        result = f'- OVH considered this message as SPAM and attached following Spam '
+        value = SMTPHeadersAnalysis.flattenLine(value).replace(' ', '').replace('\t', '')
+        result += f'Score: {self.logger.colored(value.strip(), "red")}\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
+    def testOvhSpamReason(self):
+        (num, header, value) = self.getHeader('X-Ovh-Spam-Reason')
+        if num == -1: return []
+
+        result = self.logger.colored(f'- OVH considered this message as SPAM', 'red') + ' and attached following information:\n'
+        value = SMTPHeadersAnalysis.flattenLine(value).replace(' ', '').replace('\t', '')
+        tmp = ''
+
+        for part in value.split(';'):
+            part = part.strip()
+            tmp += f'\t- {part}\n'
+
+        result += tmp + '\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
+
     def testSpamCause(self):
         (num, header, value) = self.getHeader('X-VR-SPAMCAUSE')
         if num == -1: return []
@@ -912,7 +957,16 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         value = SMTPHeadersAnalysis.flattenLine(value).replace(' ', '').replace('\t', '')
 
         decoded = SMTPHeadersAnalysis.decodeSpamcause(value)
-        result = decoded
+
+        if SMTPHeadersAnalysis.printable(decoded):
+            result += f'- SPAMCAUSE contains encoded information about spam reasons:\n'
+            tmp = ''
+
+            for part in decoded.split(';'):
+                part = part.strip()
+                tmp += f'\t- {part}\n'
+
+            result += tmp + '\n'
 
         if len(result) == 0:
             return []
