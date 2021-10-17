@@ -123,13 +123,15 @@ HEADER:
     X-Forefront-Antispam-Report
 
 VALUE:
-    CIP:209.85.221.51;CTRY:US;LANG:de;SCL:5;SRV:;IPV:NLI;SFV:SPM;H:mail-wr1-f51.google.com;PTR:mail-wr1
-    -f51.google.com;CAT:SPM;SFS:(4636009)(6916009)(1096003)(6666004)(4744005)(19625305002)(58800400
-    005)(166002)(336012)(356005)(55446002)(5660300002)(956004)(121216002)(7596003)(7636003)(9686003
-    )(86362001)(224303003)(26005)(35100500006)(43540500002);DIR:INB;
+    CIP:209.85.167.100;CTRY:US;LANG:de;SCL:5;SRV:;IPV:NLI;SFV:SPM;H:mail-lf1-f100.google.com;PTR:mail-l
+    f1-f100.google.com;CAT:DIMP;SFTY:9.19;SFS:(4636009)(956004)(166002)(6916009)(356005)(336012)(19
+    625305002)(22186003)(5660300002)(4744005)(6666004)(35100500006)(82960400001)(26005)(7596003)(7636003)(554460
+    02)(224303003)(1096003)(58800400005)(86362001)(9686003)(43540500002);DIR:INB;SFTY:9.19;
 
 ANALYSIS:
-    - CIP: Connecting IP address: 209.85.221.51
+    - Microsoft Office365/Exchange ForeFront Anti-Spam report
+
+        - CIP: Connecting IP address: 209.85.167.100
 
         - CTRY: The source country as determined by the connecting IP address
                 - US
@@ -144,27 +146,30 @@ ANALYSIS:
                 - SPM: The message was marked as spam by spam filtering.
 
         - H: The HELO or EHLO string of the connecting email server.
-                - mail-wr1-f51.google.com
+                - mail-lf1-f100.google.com
 
         - PTR: Reverse DNS of the Connecting IP peer's address
-                - mail-wr1-f51.google.com
+                - mail-lf1-f100.google.com
 
         - CAT: The category of protection policy
-                - SPM: Spam
+                - DIMP: Domain Impersonation
+
+        - SFTY: The message was identified as phishing
+                - 9.19: Domain impersonation. The sending domain is attempting to impersonate a protected domain
 
         - DIR: Direction of email verification
                 - INB: Inbound email verification
 
-        - Message matched 23 Anti-Spam rules:
+        - Message matched 24 Anti-Spam rules (SFS):
                 - (1096003)
-                - (121216002)
                 - (166002)
                 - (19625305002)
+                - (22186003)
                 - (224303003)
                 - (26005)
                 - (336012)
-                - (35100500006)         - (SPAM) Message contained embedded image.
                 - (356005)
+                - (35100500006)         - (SPAM) Message contained embedded image.
                 - (43540500002)
                 - (4636009)
                 - (4744005)
@@ -175,6 +180,7 @@ ANALYSIS:
                 - (6916009)
                 - (7596003)
                 - (7636003)
+                - (82960400001)
                 - (86362001)
                 - (956004)
                 - (9686003)
