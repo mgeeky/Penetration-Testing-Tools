@@ -857,6 +857,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['SpamAssassin Spam Level']                 = self.testSpamAssassinSpamLevel()
         self.results['SpamAssassin Spam Flag']                  = self.testSpamAssassinSpamFlag()
         self.results['SpamAssassin Spam Report']                = self.testSpamAssassinSpamReport()
+        self.results['Message Feedback Loop']                   = self.testMSFBL()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -865,12 +866,37 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         return ' '.join([x.strip() for x in value.split('\n')])
 
     @staticmethod
+    def printable(input_str):
+        return all(ord(c) < 127 and c in string.printable for c in input_str)
+
+    @staticmethod
     def extractDomain(fqdn):
         if not fqdn:
             return ''
 
         parts = fqdn.split('.')
         return '.'.join(parts[-2:])
+
+    def testMSFBL(self):
+        (num, header, value) = self.getHeader('X-MSFBL')
+        if num == -1: return []
+
+        parts = value.split('|')
+        for p in parts:
+            if p.startswith('eyJ'):
+                decoded = base64.b64decode(p)
+                if SMTPHeadersAnalysis.printable(decoded):
+                    result += f'\t- Headers contained Feedback Loop object used by marketing systems to offer ISPs way to notify the sender that recipient marked that e-mail as Junk/Spam.\n'
+                    result += json.dumps(json.loads(decoded), indent=4) + '\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result
+        }
 
     def testSpamRelatedHeaders(self):
         result = ''
