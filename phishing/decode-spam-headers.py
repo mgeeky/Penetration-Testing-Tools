@@ -2110,7 +2110,7 @@ def opts(argv):
 
     tst = o.add_argument_group('Tests')
     tst.add_argument('-r', '--resolve', default=False, action='store_true', help='Resolve IPv4 addresses / Domain names.')
-    tst.add_argument('-D', '--decode-all', default=False, action='store_true', help='Decode all =?us-ascii?Q? mail encoded messages and print their contents.')
+    tst.add_argument('-a', '--decode-all', default=False, action='store_true', help='Decode all =?us-ascii?Q? mail encoded messages and print their contents.')
 
     args = o.parse_args()
 
