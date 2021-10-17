@@ -687,10 +687,11 @@ class SMTPHeadersAnalysis:
 
 
 
-    def __init__(self, logger, resolve):
+    def __init__(self, logger, resolve, decode_all):
         self.text = ''
         self.results = {}
         self.resolve = resolve
+        self.decode_all = decode_all
         self.logger = logger
         self.received_path = None
 
@@ -857,7 +858,11 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         self.results['X-Forefront-Antispam-Report']             = self.testForefrontAntiSpamReport()
         self.results['X-Microsoft-Antispam-Mailbox-Delivery']   = self.testAntispamMailboxDelivery()
         self.results['X-Microsoft-Antispam Bulk Mail']          = self.testMicrosoftAntiSpam()
-        #self.results['X-Microsoft-Antispam-Message-Info']      = self.testMicrosoftAntiSpamMessageInfo()
+        
+        if self.decode_all:
+            self.results['X-Microsoft-Antispam-Message-Info']   = self.testMicrosoftAntiSpamMessageInfo()
+            self.results['Decoded Mail-encoded header values']  = self.testDecodeEncodedHeaders()
+
         self.results['End-to-End Latency - Message Delivery Time'] = self.testTransportEndToEndLatency()
         self.results['X-MS-Oob-TLC-OOBClassifiers']             = self.testTLCOObClasifiers()
         self.results['MS Defender ATP Message Properties']      = self.testATPMessageProperties()
@@ -908,6 +913,35 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                 offset = (ord('g') - ord(c)) * 16
                 break
         return chr(sum(ord(c) for c in pair) - key - offset)
+
+    @staticmethod
+    def hexdump(data, addr = 0, num = 0):
+        s = ''
+        n = 0
+        lines = []
+        if num == 0: num = len(data)
+
+        if len(data) == 0:
+            return '<empty>'
+
+        for i in range(0, num, 16):
+            line = ''
+            line += '%04x | ' % (addr + i)
+            n += 16
+
+            for j in range(n-16, n):
+                if j >= len(data): break
+                line += '%02x ' % (data[j] & 0xff)
+
+            line += ' ' * (3 * 16 + 7 - len(line)) + ' | '
+
+            for j in range(n-16, n):
+                if j >= len(data): break
+                c = data[j] if not (data[j] < 0x20 or data[j] > 0x7e) else '.'
+                line += '%c' % c
+
+            lines.append(line)
+        return '\n'.join(lines)
 
     def testOvhSpamScore(self):
         (num, header, value) = self.getHeader('X-VR-SPAMSCORE')
@@ -1046,7 +1080,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     pos = value.lower().find(dodgy)
                     ctx = re.sub(r'(' + re.escape(dodgy) + r')', self.logger.colored(r'\1', 'red'), value, flags=re.I)
 
-                    if len(ctx) > 120:
+                    if len(ctx) > 1024:
                         a = pos-40
                         b = -10 + pos + len(dodgy) + 30
                         
@@ -1056,7 +1090,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                         ctx = value[a:b]
 
                     tmp += f'\t     Keyword:  {dodgy}\n'
-                    tmp += f'\t       {self.logger.colored("Value", "magenta")}:  {ctx}\n\n'
+                    tmp += f'\t       {self.logger.colored("Value", "magenta")}:\n\n{ctx}\n\n'
                     shown.add(header)
                     break
 
@@ -1697,6 +1731,43 @@ More information:
             'analysis' : result
         }
 
+    def testDecodeEncodedHeaders(self):
+        result = ''
+        tmp = ''
+        found = False
+        num0 = 0
+        shown = set()
+
+        for (num, header, value) in self.headers:
+            v = SMTPHeadersAnalysis.flattenLine(value)
+            if '=?us-ascii?Q?' in v:
+                num0 += 1
+
+                value_decoded = emailheader.decode_header(value)[0][0].decode()
+                hhh = self.logger.colored(header, 'magenta')
+                tmp += f'\t({num0:02}) Header: {hhh}\n'
+                tmp += f'\t     Value:\n\n'
+                tmp += value_decoded + '\n\n'
+
+                tmp += f'\t     Base64 decoded Hexdump:\n\n'
+                tmp += SMTPHeadersAnalysis.hexdump(base64.b64decode(value_decoded))
+                tmp += '\n\n\n'
+
+                shown.add(header)
+
+        if len(tmp) > 0:
+            result = '- Decoded headers:\n\n'
+            result += tmp + '\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'header' : header,
+            'value': '...',
+            'analysis' : result
+        }
+
     def testMicrosoftAntiSpamMessageInfo(self):
         (num, header, value) = self.getHeader('X-Microsoft-Antispam-Message-Info')
         if num == -1: return []
@@ -1704,6 +1775,10 @@ More information:
         value = emailheader.decode_header(value)[0][0].decode()
         result = '- Base64 encoded & encrypted Antispam Message Info:\n\n'
         result += value
+
+        tmp += f'\n\n\t- Base64 decoded Hexdump:\n\n'
+        tmp += SMTPHeadersAnalysis.hexdump(base64.b64decode(value))
+        tmp += '\n\n\n'
 
         if len(result) == 0:
             return []
@@ -2033,6 +2108,7 @@ def opts(argv):
 
     tst = o.add_argument_group('Tests')
     tst.add_argument('-r', '--resolve', default=False, action='store_true', help='Resolve IPv4 addresses / Domain names.')
+    tst.add_argument('-D', '--decode-all', default=False, action='store_true', help='Decode all =?us-ascii?Q? mail encoded messages and print their contents.')
 
     args = o.parse_args()
 
@@ -2105,7 +2181,7 @@ def main(argv):
     with open(args.infile) as f:
         text = f.read()
 
-    an = SMTPHeadersAnalysis(logger, args.resolve)
+    an = SMTPHeadersAnalysis(logger, args.resolve, args.decode_all)
     out = an.parse(text)
 
     output = printOutput(out)

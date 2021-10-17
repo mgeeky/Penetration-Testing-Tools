@@ -29,6 +29,10 @@
   - `X-Spam-Level`
   - `X-Spam-Flag`
   - `X-Spam-Report`
+  - `ARC-Authentication-Results`
+  - `X-MSFBL`
+  - `X-Ovh-Spam-Reason`
+  - `X-VR-SPAMSCORE`
   - and more...
 
   Most of these headers are not fully documented, therefore the script is unable to pinpoint all the details, but at least it collects all I could find on them.
