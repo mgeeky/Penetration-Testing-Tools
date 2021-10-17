@@ -61,6 +61,7 @@ Options:
 
 Tests:
   -r, --resolve         Resolve IPv4 addresses / Domain names.
+  -D, --decode-all      Decode all =?us-ascii?Q? mail encoded messages and print their contents.
 ```
 
   Sample run:
