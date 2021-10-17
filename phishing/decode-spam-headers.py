@@ -1716,7 +1716,7 @@ More information:
         words = [x.strip() for x in value.lower().split(' ') if len(x.strip()) > 0]
         
         if words[0] != 'pass':
-            result += self.logger.colored(f'- Received-SPF test failed: Should be "pass", but was: "' + str(words[0]) + '"\n', 'red')
+            result += self.logger.colored(f'- Received-SPF test failed', 'red') + ': Should be "pass", but was: "' + str(words[0]) + '"\n'
 
             if words[0] in SMTPHeadersAnalysis.auth_result.keys():
                 result += '\t- Meaning: ' + str(SMTPHeadersAnalysis.auth_result[words[0]]) + '\n\n'
@@ -1758,7 +1758,7 @@ More information:
                 expected.append('bestguesspass')
 
             if k in tests.keys() and tests[k] not in expected:
-                result += self.logger.colored(f'- {k.upper()} test failed: Should be "pass", but was: "' + tests[k] + '"\n', 'red')
+                result += self.logger.colored(f'- {k.upper()} test failed:', 'red') + ' Should be "pass", but was: "' + tests[k] + '"\n'
 
                 if tests[k] in SMTPHeadersAnalysis.auth_result.keys():
                     result += '\t- Meaning: ' + SMTPHeadersAnalysis.auth_result[tests[k]] + '\n\n'
