@@ -53,13 +53,20 @@ import textwrap
 import socket
 import time
 import base64
-import packaging.version
 
 from dateutil import parser
 from email import header as emailheader
 from datetime import *
 from dateutil.tz import *
 
+try:
+    import packaging.version
+
+except ImportError:
+    print('''
+[!] You need to install packaging: 
+        # pip3 install packaging
+''')
 
 try:
     import dns.resolver
@@ -2521,7 +2528,7 @@ def opts(argv):
 
     args = o.parse_args()
 
-    if len(args.outfile) > 0:
+    if len(args.outfile) > 0 or args.format == 'json':
         args.nocolor = True
 
     options.update(vars(args))
