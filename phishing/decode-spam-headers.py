@@ -273,7 +273,7 @@ class SMTPHeadersAnalysis:
         'symantec', 'tachyon', 'tencent', 'totaldefense', 'trapmine', 'trend micro', 'trendmicro', 
         'trusteer', 'trustlook', 'virusblokada', 'virustotal', 'virustotalcloud', 'webroot', 
         'wget', 'yandex', 'yandexbot', 'zillya', 'zonealarm', 'zscaler', 
-        'dlp-',
+        'dlp-', 'sanitize'
     )
 
     Interesting_Headers = (
