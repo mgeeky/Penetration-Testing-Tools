@@ -993,46 +993,72 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         self.headers = self.collect(text)
 
-        self.results['Received - Mail Servers Flow']                = self.testReceived()
-        self.results['Extracted IP addresses']                      = self.testExtractIP()
-        self.results['Extracted Domains']                           = self.testResolveIntoIP()
-        self.results['Bad Keywords In Headers']                     = self.testBadKeywords()
-        self.results['From Address Analysis']                       = self.testFrom()
-        self.results['Subject and Thread Topic Difference']         = self.testSubjecThreadTopic()
-        self.results['Authentication-Results']                      = self.testAuthenticationResults()
-        self.results['ARC-Authentication-Results']                  = self.testARCAuthenticationResults()
-        self.results['Received-SPF']                                = self.testReceivedSPF()
-        self.results['Mail Client Version']                         = self.testXMailer()
-        self.results['X-Originating-IP']                            = self.testXOriginatingIP()
-        self.results['User-Agent Version']                          = self.testUserAgent()
-        self.results['X-Forefront-Antispam-Report']                 = self.testForefrontAntiSpamReport()
-        self.results['X-Microsoft-Antispam-Mailbox-Delivery']       = self.testAntispamMailboxDelivery()
-        self.results['X-Microsoft-Antispam Bulk Mail']              = self.testMicrosoftAntiSpam()
-        self.results['X-Exchange-Antispam-Report-CFA-Test']         = self.testAntispamReportCFA()
-        self.results['Domain Impersonation']                        = self.testDomainImpersonation()
-        self.results['SpamAssassin Spam Status']                    = self.testSpamAssassinSpamStatus()
-        self.results['SpamAssassin Spam Level']                     = self.testSpamAssassinSpamLevel()
-        self.results['SpamAssassin Spam Flag']                      = self.testSpamAssassinSpamFlag()
-        self.results['SpamAssassin Spam Report']                    = self.testSpamAssassinSpamReport()
-        self.results['OVH\'s X-VR-SPAMCAUSE']                       = self.testSpamCause()
-        self.results['OVH\'s X-Ovh-Spam-Reason']                    = self.testOvhSpamReason()
-        self.results['OVH\'s X-Ovh-Spam-Score']                     = self.testOvhSpamScore()
-        self.results['X-Virus-Scan']                                = self.testXVirusScan()
-        self.results['X-Spam-Checker-Version']                      = self.testXSpamCheckerVersion()
-        self.results['X-IronPort-AV']                               = self.testXIronPortAV()
-        self.results['X-Mimecast-Spam-Score']                       = self.testXMimecastSpamScore()
-        self.results['Spam Diagnostics Metadata']                   = self.testSpamDiagnosticMetadata()
-        self.results['MS Defender ATP Message Properties']          = self.testATPMessageProperties()
-        self.results['Message Feedback Loop']                       = self.testMSFBL()
-        self.results['End-to-End Latency - Message Delivery Time']  = self.testTransportEndToEndLatency()
-        self.results['X-MS-Oob-TLC-OOBClassifiers']                 = self.testTLCOObClasifiers()
+        tests = (
+            ('Received - Mail Servers Flow',                self.testReceived),
+            ('Extracted IP addresses',                      self.testExtractIP),
+            ('Extracted Domains',                           self.testResolveIntoIP),
+            ('Bad Keywords In Headers',                     self.testBadKeywords),
+            ('From Address Analysis',                       self.testFrom),
+            ('Subject and Thread Topic Difference',         self.testSubjecThreadTopic),
+            ('Authentication-Results',                      self.testAuthenticationResults),
+            ('ARC-Authentication-Results',                  self.testARCAuthenticationResults),
+            ('Received-SPF',                                self.testReceivedSPF),
+            ('Mail Client Version',                         self.testXMailer),
+            ('X-Originating-IP',                            self.testXOriginatingIP),
+            ('User-Agent Version',                          self.testUserAgent),
+            ('X-Forefront-Antispam-Report',                 self.testForefrontAntiSpamReport),
+            ('X-Microsoft-Antispam-Mailbox-Delivery',       self.testAntispamMailboxDelivery),
+            ('X-Microsoft-Antispam Bulk Mail',              self.testMicrosoftAntiSpam),
+            ('X-Exchange-Antispam-Report-CFA-Test',         self.testAntispamReportCFA),
+            ('Domain Impersonation',                        self.testDomainImpersonation),
+            ('SpamAssassin Spam Status',                    self.testSpamAssassinSpamStatus),
+            ('SpamAssassin Spam Level',                     self.testSpamAssassinSpamLevel),
+            ('SpamAssassin Spam Flag',                      self.testSpamAssassinSpamFlag),
+            ('SpamAssassin Spam Report',                    self.testSpamAssassinSpamReport),
+            ('OVH\'s X-VR-SPAMCAUSE',                       self.testSpamCause),
+            ('OVH\'s X-Ovh-Spam-Reason',                    self.testOvhSpamReason),
+            ('OVH\'s X-Ovh-Spam-Score',                     self.testOvhSpamScore),
+            ('X-Virus-Scan',                                self.testXVirusScan),
+            ('X-Spam-Checker-Version',                      self.testXSpamCheckerVersion),
+            ('X-IronPort-AV',                               self.testXIronPortAV),
+            ('X-Mimecast-Spam-Score',                       self.testXMimecastSpamScore),
+            ('Spam Diagnostics Metadata',                   self.testSpamDiagnosticMetadata),
+            ('MS Defender ATP Message Properties',          self.testATPMessageProperties),
+            ('Message Feedback Loop',                       self.testMSFBL),
+            ('End-to-End Latency - Message Delivery Time',  self.testTransportEndToEndLatency),
+            ('X-MS-Oob-TLC-OOBClassifiers',                 self.testTLCOObClasifiers),
+
+            ('Other unrecognized Spam Related Headers',     self.testSpamRelatedHeaders),
+            ('Other interesting headers',                   self.testInterestingHeaders),
+        )
+
+        testsDecodeAll = (
+            ('X-Microsoft-Antispam-Message-Info',           self.testMicrosoftAntiSpamMessageInfo),
+            ('Decoded Mail-encoded header values',          self.testDecodeEncodedHeaders),
+        )
+
+        for testName, testFunc in tests:
+            try:
+                logger.dbg(f'Running "{testName}"...')
+                self.results[testName] = testFunc()
+
+            except Exception as e:
+                logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+
+                if options['debug']:
+                    raise
 
         if self.decode_all:
-            self.results['X-Microsoft-Antispam-Message-Info']       = self.testMicrosoftAntiSpamMessageInfo()
-            self.results['Decoded Mail-encoded header values']      = self.testDecodeEncodedHeaders()
+            for testName, testFunc in tests:
+                try:
+                    logger.dbg(f'Running "{testName}"...')
+                    self.results[testName] = testFunc()
 
-        self.results['Other unrecognized Spam Related Headers']     = self.testSpamRelatedHeaders()
-        self.results['Other interesting headers']                   = self.testInterestingHeaders()
+                except Exception as e:
+                    logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+
+                    if options['debug']:
+                        raise
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -1133,9 +1159,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         else:
             result += f'{self.logger.colored(value, "red")}\n'
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : header,
             'value': value,
@@ -1171,9 +1194,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         result += f'\t- Subject:      {self.logger.colored(v1, "green")}\n'
         result += f'\t- Thread-Topic: {self.logger.colored(v2, "magenta")}\n'
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : f'{header1}, {header2}',
             'value': f'\n{header1}:\n\t{value1}\n\n    {header2}:\n\t{value2}',
@@ -1190,9 +1210,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             result += f'     {value}: ' + SMTPHeadersAnalysis.Spam_Diagnostics_Metadata[value.strip()] + '\n'
         else:
             result += f'     {value}\n'
-
-        if len(result) == 0:
-            return []
 
         return {
             'header' : header,
@@ -1290,9 +1307,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
                     pos += 1          
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : header,
             'value': value,
@@ -1304,9 +1318,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if num == -1: return []
 
         result = f'- SpamAssassin version.'
-
-        if len(result) == 0:
-            return []
 
         return {
             'header' : header,
@@ -1321,9 +1332,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         result = f'- OVH considered this message as SPAM and attached following Spam '
         value = SMTPHeadersAnalysis.flattenLine(value).replace(' ', '').replace('\t', '')
         result += f'Score: {self.logger.colored(value.strip(), "red")}\n'
-
-        if len(result) == 0:
-            return []
 
         return {
             'header' : header,
@@ -1344,9 +1352,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             tmp += f'\t- {part}\n'
 
         result += tmp + '\n'
-
-        if len(result) == 0:
-            return []
 
         return {
             'header' : header,
@@ -1555,9 +1560,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
             result += '\n'
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : header,
             'value': value,
@@ -1643,9 +1645,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     result += f'\t- Mail\'s domain should resolve to: \t{self.logger.colored(senderDomain, "green")}\n'
                     result += f'\t- But instead first hop resolved to:\t{self.logger.colored(firstHopDomain1, "red")}\n'
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : header,
             'value': value,
@@ -1660,11 +1659,13 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if value.strip().lower() == 'yes':
             result = self.logger.colored(f'- SpamAssassin marked this message as SPAM:\n', 'red')
             result += f'\t- ' + self.logger.colored(value, 'red') + '\n'
+
             return {
                 'header' : header,
                 'value': value,
                 'analysis' : result
             }
+
         return []
 
     def testSpamAssassinSpamLevel(self):
@@ -1676,14 +1677,13 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             _num = self.logger.colored(str(len(value.strip())), 'red')
             result += f'\t- ' + self.logger.colored(value.strip(), 'red') + f' (number: {_num})\n'
 
-        if len(result) == 0:
-            return []
+            return {
+                'header' : header,
+                'value': value,
+                'analysis' : result
+            }
 
-        return {
-            'header' : header,
-            'value': value,
-            'analysis' : result
-        }
+        return []
 
     def testSpamAssassinSpamReport(self):
         (num, header, value) = self.getHeader('X-Spam-Report')
@@ -1700,14 +1700,13 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
             result += tmp + '\n'
 
-        if len(result) == 0:
-            return []
+            return {
+                'header' : header,
+                'value': value,
+                'analysis' : result
+            }
 
-        return {
-            'header' : header,
-            'value': value,
-            'analysis' : result
-        }
+        return []
 
     def testATPMessageProperties(self):
         (num, header, value) = self.getHeader('X-MS-Exchange-AtpMessageProperties')
@@ -1719,9 +1718,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         for prop in props:
             if prop in SMTPHeadersAnalysis.ATP_Message_Properties.keys():
                 result += f'- ' + self.logger.colored(SMTPHeadersAnalysis.ATP_Message_Properties[prop], 'magenta') + '\n'
-
-        if len(result) == 0:
-            return []
 
         return {
             'header' : header,
@@ -2063,9 +2059,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if addscl:
             result += tmpfoo
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : header,
             'value': value,
@@ -2157,9 +2150,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         tmp += SMTPHeadersAnalysis.hexdump(base64.b64decode(value))
         tmp += '\n\n\n'
 
-        if len(result) == 0:
-            return []
-
         return {
             'header' : header,
             'value': '...',
@@ -2233,9 +2223,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                         tmp += f'\t- ({r})\n'
 
                 result += tmp + '\n'
-
-        if len(result) == 0:
-            return []
 
         return {
             'header' : header,
@@ -2616,6 +2603,15 @@ def main(argv):
             f.write(output2)
     else:
         print(output)
+
+        if not options['nocolor']:
+            print('''
+------------------------------------------
+
+Experiencing a bad-looking output with unprintable characters? 
+Use -N flag to disable console colors, or switch your console for better UI experience.
+''')
+
 
 if __name__ == '__main__':
     main(sys.argv)
