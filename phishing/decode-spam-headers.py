@@ -1660,15 +1660,12 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if value.strip().lower() == 'yes':
             result = self.logger.colored(f'- SpamAssassin marked this message as SPAM:\n', 'red')
             result += f'\t- ' + self.logger.colored(value, 'red') + '\n'
-
-        if len(result) == 0:
-            return []
-
-        return {
-            'header' : header,
-            'value': value,
-            'analysis' : result
-        }
+            return {
+                'header' : header,
+                'value': value,
+                'analysis' : result
+            }
+        return []
 
     def testSpamAssassinSpamLevel(self):
         (num, header, value) = self.getHeader('X-Spam-Level')
