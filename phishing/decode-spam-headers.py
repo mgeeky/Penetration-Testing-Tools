@@ -41,6 +41,10 @@
 # Usage:
 #   ./decode-spam-headers [options] <smtp-headers.txt>
 #
+# Requirements:
+#   - packaging
+#   - dnspython
+#
 # Mariusz B. / mgeeky, '21
 # <mb [at] binary-offensive.com>
 #
