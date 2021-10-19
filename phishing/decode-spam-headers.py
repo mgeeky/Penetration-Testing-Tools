@@ -1050,11 +1050,17 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         for testName, testFunc in tests:
             try:
-                logger.dbg(f'Running "{testName}"...')
+                self.logger.dbg(f'Running "{testName}"...')
                 self.results[testName] = testFunc()
 
             except Exception as e:
-                logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+                self.logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+
+                self.results[testName] = {
+                    'header' : '',
+                    'value' : '',
+                    'analysis' : 'Internal script error. Use --debug to find out more what happened.',
+                }
 
                 if options['debug']:
                     raise
@@ -1062,11 +1068,17 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if self.decode_all:
             for testName, testFunc in tests:
                 try:
-                    logger.dbg(f'Running "{testName}"...')
+                    self.logger.dbg(f'Running "{testName}"...')
                     self.results[testName] = testFunc()
 
                 except Exception as e:
-                    logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+                    self.logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+
+                    self.results[testName] = {
+                        'header' : '',
+                        'value' : '',
+                        'analysis' : 'Internal script error. Use --debug to find out more what happened.',
+                    }
 
                     if options['debug']:
                         raise
