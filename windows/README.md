@@ -7,6 +7,68 @@
 
 - **`find-system-and-syswow64-binaries.py`** - Finds files with specified extension in both System32 and SysWOW64 and then prints their intersection. Useful for finding executables (for process injection purposes) that reside in both directories (such as `WerFault.exe`)
 
+
+- **`findSymbols.py`** - Script that recursively searches through PE files, scans their Imports and Exports and returns those matching filter criterias (like imported from specified module, name regexes, etc.)
+
+```
+    :: scanSymbols.py - Searches PE Import/Exports based on supplied conditions.
+
+    Mariusz B. / mgeeky, '21
+    <mb [at] binary-offensive.com>
+
+usage: findSymbols.py [options] <path>
+
+positional arguments:
+  path                  Path to a PE file or directory.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -r, --recurse         If <path> is a directory, perform recursive scan.
+  -v, --verbose         Verbose mode.
+  -f {text,json}, --format {text,json}
+                        Output format. Text or JSON.
+
+Output sorting:
+  -u, --unique          Return unique symbols only. The first symbol with a name that occurs in results, will be returned.
+  -d, --descending      Sort in descending order instead of default of descending.
+  -c COLUMN, --column COLUMN
+                        Sort by this column name. Default: filename. Available columns: "filename", "symbol type", "module", "symbol", "file size", "path"
+  -n NUM, --first NUM   Show only first N results, as specified in this paremeter. By default will show all candidates.
+  -i, --imports         Filter only Imports.
+  -e, --exports         Filter only Exports.
+
+Output filtering:
+  -s NAME, --name NAME  Search for symbols with name matching this regular expression. Can be repeated, case insensitive, constructs: ".+VALUE.+"
+  -S NOT_NAME, --not-name NOT_NAME
+                        Search for symbols with name NOT matching this regular expression.
+  -m MODULE, --module MODULE
+                        Search for symbols exported in/imported from this module matching regular expression.
+  -M NOT_MODULE, --not-module NOT_MODULE
+                        Search for symbols NOT exported in/NOT imported from this module matching regular expression.
+```
+  
+  Example run:
+```
+cmd> py findSymbols.py "c:\Program Files\Microsoft Office" -r -u -s exec -s launch -s run -s process -s eval
+```
+
+  Searches for imports and exports in MS Office PE executables matching any of `'exec','launch','run','process','eval'` regular expressions.
+
+```
+| 562 |  AppvIsvSubsystems64.dll | import |     rpcrt4.dll      |  RpcServerUnregisterIf  |  2004368  |     c:\Program Files\Microsoft Office\root\Office16\AppvIsvSubsystems64.dll      |
+| 563 |        DBGCORE.DLL       | import |      ntdll.dll      |  RtlRunOnceExecuteOnce  |  175056   |           c:\Program Files\Microsoft Office\root\Office16\DBGCORE.DLL            |
+| 564 |       mscss7ge.dll       | export |    mscss7ge.dll     |    RunCssWordBreaker    |  556488   |           c:\Program Files\Microsoft Office\root\Office16\mscss7ge.dll           |
+| 565 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirect      |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
+|     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
+| 566 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirectA     |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
+|     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
+| 567 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirectW     |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
+|     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
+| 568 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |        SQLExecute       |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
+|     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
+```
+
+
 - **`Force-PSRemoting.ps1`** - Forcefully enable WinRM / PSRemoting. [gist](https://gist.github.com/mgeeky/313c22def5c86d7a529f41e5b6ff79b8)
 
 - **`GlobalProtectDisable.cpp`** - Global Protect VPN Application patcher allowing the Administrator user to disable VPN without Passcode. ([gist](https://gist.github.com/mgeeky/54ac676226a1a4bd9fd8653e24adc2e9))
