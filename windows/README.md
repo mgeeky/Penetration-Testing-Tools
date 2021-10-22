@@ -55,6 +55,8 @@ cmd> py findSymbols.py "c:\Program Files\Microsoft Office" -e -r -u -s exec -s l
   Searches for unique exports in MS Office PE executables matching any of `'exec','launch','run','process','eval','dcom','dde','pipe'` regular expressions in their names.
 
 ```
+[...]
+
 | 565 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirect      |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
 |     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
 | 566 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirectA     |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
@@ -63,6 +65,8 @@ cmd> py findSymbols.py "c:\Program Files\Microsoft Office" -e -r -u -s exec -s l
 |     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
 | 568 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |        SQLExecute       |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
 |     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
+
+[...]
 ```
 
 
