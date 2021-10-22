@@ -108,36 +108,36 @@ def verifyCriterias(args, regexes, infos, uniqueSymbols):
 
     regexesVerified = sum([len(v) for k, v in regexes.items()])
 
-    for rex in regexes['not-name']:
+    for name, rex in regexes['not-name']:
         match = rex.search(infos['symbol'])
         if match:
-            verbose(args, f'(-) Skipping symbol {infos["module"]}.{infos["symbol"]} as it DID satisfy not-name regex.')
+            verbose(args, f'(-) Skipping symbol {infos["module"]}.{infos["symbol"]} as it DID satisfy not-name ({name}) regex.')
             return False
 
-    for rex in regexes['not-module']:
+    for name, rex in regexes['not-module']:
         match = rex.search(infos['module'])
         if match:
-            verbose(args, f'(-) Skipping symbol\'s module {infos["module"]}.{infos["symbol"]} as it DID satisfy not-module regex.')
+            verbose(args, f'(-) Skipping symbol\'s module {infos["module"]}.{infos["symbol"]} as it DID satisfy not-module ({name}) regex.')
             return False
 
     satisifed = False
     carryOn = False
 
     if len(regexes['module']) > 0:
-        for rex in regexes['module']:
+        for name, rex in regexes['module']:
             match = rex.search(infos['module'])
             if match:
-                verbose(args, f'(+) Symbol\'s module {infos["module"]}.{infos["symbol"]} satisfied module regex.')
+                verbose(args, f'(+) Symbol\'s module {infos["module"]}.{infos["symbol"]} satisfied module ({name}) regex.')
                 carryOn = True
                 break
     else:
         carryOn = True
 
     if carryOn:
-        for rex in regexes['name']:
+        for name, rex in regexes['name']:
             match = rex.search(infos['symbol'])
             if match:
-                verbose(args, f'(+) Symbol {infos["module"]}.{infos["symbol"]} satisfied name regex.')
+                verbose(args, f'(+) Symbol {infos["module"]}.{infos["symbol"]} satisfied name ({name}) regex.')
                 satisifed = True
                 break
 
@@ -312,16 +312,16 @@ def opts(argv):
     }
 
     for name in args.name:
-        regexes['name'].append(re.compile(accomodate_rex(name), re.I))
+        regexes['name'].append((name, re.compile(accomodate_rex(name), re.I)))
 
     for not_name in args.not_name:
-        regexes['not-name'].append(re.compile(accomodate_rex(not_name), re.I))
+        regexes['not-name'].append((not_name, re.compile(accomodate_rex(not_name), re.I)))
 
     for module in args.module:
-        regexes['module'].append(re.compile(accomodate_rex(module), re.I))
+        regexes['module'].append((module, re.compile(accomodate_rex(module), re.I)))
 
     for not_module in args.not_module:
-        regexes['not-module'].append(re.compile(accomodate_rex(not_module), re.I))
+        regexes['not-module'].append((not_module, re.compile(accomodate_rex(not_module), re.I)))
 
     return args, regexes
 

@@ -49,15 +49,12 @@ Output filtering:
   
   Example run:
 ```
-cmd> py findSymbols.py "c:\Program Files\Microsoft Office" -r -u -s exec -s launch -s run -s process -s eval
+cmd> py findSymbols.py "c:\Program Files\Microsoft Office" -e -r -u -s exec -s launch -s run -s process -s eval -s dcom -s dde -s pipe
 ```
 
-  Searches for imports and exports in MS Office PE executables matching any of `'exec','launch','run','process','eval'` regular expressions.
+  Searches for unique exports in MS Office PE executables matching any of `'exec','launch','run','process','eval','dcom','dde','pipe'` regular expressions in their names.
 
 ```
-| 562 |  AppvIsvSubsystems64.dll | import |     rpcrt4.dll      |  RpcServerUnregisterIf  |  2004368  |     c:\Program Files\Microsoft Office\root\Office16\AppvIsvSubsystems64.dll      |
-| 563 |        DBGCORE.DLL       | import |      ntdll.dll      |  RtlRunOnceExecuteOnce  |  175056   |           c:\Program Files\Microsoft Office\root\Office16\DBGCORE.DLL            |
-| 564 |       mscss7ge.dll       | export |    mscss7ge.dll     |    RunCssWordBreaker    |  556488   |           c:\Program Files\Microsoft Office\root\Office16\mscss7ge.dll           |
 | 565 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirect      |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
 |     |                          |        |                     |                         |           |                     Excel Integrated\bin\PRIVATE_ODBC32.dll                      |
 | 566 |    PRIVATE_ODBC32.dll    | export | PRIVATE_ODBC32.dll  |      SQLExecDirectA     |  734088   | c:\Program Files\Microsoft Office\root\Office16\ADDINS\Microsoft Power Query for |
