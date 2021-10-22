@@ -288,8 +288,8 @@ def opts(argv):
     sorting.add_argument('-n', '--first', type=int, default=0, metavar='NUM', help='Show only first N results, as specified in this paremeter. By default will show all candidates.')
 
     filters = params.add_argument_group('Output filtering')
-    sorting.add_argument('-i', '--imports', action='store_true', help = 'Filter only Imports.')
-    sorting.add_argument('-e', '--exports', action='store_true', help = 'Filter only Exports.')
+    filters.add_argument('-i', '--imports', action='store_true', help = 'Filter only Imports.')
+    filters.add_argument('-e', '--exports', action='store_true', help = 'Filter only Exports.')
     filters.add_argument('-s', '--name', action='append', default=[], help = 'Search for symbols with name matching this regular expression. Can be repeated, case insensitive, constructs: ".+VALUE.+"')
     filters.add_argument('-S', '--not-name', action='append', default=[], help = 'Search for symbols with name NOT matching this regular expression.')
     filters.add_argument('-m', '--module', action='append', default=[], help = 'Search for symbols exported in/imported from this module matching regular expression.')

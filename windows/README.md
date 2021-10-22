@@ -33,11 +33,11 @@ Output sorting:
   -d, --descending      Sort in descending order instead of default of descending.
   -c COLUMN, --column COLUMN
                         Sort by this column name. Default: filename. Available columns: "filename", "symbol type", "module", "symbol", "file size", "path"
-  -n NUM, --first NUM   Show only first N results, as specified in this paremeter. By default will show all candidates.
-  -i, --imports         Filter only Imports.
-  -e, --exports         Filter only Exports.
+  -n NUM, --first NUM   Show only first N results, as specified in this paremeter. By default will show all candidates.=
 
 Output filtering:
+  -i, --imports         Filter only Imports.
+  -e, --exports         Filter only Exports.
   -s NAME, --name NAME  Search for symbols with name matching this regular expression. Can be repeated, case insensitive, constructs: ".+VALUE.+"
   -S NOT_NAME, --not-name NOT_NAME
                         Search for symbols with name NOT matching this regular expression.
