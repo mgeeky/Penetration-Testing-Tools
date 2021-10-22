@@ -2,13 +2,12 @@
 #
 # A script that enumerates Imports and Exports of PE files and prints them according to search criterias.
 #
-# Let's the user find modules matching criterias such as:
-#   - modules that are .NET ones
-#   - modules of a big enough size / SizeOfImage / code section size
-#   - modules with enough room to fit shellcode for Module Stomping/DLL Hollowing purposes
-#     (calculated as a difference of upper code section address and an entry point address)
-#   - modules present at the same time in System32 and SysWOW64
-#   - modules used / not used by any process as examined during the scan
+# Let's the user find imported/exported symbols matching criterias such as:
+#   - symbol being import or export
+#   - symbol matching name
+#   - symbol NOT matching name
+#   - module matching name
+#   - module NOT matching name
 #
 # Mariusz B. / mgeeky, '21
 # <mb [at] binary-offensive.com>
