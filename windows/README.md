@@ -11,12 +11,12 @@
 - **`findSymbols.py`** - Script that recursively searches through PE files, scans their Imports and Exports and returns those matching filter criterias (like imported from specified module, name regexes, etc.)
 
 ```
-    :: scanSymbols.py - Searches PE Import/Exports based on supplied conditions.
+    :: findSymbols.py - Finds PE Import/Exports based on supplied filters.
 
     Mariusz B. / mgeeky, '21
     <mb [at] binary-offensive.com>
 
-usage: findSymbols.py [options] <path>
+usage: .\findSymbols.py [options] <path>
 
 positional arguments:
   path                  Path to a PE file or directory.
@@ -27,13 +27,17 @@ optional arguments:
   -v, --verbose         Verbose mode.
   -f {text,json}, --format {text,json}
                         Output format. Text or JSON.
+  -E EXTENSION, --extension EXTENSION
+                        Extensions of files to scan. By default will scan all files. Can be repeated: -E exe -E dll
+  -o PATH, --output PATH
+                        Write output to file.
 
 Output sorting:
   -u, --unique          Return unique symbols only. The first symbol with a name that occurs in results, will be returned.
   -d, --descending      Sort in descending order instead of default of descending.
   -c COLUMN, --column COLUMN
                         Sort by this column name. Default: filename. Available columns: "filename", "symbol type", "module", "symbol", "file size", "path"
-  -n NUM, --first NUM   Show only first N results, as specified in this paremeter. By default will show all candidates.=
+  -n NUM, --first NUM   Show only first N results, as specified in this paremeter. By default will show all candidates.
 
 Output filtering:
   -i, --imports         Filter only Imports.
