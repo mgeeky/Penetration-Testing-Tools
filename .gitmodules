@@ -7,9 +7,6 @@
 [submodule "web/dirbuster"]
 	path = web/dirbuster
 	url = https://github.com/mgeeky/dirbuster.git
-[submodule "web/arachni-launching-script"]
-	path = web/arachni-launching-script
-	url = https://github.com/mgeeky/arachni-launching-script.git
 [submodule "phishing/RobustPentestMacro"]
 	path = phishing/RobustPentestMacro
 	url = https://github.com/mgeeky/RobustPentestMacro
