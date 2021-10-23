@@ -48,6 +48,41 @@ headers = [
 
 symbol_idx = headers.index('symbol')
 
+class Logger:
+    colors_map = {
+        'red':      31, 
+        'green':    32, 
+        'yellow':   33,
+        'blue':     34, 
+        'magenta':  35, 
+        'cyan':     36,
+        'white':    37, 
+        'grey':     38,
+    }
+
+    colors_dict = {
+        'error': colors_map['red'],
+        'trace': colors_map['magenta'],
+        'info ': colors_map['green'],
+        'debug': colors_map['grey'],
+        'other': colors_map['grey'],
+    }
+
+    @staticmethod
+    def with_color(c, s):
+        return "\x1b[%dm%s\x1b[0m" % (c, s)
+
+    @staticmethod
+    def end_color(s):
+        return "%s\x1b[0m" % (s)
+
+    @staticmethod
+    def colored(args, txt, col):
+        if not args.color:
+            return txt
+
+        return Logger.with_color(Logger.colors_map[col], txt)
+
 def out(x):
     sys.stderr.write(x + '\n')
 
@@ -107,17 +142,34 @@ def verifyCriterias(args, regexes, infos, uniqueSymbols):
 
     regexesVerified = sum([len(v) for k, v in regexes.items()])
 
+    regexes_name = len(regexes['name'])
+    regexes_not_name = len(regexes['not-name'])
+    regexes_module = len(regexes['module'])
+    regexes_not_module = len(regexes['not-module'])
+
     for name, rex in regexes['not-name']:
         match = rex.search(infos['symbol'])
         if match:
+            matched = match.group(1)
+            infos['symbol'] = infos['symbol'].replace(matched, Logger.colored(args, matched, 'red'))
             verbose(args, f'(-) Skipping symbol {infos["module"]}.{infos["symbol"]} as it DID satisfy not-name ({name}) regex.')
             return False
+
+    if regexes_not_module+regexes_module+regexes_name == 0:
+        verbose(args, f'(+) Symbol {infos["module"]}.{infos["symbol"]} satisfied all criterias.')
+        return True
 
     for name, rex in regexes['not-module']:
         match = rex.search(infos['module'])
         if match:
+            matched = match.group(1)
+            infos['module'] = infos['module'].replace(matched, Logger.colored(args, matched, 'red'))
             verbose(args, f'(-) Skipping symbol\'s module {infos["module"]}.{infos["symbol"]} as it DID satisfy not-module ({name}) regex.')
             return False
+
+    if regexes_module+regexes_name == 0:
+        verbose(args, f'(+) Symbol {infos["module"]}.{infos["symbol"]} satisfied all criterias.')
+        return True
 
     satisifed = False
     carryOn = False
@@ -126,16 +178,24 @@ def verifyCriterias(args, regexes, infos, uniqueSymbols):
         for name, rex in regexes['module']:
             match = rex.search(infos['module'])
             if match:
+                matched = match.group(1)
+                infos['module'] = infos['module'].replace(matched, Logger.colored(args, matched, 'green'))
                 verbose(args, f'(+) Symbol\'s module {infos["module"]}.{infos["symbol"]} satisfied module ({name}) regex.')
                 carryOn = True
                 break
     else:
         carryOn = True
 
+    if regexes_name == 0:
+        verbose(args, f'(+) Symbol {infos["module"]}.{infos["symbol"]} satisfied all criterias.')
+        return True
+
     if carryOn:
         for name, rex in regexes['name']:
             match = rex.search(infos['symbol'])
             if match:
+                matched = match.group(1)
+                infos['symbol'] = infos['symbol'].replace(matched, Logger.colored(args, matched, 'green'))
                 verbose(args, f'(+) Symbol {infos["module"]}.{infos["symbol"]} satisfied name ({name}) regex.')
                 satisifed = True
                 break
@@ -194,10 +254,16 @@ def processFile(args, regexes, path, results, uniqueSymbols, filesProcessed, sym
 
         if args.format == 'text':
             appendRow = verifyCriterias(args, regexes, infos, uniqueSymbols)
+
+            if args.color:
+                if infos['symbol type'] == 'import': 
+                    infos['symbol type'] = Logger.colored(args, infos['symbol type'], 'cyan')
+                else:
+                    infos['symbol type'] = Logger.colored(args, infos['symbol type'], 'yellow')
         
             if appendRow:
                 row = []
-                MaxWidth = 80
+                MaxWidth = 40
 
                 for h in headers:
                     obj = None
@@ -208,7 +274,10 @@ def processFile(args, regexes, path, results, uniqueSymbols, filesProcessed, sym
                         obj = infos[h]
 
                     if type(obj) == str and len(obj) > MaxWidth:
-                        obj = '\n'.join(textwrap.wrap(obj, width = MaxWidth))
+                        if h == 'path':
+                            obj = '\n'.join(textwrap.wrap(obj, width = 2 * MaxWidth))
+                        else:
+                            obj = '\n'.join(textwrap.wrap(obj, width = MaxWidth))
 
                     row.append(obj)
 
@@ -222,6 +291,12 @@ def processFile(args, regexes, path, results, uniqueSymbols, filesProcessed, sym
 
         elif args.format == 'json':
             appendRow = verifyCriterias(args, regexes, infos, uniqueSymbols)
+
+            if args.color:
+                if infos['symbol type'] == 'import': 
+                    infos['symbol type'] = Logger.colored(args, infos['symbol type'], 'cyan')
+                else:
+                    infos['symbol type'] = Logger.colored(args, infos['symbol type'], 'yellow')
         
             if appendRow:
                 results.append(infos)
@@ -236,7 +311,7 @@ def processFile(args, regexes, path, results, uniqueSymbols, filesProcessed, sym
     symbolsProcessed.value += len(symbols)
 
 def trap_handler(signum, frame):
-    out('[-] CTRL-C pressed. Wait a minute until all processes wrap up.')
+    out('[-] CTRL-C pressed. Wait a minute until all processes wrap up or manually terminate python\'s child processes tree.')
 
 def init_worker():
     signal.signal(signal.SIGINT, trap_handler)
@@ -300,6 +375,7 @@ def opts(argv):
     params.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format. Text or JSON.')
     params.add_argument('-E', '--extension', default=[], action='append', help='Extensions of files to scan. By default will scan all files. Can be repeated: -E exe -E dll')
     params.add_argument('-o', '--output', metavar='PATH', help='Write output to file.')
+    params.add_argument('-C', '--color', default=False, action='store_true', help='Add colors to text output. May uglify table text output')
 
     sorting = params.add_argument_group('Output sorting')
     sorting.add_argument('-u', '--unique', action='store_true', help = 'Return unique symbols only. The first symbol with a name that occurs in results, will be returned.')
@@ -310,7 +386,7 @@ def opts(argv):
     filters = params.add_argument_group('Output filtering')
     filters.add_argument('-i', '--imports', action='store_true', help = 'Filter only Imports.')
     filters.add_argument('-e', '--exports', action='store_true', help = 'Filter only Exports.')
-    filters.add_argument('-s', '--name', action='append', default=[], help = 'Search for symbols with name matching this regular expression. Can be repeated, case insensitive, constructs: ".+VALUE.+"')
+    filters.add_argument('-s', '--name', action='append', default=[], help = 'Search for symbols with name matching this regular expression. Can be repeated, case insensitive')
     filters.add_argument('-S', '--not-name', action='append', default=[], help = 'Search for symbols with name NOT matching this regular expression.')
     filters.add_argument('-m', '--module', action='append', default=[], help = 'Search for symbols exported in/imported from this module matching regular expression.')
     filters.add_argument('-M', '--not-module', action='append', default=[], help = 'Search for symbols NOT exported in/NOT imported from this module matching regular expression.')
@@ -321,7 +397,7 @@ def opts(argv):
         out('[!] --imports and --exports are mutually exclusive. Pick only one of them!')
         sys.exit(1)
 
-    accomodate_rex = lambda x: x
+    accomodate_rex = lambda x: f'({x})'
 
     regexes = {
         'name': [],
@@ -418,15 +494,15 @@ def main():
                 print(table)
 
             if args.first > 0:
-                out(f'\n[+] Found {len(resultsList)} symbols meeting all the criterias (but shown only first {args.first} ones).\n')
+                out(f'\n[+] Found {Logger.colored(args, len(resultsList), "green")} symbols meeting all the criterias (but shown only first {Logger.colored(args, args.first, "magenta")} ones).\n')
             else:
-                out(f'\n[+] Found {len(resultsList)} symbols meeting all the criterias.\n')
+                out(f'\n[+] Found {Logger.colored(args, len(resultsList), "green")} symbols meeting all the criterias.\n')
 
         else:
             out(f'[-] Did not find symbols meeting specified criterias.')
 
-        out(f'[.] Processed {filesProcessed.value} files and {symbolsProcessed.value} symbols.')
-        out('[.] Time elapsed: {}'.format(time_elapsed))
+        out(f'[.] Processed {Logger.colored(args, filesProcessed.value, "green")} files and {Logger.colored(args, symbolsProcessed.value, "green")} symbols.')
+        out('[.] Time elapsed: {}'.format(Logger.colored(args, time_elapsed, "magenta")))
 
 if __name__ == '__main__':
     freeze_support()

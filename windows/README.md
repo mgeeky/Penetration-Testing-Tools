@@ -31,6 +31,7 @@ optional arguments:
                         Extensions of files to scan. By default will scan all files. Can be repeated: -E exe -E dll
   -o PATH, --output PATH
                         Write output to file.
+  -C, --color           Add colors to text output. May uglify table text output
 
 Output sorting:
   -u, --unique          Return unique symbols only. The first symbol with a name that occurs in results, will be returned.
@@ -42,7 +43,7 @@ Output sorting:
 Output filtering:
   -i, --imports         Filter only Imports.
   -e, --exports         Filter only Exports.
-  -s NAME, --name NAME  Search for symbols with name matching this regular expression. Can be repeated, case insensitive, constructs: ".+VALUE.+"
+  -s NAME, --name NAME  Search for symbols with name matching this regular expression. Can be repeated, case insensitive
   -S NOT_NAME, --not-name NOT_NAME
                         Search for symbols with name NOT matching this regular expression.
   -m MODULE, --module MODULE
