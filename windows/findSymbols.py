@@ -224,7 +224,7 @@ def processFile(args, regexes, path, results, uniqueSymbols, filesProcessed, sym
             appendRow = verifyCriterias(args, regexes, infos, uniqueSymbols)
         
             if appendRow:
-                results.append(row)
+                results.append(infos)
                 uniqueSymbols.append(symbolName)
 
                 #verbose(args, 'Processed results:\n' + pprint.pformat(infos))
@@ -247,11 +247,13 @@ def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symb
     for file in glob.glob(os.path.join(path, '**'), recursive=args.recurse):
         try:
             if len(args.extension) > 0:
-                skip = False
+                skip = True
                 for ext in args.extension:
-                    if not file.lower().endswith(f'.{ext}'):
-                        skip = True
+                    if file.lower().endswith(f'.{ext}'):
+                        skip = False
+                        break
                 if skip:
+                    verbose(args, f'[-] Skipping file as it not matched extension ({ext}): {file}')
                     continue
 
             if os.path.isfile(file):
@@ -297,6 +299,7 @@ def opts(argv):
     params.add_argument('-v', '--verbose', action='store_true', help='Verbose mode.')
     params.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format. Text or JSON.')
     params.add_argument('-E', '--extension', default=[], action='append', help='Extensions of files to scan. By default will scan all files. Can be repeated: -E exe -E dll')
+    params.add_argument('-o', '--output', metavar='PATH', help='Write output to file.')
 
     sorting = params.add_argument_group('Output sorting')
     sorting.add_argument('-u', '--unique', action='store_true', help = 'Return unique symbols only. The first symbol with a name that occurs in results, will be returned.')
@@ -341,7 +344,8 @@ def opts(argv):
 
     for i in range(len(args.extension)):
         args.extension[i] = args.extension[i].lower()
-        if args.extension[i].startswith('.'): args.extension[i] = args.extension[i][1:]
+        if args.extension[i].startswith('.'): 
+            args.extension[i] = args.extension[i][1:]
 
     return args, regexes
 
@@ -385,8 +389,13 @@ def main():
 
     if args.format == 'json':
         resultsList = list(results)
-        print(json.dumps(resultsList, indent=4))
+        dumped = str(json.dumps(resultsList, indent=4))
 
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(dumped)
+        else:
+            print(dumped)
     else:
         resultsList = list(results)
         if len(resultsList) > 0:
@@ -402,7 +411,11 @@ def main():
 
             table = tabulate.tabulate(resultsList, headers=['#',] + headers, showindex='always', tablefmt='pretty')
 
-            print(table)
+            if args.output:
+                with open(args.output, 'w', encoding='utf-8') as f:
+                    f.write(str(table))
+            else:
+                print(table)
 
             if args.first > 0:
                 out(f'\n[+] Found {len(resultsList)} symbols meeting all the criterias (but shown only first {args.first} ones).\n')
