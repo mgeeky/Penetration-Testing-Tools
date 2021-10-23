@@ -245,14 +245,17 @@ def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symb
     filePaths = []
 
     for file in glob.glob(os.path.join(path, '**'), recursive=args.recurse):
-        if os.path.isfile(file):
-            looks_like_pe = False
-            with open(file, 'rb') as f:
-                mz = f.read(2)
-                if len(mz) == 2:
-                    looks_like_pe = (mz[0] == ord('M') and mz[1] == ord('Z')) or (mz[1] == ord('M') and mz[0] == ord('Z'))
+        try:
+            if os.path.isfile(file):
+                looks_like_pe = False
+                with open(file, 'rb') as f:
+                    mz = f.read(2)
+                    if len(mz) == 2:
+                        looks_like_pe = (mz[0] == ord('M') and mz[1] == ord('Z')) or (mz[1] == ord('M') and mz[0] == ord('Z'))
 
-            if looks_like_pe: filePaths.append(file)
+                if looks_like_pe: filePaths.append(file)
+        except:
+            continue
 
     cpu_count = multiprocessing.cpu_count()
 
