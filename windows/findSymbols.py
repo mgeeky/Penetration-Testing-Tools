@@ -246,6 +246,14 @@ def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symb
 
     for file in glob.glob(os.path.join(path, '**'), recursive=args.recurse):
         try:
+            if len(args.extension) > 0:
+                skip = False
+                for ext in args.extension:
+                    if not file.lower().endswith(f'.{ext}'):
+                        skip = True
+                if skip:
+                    continue
+
             if os.path.isfile(file):
                 looks_like_pe = False
                 with open(file, 'rb') as f:
@@ -254,7 +262,9 @@ def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symb
                         looks_like_pe = (mz[0] == ord('M') and mz[1] == ord('Z')) or (mz[1] == ord('M') and mz[0] == ord('Z'))
 
                 if looks_like_pe: filePaths.append(file)
-        except:
+        
+        except Exception as e:
+            verbose(args, f'[-] Could not open file: ({file}). Exception: {e}')
             continue
 
     cpu_count = multiprocessing.cpu_count()
@@ -265,6 +275,9 @@ def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symb
         arguments = [[args, regexes, _path, results, uniqueSymbols, filesProcessed, symbolsProcessed] for _path in filePaths]
 
         out(f'[.] Will scan {len(filePaths)} files...')
+        if len(filePaths) > 5000:
+            out(f'[.] Be patient that\'s gonna take a long while...')
+
         res = pool.map(processFileWorker, arguments)
 
     except KeyboardInterrupt:
@@ -283,6 +296,7 @@ def opts(argv):
     params.add_argument('-r', '--recurse', action='store_true', help='If <path> is a directory, perform recursive scan.')
     params.add_argument('-v', '--verbose', action='store_true', help='Verbose mode.')
     params.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format. Text or JSON.')
+    params.add_argument('-E', '--extension', default=[], action='append', help='Extensions of files to scan. By default will scan all files. Can be repeated: -E exe -E dll')
 
     sorting = params.add_argument_group('Output sorting')
     sorting.add_argument('-u', '--unique', action='store_true', help = 'Return unique symbols only. The first symbol with a name that occurs in results, will be returned.')
@@ -325,6 +339,10 @@ def opts(argv):
     for not_module in args.not_module:
         regexes['not-module'].append((not_module, re.compile(accomodate_rex(not_module), re.I)))
 
+    for i in range(len(args.extension)):
+        args.extension[i] = args.extension[i].lower()
+        if args.extension[i].startswith('.'): args.extension[i] = args.extension[i][1:]
+
     return args, regexes
 
 def main():
@@ -334,7 +352,7 @@ def main():
     symbolsProcessed = Manager().Value('i', 0)
 
     out('''
-    :: scanSymbols.py - Searches PE Import/Exports based on supplied conditions.
+    :: findSymbols.py - Finds PE Import/Exports based on supplied filters.
     
     Mariusz B. / mgeeky, '21
     <mb [at] binary-offensive.com> 
