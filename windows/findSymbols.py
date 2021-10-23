@@ -35,7 +35,7 @@ from itertools import product
 from multiprocessing import Pool, Queue, Process, freeze_support, Manager, Lock
 
 
-DEFAULT_COLUMN_SORTED = 'symbol'
+DEFAULT_COLUMN_SORTED = 'filename'
 
 headers = [
     'filename',
@@ -228,6 +228,7 @@ def processFile(args, regexes, path, results, uniqueSymbols, filesProcessed, sym
         mod.parse_data_directories()
 
     except:
+        mod.close()
         return
 
     imports = collectImports(args, mod)
@@ -319,6 +320,7 @@ def init_worker():
 def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symbolsProcessed):
     filePaths = []
 
+    out('[.] Building list of files to process...')
     for file in glob.glob(os.path.join(path, '**'), recursive=args.recurse):
         try:
             if len(args.extension) > 0:
@@ -351,14 +353,14 @@ def processDir(args, regexes, path, results, uniqueSymbols, filesProcessed, symb
     try:
         arguments = [[args, regexes, _path, results, uniqueSymbols, filesProcessed, symbolsProcessed] for _path in filePaths]
 
-        out(f'[.] Will scan {len(filePaths)} files...')
+        out(f'[.] Scanning {Logger.colored(args, len(filePaths), "yellow")} files...')
         if len(filePaths) > 5000:
             out(f'[.] Be patient that\'s gonna take a long while...')
 
         res = pool.map(processFileWorker, arguments)
 
     except KeyboardInterrupt:
-        out(f'[-] User interrupted the scan after {filesProcessed.value} files.')
+        out(f'[-] User interrupted the scan after {Logger.colored(args, filesProcessed.value, "red")} files.')
         pool.terminate()
         pool.join()
 
@@ -471,7 +473,7 @@ def main():
             with open(args.output, 'w') as f:
                 f.write(dumped)
         else:
-            print(dumped)
+            print('\n' + dumped)
     else:
         resultsList = list(results)
         if len(resultsList) > 0:
@@ -491,7 +493,7 @@ def main():
                 with open(args.output, 'w', encoding='utf-8') as f:
                     f.write(str(table))
             else:
-                print(table)
+                print('\n' + table)
 
             if args.first > 0:
                 out(f'\n[+] Found {Logger.colored(args, len(resultsList), "green")} symbols meeting all the criterias (but shown only first {Logger.colored(args, args.first, "magenta")} ones).\n')
