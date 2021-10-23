@@ -8,7 +8,7 @@
 - **`find-system-and-syswow64-binaries.py`** - Finds files with specified extension in both System32 and SysWOW64 and then prints their intersection. Useful for finding executables (for process injection purposes) that reside in both directories (such as `WerFault.exe`)
 
 
-- **`findSymbols.py`** - Script that recursively searches through PE files, scans their Imports and Exports and returns those matching filter criterias (like imported from specified module, name regexes, etc.)
+- **`findSymbols.py`** - Script that recursively searches through PE files, scans their Imports and Exports and returns those matching filter criterias (like imported from specified module, name regexes, etc.). Uses `multiprocessing` to process files in parallel, dramatically cutting scan time in large directories.
 
 ```
     :: findSymbols.py - Finds PE Import/Exports based on supplied filters.
