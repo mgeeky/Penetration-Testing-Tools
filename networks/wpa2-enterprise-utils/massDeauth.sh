@@ -5,7 +5,7 @@
 # that takes as input list of APs against which should deauth be launched,
 # and then attempts that attack.
 #
-# Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
 #
 
 if [ $# -ne 1 ]; then

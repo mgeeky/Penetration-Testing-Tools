@@ -3,7 +3,7 @@
 # This script simply calls `aws sts assume-role` using hardcoded parameters, in order
 # to retrieve set of session credentials and reformat it into ~/.aws/credentials file format.
 #
-# Mariusz B., mgeeky '19-20
+# Mariusz Banach, mgeeky '19-20
 #
 
 

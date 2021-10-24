@@ -2036,7 +2036,7 @@ def parseArgs(argv):
 def main(argv):
     print('''
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
-    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 ''')
     parseArgs(argv) 
 

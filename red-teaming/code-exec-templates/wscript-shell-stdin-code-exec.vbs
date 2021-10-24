@@ -3,7 +3,7 @@
 ' execute given command in a hidden window via StdIn passed to a dedicated
 ' launcher command (powershell.exe in this example).
 '
-' Mariusz B. / mgeeky, <mb@binary-offensive.com>
+' Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 ' (https://github.com/mgeeky)
 '
 

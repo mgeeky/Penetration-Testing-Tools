@@ -39,7 +39,7 @@
 #   - Add auto-packets capture functionality via tshark/tcpdump to specified out directory
 #   - Add functionality to auto-scan via arp-scan desired network
 #
-# Mariusz B. / mgeeky, '18-19, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky, '18-19, <mb@binary-offensive.com>
 #
 
 import os
@@ -724,7 +724,7 @@ def parseOptions(argv):
     print('''
         :: VLAN Hopping via DTP Trunk negotiation 
         Performs VLAN Hopping via negotiated DTP Trunk / Switch Spoofing technique
-        Mariusz B. / mgeeky '18-19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '18-19, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 

@@ -13,7 +13,7 @@
 #		keeping tools list more or less up-to-date, or to remove tool's pull down entirely from the script
 #	- only tools that I've found useful at least once are landing in this script.
 #
-# Mariusz B., '18-'19
+# Mariusz Banach, '18-'19
 #
 
 # Well, entire Kali installation assume that we are normally working as root on our Kali.

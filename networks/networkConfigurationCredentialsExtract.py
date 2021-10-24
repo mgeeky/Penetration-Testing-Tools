@@ -5,7 +5,7 @@
 # configuration files in order to extract plain and cipher passwords out of them.
 # Equipped with functionality to decrypt Cisco Type 7 passwords.
 #
-# Mariusz B., mgeeky '18-20
+# Mariusz Banach, mgeeky '18-20
 #
 
 import re
@@ -427,7 +427,7 @@ def printResults():
 def main(argv):
     Logger._out('''
     :: Network-configuration Credentials extraction script
-    Mariusz B. / mgeeky, '18
+    Mariusz Banach / mgeeky, '18
 ''')
     opts = parseOptions(argv)
     if not opts:

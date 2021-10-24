@@ -5,7 +5,7 @@
 # policy statements. Then goes through allowed permissions to pick all of them out.
 # Finally, checks every allowed permission against a list of known troublesome ones.
 #
-# Mariusz B., mgeeky '19, <mb@binary-offensive.com>
+# Mariusz Banach, mgeeky '19, <mb@binary-offensive.com>
 # v0.1
 #
 

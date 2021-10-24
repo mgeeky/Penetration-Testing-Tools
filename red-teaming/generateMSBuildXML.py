@@ -12,7 +12,7 @@
 #   - raw Shellcode in a separate thread via CreateThread
 #   - .NET Assembly via Assembly.Load
 #
-# Mariusz B. / mgeeky, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 #
 
 import re
@@ -479,7 +479,7 @@ def getInlineTask(module, payload, _format, apc, targetProcess):
 
   <!--  Based on Casey Smith work, Twitter: @subTee                      -->
   <!--  Automatically generated using `generateMSBuildXML.py` utility    -->
-  <!--  by Mariusz B. / mgeeky <mb@binary-offensive.com>                 -->
+  <!--  by Mariusz Banach / mgeeky <mb@binary-offensive.com>                 -->
 
   <Target Name="$taskName">
     <$templateName />
@@ -584,7 +584,7 @@ def main(argv):
     sys.stderr.write('''
         :: Powershell via MSBuild inline-task XML payload generation script
         To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'
-        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 ''')
     if len(argv) < 2:

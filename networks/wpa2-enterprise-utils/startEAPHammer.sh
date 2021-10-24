@@ -14,7 +14,7 @@
 # Especially handy when used with companion script called:
 #	`initDHCPServer.sh`
 #
-# Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
 #
 
 ####################################################################

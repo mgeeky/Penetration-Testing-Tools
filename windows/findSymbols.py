@@ -9,7 +9,7 @@
 #   - module matching name
 #   - module NOT matching name
 #
-# Mariusz B. / mgeeky, '21
+# Mariusz Banach / mgeeky, '21
 # <mb [at] binary-offensive.com>
 #
 
@@ -436,7 +436,7 @@ def main():
     out('''
     :: findSymbols.py - Finds PE Import/Exports based on supplied filters.
     
-    Mariusz B. / mgeeky, '21
+    Mariusz Banach / mgeeky, '21
     <mb [at] binary-offensive.com> 
 ''')
 

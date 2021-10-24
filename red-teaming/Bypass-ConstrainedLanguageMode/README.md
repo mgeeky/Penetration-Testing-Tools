@@ -26,7 +26,7 @@ PS > .\Bypass-CLM.ps1
         (implementation of: @xpn's technique, as documented in:)
         (https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/)
 
-        Re-implemented, enhanced by: Mariusz B., mgeeky
+        Re-implemented, enhanced by: Mariusz Banach, mgeeky
         -----
 
 [.] Step 0. Planted DLL files in:

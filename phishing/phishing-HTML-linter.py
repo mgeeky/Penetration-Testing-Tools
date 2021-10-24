@@ -205,7 +205,7 @@ def main(argv):
     print('''
     :: Phishing HTML Linter
     Shows you bad smells in your HTML code that will get your mails busted!
-    Mariusz B. / mgeeky
+    Mariusz Banach / mgeeky
 ''')
 
     html = ''

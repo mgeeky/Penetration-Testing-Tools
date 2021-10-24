@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 #   Padding Oracle test-cases generator.
-#   Mariusz B. / mgeeky, 2016
+#   Mariusz Banach / mgeeky, 2016
 #   v0.2
 # 
 #   Simple utility that aids the penetration tester when manually testing Padding Oracle condition
@@ -277,7 +277,7 @@ def hex_dump(data):
 
 def main():
     info('\n\tPadding Oracle test-cases generator')
-    info('\tMariusz B. / mgeeky, 2016\n')
+    info('\tMariusz Banach / mgeeky, 2016\n')
 
     if len(sys.argv) < 2:
         warning('usage: padding-oracle-tests.py <data> [blocksize]')

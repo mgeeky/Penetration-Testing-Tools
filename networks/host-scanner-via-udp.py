@@ -6,7 +6,7 @@
 #
 # Based on "Black Hat Python" book by Justin Seitz.
 #
-# Mariusz B.
+# Mariusz Banach
 #
 
 import os

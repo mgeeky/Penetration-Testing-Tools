@@ -211,7 +211,7 @@ def parseOptions(argv):
     print('''
         :: Cracking the Lens pingback responding server
         Responds to every Out-of-band request correlating them along the way
-        Mariusz B. / mgeeky '16-18, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '16-18, <mb@binary-offensive.com>
 ''')
 
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options]')

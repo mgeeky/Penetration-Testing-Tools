@@ -36,6 +36,6 @@ This and other projects are outcome of sleepless nights and **plenty of hard wor
 ---
 
 ```
-Mariusz B. / mgeeky, (@mariuszbit)
+Mariusz Banach / mgeeky, (@mariuszbit)
 <mb [at] binary-offensive.com>
 ```

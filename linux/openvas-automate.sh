@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # OpenVAS automation script.
-# Mariusz B. / mgeeky, '17
+# Mariusz Banach / mgeeky, '17
 #	v0.2
 #
 

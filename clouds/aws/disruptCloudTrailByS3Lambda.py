@@ -38,7 +38,7 @@
 #   - boto3
 #   - pytest
 #
-# Author: Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+# Author: Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 #
 
 
@@ -427,7 +427,7 @@ def parseOptions(argv):
     print('''
         :: AWS CloudTrail disruption via S3 Put notification to Lambda
         Disrupts AWS CloudTrail logging by planting Lambda that deletes S3 objects upon their creation
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 ''')
 
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <region> [trail_name]')

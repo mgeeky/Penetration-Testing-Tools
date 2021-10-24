@@ -33,7 +33,7 @@
 #   WARNING: Since this method creates a publicly available AMI image that will contain customer sensitive data, it is 
 #   not recommended to use it during legal AWS Penetration Tests 
 #
-# Author: Mariusz B. / mgeeky, '19, <mb@binary-offensive.com>
+# Author: Mariusz Banach / mgeeky, '19, <mb@binary-offensive.com>
 #
  
 import sys
@@ -422,7 +422,7 @@ def parseOptions(argv):
     print('''
         :: exfiltrate-ec2
         Exfiltrates EC2 data by creating an image of it or snapshot of it's EBS volume
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
 ''')
 
     parser = argparse.ArgumentParser(prog = argv[0])

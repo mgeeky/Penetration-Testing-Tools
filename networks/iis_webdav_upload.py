@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
   print '\n\tMicrosoft IIS WebDAV Write Code Execution exploit'
   print '\t(based on Metasploit HDM\'s <iis_webdav_upload_asp> implementation)'
-  print '\tMariusz B. / mgeeky, 2016\n'
+  print '\tMariusz Banach / mgeeky, 2016\n'
 
   host = sys.argv[1]
   if not host.startswith('http'):

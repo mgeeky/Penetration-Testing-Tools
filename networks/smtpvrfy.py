@@ -3,7 +3,7 @@
 # Simple script intended to abuse SMTP server's VRFY command to leak
 # usernames having accounts registered within it.
 #
-# Mariusz B., 2016
+# Mariusz Banach, 2016
 #
 
 import socket

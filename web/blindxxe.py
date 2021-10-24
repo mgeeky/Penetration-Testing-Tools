@@ -31,7 +31,7 @@
 #   mysql:x:101:65534:Linux User,,,:/home/mysql:/bin/false
 #
 #
-# Mariusz B., 2016
+# Mariusz Banach, 2016
 #
 
 
@@ -132,7 +132,7 @@ def parseOptions(argv):
     print('''
         :: Blind-XXE attacker's helper backend component
         Helps exfiltrate files by abusing out-of-bands XML External Entity vulnerabilities.
-        Mariusz B. / mgeeky '16-18, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '16-18, <mb@binary-offensive.com>
 ''')
 
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <file>')

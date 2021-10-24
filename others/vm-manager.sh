@@ -11,7 +11,7 @@
 #   - scanning for other VMs
 #   - setting selected VM's IP address within /etc/hosts (and alike) file
 #
-# Mariusz B. / mgeeky, '16-'19
+# Mariusz Banach / mgeeky, '16-'19
 # v0.7
 #
 

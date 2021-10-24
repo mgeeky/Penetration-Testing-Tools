@@ -37,7 +37,7 @@ PS > py .\gophish-send-mail.py .\send-mail-with-gophish.yaml
 
     :: GoPhish Single Mail Send utility
     Helping you embellish your emails by sending them one-by-one
-    Mariusz B. / mgeeky
+    Mariusz Banach / mgeeky
 
 [+] Template to use:
     ID:      22

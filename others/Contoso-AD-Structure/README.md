@@ -5,7 +5,7 @@ Create Contoso Users in Active Directory This script creates 270 + users in Acti
 
 ***Original Author: Mark Rhodes - markrhodes@gmail.com - @mrhodes***
 
-***Modified by: Mariusz B., mb@binary-offensive.com - @mgeeky***
+***Modified by: Mariusz Banach, mb@binary-offensive.com - @mgeeky***
 
 **To Use:** 
 Extract all files and run Create-ADStructure.ps1 from an Administrative PowerShell prompt.

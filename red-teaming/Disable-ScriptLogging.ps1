@@ -5,7 +5,7 @@
     
 Attempts to disable Script Block logging within current process using well-known techniques laid out in an unsignatured way.
 
-Author: Mariusz B. (@mgeeky)
+Author: Mariusz Banach (@mgeeky)
 License: BSD 3-Clause
 Required Dependencies: None
 Optional Dependencies: None

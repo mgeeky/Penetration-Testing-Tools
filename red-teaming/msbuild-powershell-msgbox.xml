@@ -3,7 +3,7 @@
  <!-- Based on Casey Smith work (https://gist.github.com/subTee/ca477b4d19c885bec05ce238cbad6371), Twitter: @subTee  -->
  
  <!-- To be launched like so: cmd> %WINDIR%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe task1.xml -->
- <!-- Modified by Mariusz B. / mgeeky. -->
+ <!-- Modified by Mariusz Banach / mgeeky. -->
 	
   <Target Name="MyLittleInlineTaskName">
    <MyLittleInlineTask />

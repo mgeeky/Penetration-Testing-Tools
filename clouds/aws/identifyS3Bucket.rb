@@ -3,7 +3,7 @@
 # This script leverages couple of methods in order to validate that passed
 # domain is a S3 bucket indeed.
 #
-# Mariusz B., 2019, <mb@binary-offensive.com>
+# Mariusz Banach, 2019, <mb@binary-offensive.com>
 #
 
 require 'resolv'
@@ -245,7 +245,7 @@ def main(args)
 
 	puts %{
 	:: Identifies AWS S3 Buckets via couple of methods
-	Mariusz B. 19', <mb@binary-offensive.com>
+	Mariusz Banach 19', <mb@binary-offensive.com>
 	}
 
 	if ARGV.length != 1

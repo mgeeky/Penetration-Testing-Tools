@@ -8,7 +8,7 @@ c:\>py -3 tamperUpx.py foo-upx.exe foo-upx-corrupted.exe
     :: tamperUpx - a small utility that corrupts UPX-packed executables,
     making them much harder to be decompressed & restored.
 
-    Mariusz B. / mgeeky, '21
+    Mariusz Banach / mgeeky, '21
 
 Step 1. Renaming UPX sections...
         Renamed UPX section (UPX0    ) => (.text)

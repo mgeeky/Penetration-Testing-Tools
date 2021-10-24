@@ -8,7 +8,7 @@
     PS> . .\Get-UserPasswordEntries.ps1
     PS> Get-UserPasswordEntries
   
-  Mariusz B. / mgeeky
+  Mariusz Banach / mgeeky
 #>
 
 # This script requires PowerView 3.0 dev branch

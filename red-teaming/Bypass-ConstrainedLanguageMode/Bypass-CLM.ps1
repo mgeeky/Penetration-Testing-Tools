@@ -100,7 +100,7 @@ function Bypass-CLM
     Write-Host "`tAppLocker Constrined Language Mode Bypass via COM"
     Write-Host "`t(implementation of: @xpn's technique, as documented in:)"
     Write-Host "`t(https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/)"
-    Write-Host "`n`tRe-implemented, enhanced by: Mariusz B., mgeeky"
+    Write-Host "`n`tRe-implemented, enhanced by: Mariusz Banach, mgeeky"
     Write-Host "`t-----`n"
 
     Write-Host "[.] Step 0. Planted DLL files in:`n`t$dstAssemblyPath`n`t$dstDllPath"

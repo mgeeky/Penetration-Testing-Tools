@@ -7,7 +7,7 @@
 # Nothing fancy, just set of needed commands. Especially handy when
 # used with `startEAPHammer.sh` script.
 #
-# Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
 #
 
 if [ $# -ne 2 ]; then

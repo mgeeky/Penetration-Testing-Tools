@@ -32,7 +32,7 @@
 #   - packaging
 #
 # Author:
-#   Mariusz B. / mgeeky, '19, <mb@binary-offensive.com>
+#   Mariusz Banach / mgeeky, '19, <mb@binary-offensive.com>
 #
 
 import re
@@ -1300,7 +1300,7 @@ def parseOptions(argv):
     print('''
         :: Exchange Fingerprinter
         Tries to obtain internal IP address, Domain name and other clues by talking to Exchange
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 

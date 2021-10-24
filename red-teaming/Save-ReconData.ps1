@@ -5,7 +5,7 @@
 	This script launches many PowerView cmdlets and stores their output 
 	in Clixml files for later processing.
 
-	Author: Mariusz B. (mgeeky), '18
+	Author: Mariusz Banach (mgeeky), '18
 	License: BSD 3-Clause
 	Required Dependencies: PowerSploit's Recon.psm1
 #>

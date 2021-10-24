@@ -26,7 +26,7 @@
 #       $ ./ysoserial-generator.py -u -b -y ~/tools/ysoserial/ysoserial.jar -s --lhost 192.168.56.1:8000
 #           :: ysoserial payloads generation helper
 #           Helps generate many variations of payloads to try against vulnerable application.
-#           Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+#           Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
 #           v0.1
 #
 #       [+] Command within payload:
@@ -55,7 +55,7 @@
 #
 #
 # Author: 
-#    Mariusz B., '18-19 / <mb@binary-offensive.com>
+#    Mariusz Banach, '18-19 / <mb@binary-offensive.com>
 #
 
 import os
@@ -379,7 +379,7 @@ def parseOptions(argv):
     print('''
         :: ysoserial payloads generation helper
         Helps generate many variations of payloads to try against vulnerable application.
-        Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 

@@ -5,7 +5,7 @@
 # the switch's port. This reconessaince will be helpful for performing
 # VLAN Hopping attacks.
 #
-# Mariusz B. / mgeeky, '18
+# Mariusz Banach / mgeeky, '18
 #
 
 import os

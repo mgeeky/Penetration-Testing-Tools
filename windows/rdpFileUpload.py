@@ -21,7 +21,7 @@
 #   - tqdm
 #
 # Author:
-#   Mariusz B. / mgeeky (@mariuszbit), '20
+#   Mariusz Banach / mgeeky (@mariuszbit), '20
 #   <mb [at] binary-offensive.com>
 #
 
@@ -313,7 +313,7 @@ def parseOptions(argv):
     Takes an input file/folder and retypes it into focused RDP session window.
     That effectively uploads the file into remote host over a RDP channel.
 
-    Mariusz B. / mgeeky '20, (@mariuszbit)
+    Mariusz Banach / mgeeky '20, (@mariuszbit)
     <mb@binary-offensive.com>
 ''')
 

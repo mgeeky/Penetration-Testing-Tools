@@ -25,7 +25,7 @@
 # Requirements:
 #   - paramiko
 #
-# Mariusz B. / mgeeky, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 #
 
 import sys
@@ -360,7 +360,7 @@ def main():
     sys.stderr.write('''
     :: CVE-2018-10993 libSSH authentication bypass exploit.
     Tries to attack vulnerable libSSH libraries by accessing SSH server without prior authentication.
-    Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
     v{}
     
 '''.format(VERSION))

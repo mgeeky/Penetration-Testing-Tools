@@ -23,7 +23,7 @@
 #   $ ./pth-carpet.py machines.txt pwdump
 #
 # coded by:
-#   Mariusz B., 2016 / mgeeky
+#   Mariusz Banach, 2016 / mgeeky
 #   version 0.2
 #
 # Should be working on Windows boxes as well as on Linux ones.
@@ -172,7 +172,7 @@ def worker(stopevent, pwdump, machine):
 def main():
     global OPTIONS
 
-    print(colored('\n\tPass-The-Hash Carpet Bombing utility\n\tSmall utility trying every provided hash against every specified machine.\n\tMariusz B., 2016\n', 'white', attrs=['bold']))
+    print(colored('\n\tPass-The-Hash Carpet Bombing utility\n\tSmall utility trying every provided hash against every specified machine.\n\tMariusz Banach, 2016\n', 'white', attrs=['bold']))
 
     parser = argparse.ArgumentParser(add_help = True, description='Pass-The-Hash mass checking tool')
     parser.add_argument('rhosts', nargs='?', help='Specifies input file containing list of machines or CIDR notation of hosts')

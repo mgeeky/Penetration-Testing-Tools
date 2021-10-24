@@ -5,7 +5,7 @@
     files for later processing. This script is compatible with newest PowerView's version,
     from dev branch (as of 2018) that uses Get-Domain*, Find-* (instead of Invoke-*) and others cmdlets.
 
-    Author: Mariusz B. (mgeeky), '18
+    Author: Mariusz Banach (mgeeky), '18
     License: BSD 3-Clause
     Required Dependencies: PowerSploit's Recon.psm1
 #>

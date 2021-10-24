@@ -2,7 +2,7 @@
 ' This script uses WMI class' Win32_Process static method Create to 
 ' execute given command in a hidden window (ShowWindow = 12).
 '
-' Mariusz B. / mgeeky, <mb@binary-offensive.com>
+' Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 ' (https://github.com/mgeeky)
 '
 

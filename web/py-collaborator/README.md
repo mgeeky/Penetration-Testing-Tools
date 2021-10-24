@@ -80,7 +80,7 @@ hostname|23:55|~/dev/py-collaborator # python3.7 py-collaborator-server.py -d
 
         :: Cracking the Lens pingback responding server
         Responds to every Out-of-band request correlating them along the way
-        Mariusz B. / mgeeky '16-18, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '16-18, <mb@binary-offensive.com>
 
 [-] You shall specify all needed MySQL connection data either via program options or config file.
 [+] Database initialized.

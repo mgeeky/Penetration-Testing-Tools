@@ -1,7 +1,7 @@
 #requires -version 2
 
 <#
-    Author: Mariusz B. (@mgeeky)
+    Author: Mariusz Banach (@mgeeky)
     License: BSD 3-Clause
     Required Dependencies: PowerView.ps1
     Optional Dependencies: None
@@ -12,7 +12,7 @@ function Get-DomainOUTree
 <#
 	.SYNOPSIS
 
-	    Author: Mariusz B. (@mgeeky)
+	    Author: Mariusz Banach (@mgeeky)
     	License: BSD 3-Clause
    	 	Required Dependencies: PowerView.ps1
     	Optional Dependencies: None
@@ -65,7 +65,7 @@ function Get-NetOUTree
 <#
 	.SYNOPSIS
 
-	    Author: Mariusz B. (@mgeeky)
+	    Author: Mariusz Banach (@mgeeky)
     	License: BSD 3-Clause
    	 	Required Dependencies: PowerView.ps1
     	Optional Dependencies: None

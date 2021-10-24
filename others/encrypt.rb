@@ -4,7 +4,7 @@
 # In latter case producing encrypted ZIP package that will get decompressed automatically
 # after decryption.
 #
-# Mariusz B., 2016 v0.1
+# Mariusz Banach, 2016 v0.1
 #
 
 require 'optparse'

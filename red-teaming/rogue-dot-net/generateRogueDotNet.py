@@ -34,7 +34,7 @@
 #        cmd> %WINDIR%\Microsoft.NET\Framework64\v2.0.50727\InstallUtil.exe /logfile= /logtoconsole=false /U rogue.dll
 #        cmd> %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /logtoconsole=false /U rogue.dll
 #
-# Mariusz B. / mgeeky, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 #
 
 import re
@@ -519,7 +519,7 @@ def getSourceFileContents(
 
 /*
     Author: Casey Smith, Twitter: @subTee
-    Customized by: Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Customized by: Mariusz Banach / mgeeky, <mb@binary-offensive.com>
     License: BSD 3-Clause
 
     Step 1: Create Your Strong Name Key -> key.snk
@@ -806,7 +806,7 @@ def main(argv):
     sys.stderr.write('''
         :: Rogue .NET Source Code Generation Utility
         Comes with a few hardcoded C# code templates and an easy wrapper around csc.exe compiler
-        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 ''')
     if len(argv) < 2:

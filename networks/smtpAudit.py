@@ -72,7 +72,7 @@
 #   - Microsoft Exchange Server 2013
 #
 # Author:
-#   Mariusz B. / mgeeky, '17-19, 
+#   Mariusz Banach / mgeeky, '17-19, 
 #   <mb@binary-offensive.com>
 #
 
@@ -2958,7 +2958,7 @@ Date: {dateNow}
 
 smtpAudit.py ({VERSION}) - SMTP Server penetration testing / audit tool,
 (https://gist.github.com/mgeeky/ef49e5fb6c3479dd6a24eb90b53f9baa)
-by Mariusz B. / mgeeky (<mb@binary-offensive.com>)
+by Mariusz Banach / mgeeky (<mb@binary-offensive.com>)
 .
 '''
 
@@ -3698,7 +3698,7 @@ class ParseOptions:
     def banner():
         sys.stderr.write('''
     :: SMTP Black-Box Audit tool.
-    v{}, Mariusz B. / mgeeky, '17
+    v{}, Mariusz Banach / mgeeky, '17
 
 '''.format(VERSION))
 
@@ -3828,7 +3828,7 @@ def main(argv):
         sys.stderr.write('''
     :: SMTP configuration Audit / Penetration-testing tool
     Intended to be used as a black-box tool revealing security state of SMTP.
-    Mariusz B. / mgeeky, '17-19
+    Mariusz Banach / mgeeky, '17-19
     v{}
 
 '''.format(VERSION))

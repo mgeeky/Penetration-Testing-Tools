@@ -8,7 +8,7 @@
     PS> . .\Count-PrivilegedGroupMembers.ps1
     PS> Count-PrivilegedGroupMembers
   
-  Mariusz B. / mgeeky
+  Mariusz Banach / mgeeky
 #>
 
 # This script requires PowerView 3.0 dev branch

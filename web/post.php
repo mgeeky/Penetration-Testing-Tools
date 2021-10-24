@@ -14,7 +14,7 @@
      *   to add forced redirection to the target site.
      *
      * Authors:
-     *  Mariusz B. / mgeeky
+     *  Mariusz Banach / mgeeky
      *  Jakub M. / unkn0w
      *
      * Version:

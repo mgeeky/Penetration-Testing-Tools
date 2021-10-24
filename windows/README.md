@@ -13,7 +13,7 @@
 ```
     :: findSymbols.py - Finds PE Import/Exports based on supplied filters.
 
-    Mariusz B. / mgeeky, '21
+    Mariusz Banach / mgeeky, '21
     <mb [at] binary-offensive.com>
 
 usage: .\findSymbols.py [options] <path>
@@ -117,7 +117,7 @@ PS> python3 rdpFileUpload.py -v -f certutil README.md
     Takes an input file/folder and retypes it into focused RDP session window.
     That effectively uploads the file into remote host over a RDP channel.
 
-    Mariusz B. / mgeeky '20, (@mariuszbit)
+    Mariusz Banach / mgeeky '20, (@mariuszbit)
     <mb@binary-offensive.com>
 
 [+] Will upload file's contents: "README.md"

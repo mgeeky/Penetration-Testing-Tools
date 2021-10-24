@@ -22,7 +22,7 @@ The script offers subcommands-kind of CLI interface, so after every command one 
 PS> py .\c3-client.py --help
 
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
-    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 usage:
 Usage: ./c3-client.py [options] <host> <command> [...]
@@ -59,7 +59,7 @@ optional arguments:
 PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay --help
 
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
-    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 usage: Usage: ./c3-client.py [options] <host> <command> [...] alarm relay [-h] [-e EXECUTE] [-x WEBHOOK] [-g gateway_id]
 
@@ -144,7 +144,7 @@ This example shows how to keep all of your Relays pinged every 45 seconds:
 PS D:\> py c3-client.py http://192.168.0.200:52935 ping -k 45
 
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
-    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 [.] Sending a ping every 45 seconds.
 [.] Pinged relay: matter4    from gateway  gate4
@@ -170,7 +170,7 @@ Ever suffered from a poor C3 bandwidth or general performance? Worry not - you c
 PS D:\> py .\c3-client.py http://192.168.0.200:52935 channel all clear
 
     :: C3 Client - a lightweight automated companion with C3 voyages
-    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 [.] LDAP: Clearing messages queue...
 [+] Cleared LDAP attribute value on C3 channel 3 on Relay matter4 on gateway gate4
@@ -213,7 +213,7 @@ In this example setup an alarm that triggers upon new Relay checking-in. Wheneve
 PS D:\> py c3-client.py http://192.168.0.200:52935 alarm relay -g gate4 --execute "powershell -file speak.ps1 -message \`"New C3 Relay Inbound: <domain>/<userName>, computer: <computerName>\`""
 
     :: F-Secure's C3 Client - a lightweight automated companion with C3 voyages
-    Mariusz B. / mgeeky, <mb@binary-offensive.com>
+    Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 [.] Entering infinite-loop awaiting for new Relays...
 [+] New Relay checked-in!
@@ -325,6 +325,6 @@ py c3-client.py http://192.168.0.200:52935 ping -k 45
 ## Author
 
 ```
-Mariusz B. / mgeeky, '21
+Mariusz Banach / mgeeky, '21
 <mb [at] binary-offensive.com>
 ```

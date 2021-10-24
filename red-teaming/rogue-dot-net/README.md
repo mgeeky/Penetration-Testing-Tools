@@ -23,7 +23,7 @@ python3 generateRogueDotNet.py --help
 
         :: Rogue .NET Source Code Generation Utility
         To be used during Red-Team assignments to launch Powershell/Shellcode payloads via Regsvcs/Regasm/InstallUtil.
-        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 usage: .\generateRogueDotNet.py [options] <inputFile>
 
@@ -43,7 +43,7 @@ python3 generateRogueDotNet.py -r notepad64.bin > program.cs
 
         :: Rogue .NET Source Code Generation Utility
         To be used during Red-Team assignments to launch Powershell/Shellcode payloads via Regsvcs/Regasm/InstallUtil.
-        Mariusz B. / mgeeky, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 
 [?] File specified as raw Shellcode.
 

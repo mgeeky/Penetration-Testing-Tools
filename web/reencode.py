@@ -18,7 +18,7 @@
 #   - jwt
 #   - anytree
 #
-# Mariusz B., 2018
+# Mariusz Banach, 2018
 #
 
 import os

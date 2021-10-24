@@ -2,7 +2,7 @@
 ' Example of dropping an embedded, base64 encoded binary file to the disk,
 ' decoding it and then launching.
 '
-' Mariusz B. / mgeeky, <mb@binary-offensive.com>
+' Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 ' (https://github.com/mgeeky)
 '
 

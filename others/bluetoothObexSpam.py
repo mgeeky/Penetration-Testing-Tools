@@ -3,7 +3,7 @@
 # with incoming OBEX Object Push requests containing
 # specified file.
 #
-# Mariusz B. / MGeeky, 16'
+# Mariusz Banach / MGeeky, 16'
 #
 # Partially based on `Violent Python` snippets.
 # Modules required:
@@ -79,7 +79,7 @@ def main():
     parser.add_option('-s', '--spam', dest='spam', action='store_true', help='Spam found devices with the file continuosly')
 
     print '\nBluetooth file carpet bombing via OBEX Object Push'
-    print 'Mariusz B. / MGeeky 16\n'
+    print 'Mariusz Banach / MGeeky 16\n'
 
     (opts, args) = parser.parse_args()
 

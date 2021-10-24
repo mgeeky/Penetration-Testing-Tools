@@ -14,7 +14,7 @@
 #     WILL RETURN:
 #         some-user@example.com,68eacb97d86f0c4621fa2b0e17cabd8c,Test123
 #        
-# Mariusz B. / mgeeky
+# Mariusz Banach / mgeeky
 #
 
 import sys, os

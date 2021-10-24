@@ -165,7 +165,7 @@ def main(argv):
     print('''
     :: GoPhish Single Mail Send utility
     Helping you embellish your emails by sending them one-by-one
-    Mariusz B. / mgeeky
+    Mariusz Banach / mgeeky
 ''')
 
     template = getTemplate()

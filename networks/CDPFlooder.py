@@ -8,7 +8,7 @@
 # Python requirements:
 #   - scapy
 #
-# Mariusz B. / mgeeky, '18, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky, '18, <mb@binary-offensive.com>
 #
 
 import sys
@@ -202,7 +202,7 @@ def parseOptions(argv):
     print('''
         :: CDP Flooding / Denial of Service tool
         Floods the interface with fake, randomly generated CDP packets.
-        Mariusz B. / mgeeky '18, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '18, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 

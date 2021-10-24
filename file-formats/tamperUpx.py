@@ -119,7 +119,7 @@ def main(argv):
     :: tamperUpx - a small utility that corrupts UPX-packed executables, 
     making them much harder to be decompressed & restored.
 
-    Mariusz B. / mgeeky, '21
+    Mariusz Banach / mgeeky, '21
 ''')
 
     if len(argv) < 2:

@@ -12,7 +12,7 @@
  * Compilation:
  *   C:> g++ GlobalProtectDisable.cpp -o GlobalProtectDisable.exe -static -static-libgcc -static-libstdc++
  *
- * Mariusz B. / mgeeky, '18-'20
+ * Mariusz Banach / mgeeky, '18-'20
 **/
 
 #include "windows.h"

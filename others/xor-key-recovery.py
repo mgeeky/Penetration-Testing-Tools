@@ -3,7 +3,7 @@
 # Simple XOR brute-force Key recovery script - given a cipher text, plain text and key length
 # it searches for proper key that could decrypt cipher into text.
 #
-# Mariusz B., 2016
+# Mariusz Banach, 2016
 #
 
 import sys

@@ -2,7 +2,7 @@
 ' Example of downloading a binary file from the URL, saving it to the
 ' local filesystem and then launching.
 '
-' Mariusz B. / mgeeky, <mb@binary-offensive.com>
+' Mariusz Banach / mgeeky, <mb@binary-offensive.com>
 ' (https://github.com/mgeeky)
 '
 

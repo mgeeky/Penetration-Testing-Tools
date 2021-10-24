@@ -2,7 +2,7 @@
  * This DLL hosts CLR4 environment from within a native binary. This way it is possible to
  * call .NET APIs from an unmanaged runtime.
  *
- * Mariusz B., mgeeky, 19'
+ * Mariusz Banach, mgeeky, 19'
  *
 **/
 

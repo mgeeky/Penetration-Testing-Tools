@@ -33,7 +33,7 @@ PS D:\> python3 .\exchangeRecon.py 10.10.10.9
 
         :: Exchange Fingerprinter
         Tries to obtain internal IP address, Domain name and other clues by talking to Exchange
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
         v0.2
 
 [.] Probing for Exchange fingerprints...
@@ -141,7 +141,7 @@ bash $ python RoutingAttackKit.py
 
         :: Routing Protocols Exploitation toolkit
         Sends out various routing protocols management frames 
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
         v0.1
 
 Available attacks:
@@ -157,7 +157,7 @@ bash # python RoutingAttackKit.py -t rip-fuzzer -v
 
         :: Routing Protocols Exploitation toolkit
         Sends out various routing protocols management frames 
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
         v0.1
 
 [.] Using 192.168.1.14 as local/spoof IP address
@@ -241,7 +241,7 @@ $ ./VLANHopperDTP.py --help
 
         :: VLAN Hopping via DTP Trunk negotiation 
         Performs VLAN Hopping via negotiated DTP Trunk / Switch Spoofing technique
-        Mariusz B. / mgeeky, '18
+        Mariusz Banach / mgeeky, '18
         v0.3
 
 usage: ./VLANHopperDTP.py [options]
@@ -279,7 +279,7 @@ $ sudo ./VLANHopperDTP.py -i enp5s0f1
 
         :: VLAN Hopping via DTP Trunk negotiation 
         Performs VLAN Hopping via negotiated DTP Trunk / Switch Spoofing technique
-        Mariusz B. / mgeeky, '18
+        Mariusz Banach / mgeeky, '18
         v0.2
 
 [+] VLAN Hopping IS possible.

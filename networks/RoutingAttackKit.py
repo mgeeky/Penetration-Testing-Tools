@@ -13,7 +13,7 @@
 # Python requirements:
 #   - scapy
 #
-# Mariusz B. / mgeeky, '19, <mb@binary-offensive.com>
+# Mariusz Banach / mgeeky, '19, <mb@binary-offensive.com>
 #
 
 import sys
@@ -618,7 +618,7 @@ def parseOptions(argv):
     print('''
         :: Routing Protocols Exploitation toolkit
         Sends out various routing protocols management frames 
-        Mariusz B. / mgeeky '19, <mb@binary-offensive.com>
+        Mariusz Banach / mgeeky '19, <mb@binary-offensive.com>
         v{}
 '''.format(VERSION))
 

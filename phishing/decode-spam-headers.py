@@ -45,7 +45,7 @@
 #   - packaging
 #   - dnspython
 #
-# Mariusz B. / mgeeky, '21
+# Mariusz Banach / mgeeky, '21
 # <mb [at] binary-offensive.com>
 #
 
