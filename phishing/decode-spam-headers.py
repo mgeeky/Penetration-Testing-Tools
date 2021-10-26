@@ -318,7 +318,7 @@ class SMTPHeadersAnalysis:
         'trusteer', 'trustlook', 'virusblokada', 'virustotal', 'virustotalcloud', 'webroot', 
         'yandex', 'yandexbot', 'zillya', 'zonealarm', 'zscaler', '-sea-', 'perlmx', 'trustwave',
         'mailmarshal', 'tmase', 'startscan', 'fe-etp', 'jemd', 'suspicious', 'grey', 'infected', 'unscannable',
-        'dlp-', 'sanitize'
+        'dlp-', 'sanitize', 'mailscan', 'barracuda',
     )
 
     Interesting_Headers = (
@@ -1176,6 +1176,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             ('X-Sender-IP',                                 self.testXSenderIP),
             ('X-Forefront-Antispam-Report-Untrusted',       self.testForefrontAntiSpamReportUntrusted),
             ('X-Microsoft-Antispam-Untrusted',              self.testForefrontAntiSpamUntrusted),
+            ('X-Mimecast-Impersonation-Protect',            self.testMimecastImpersonationProtect),
 
             #
             # These tests shall be the last ones.
@@ -1193,6 +1194,10 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         testsDecodeAll = (
             ('X-Microsoft-Antispam-Message-Info',           self.testMicrosoftAntiSpamMessageInfo),
             ('Decoded Mail-encoded header values',          self.testDecodeEncodedHeaders),
+        )
+
+        testsReturningArray = (
+            ('Header Containing Client IP',                 self.testAnyOtherIP),
         )
 
         for testName, testFunc in tests:
@@ -1213,7 +1218,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     raise
 
         if self.decode_all:
-            for testName, testFunc in tests:
+            for testName, testFunc in testsDecodeAll:
                 try:
                     self.logger.dbg(f'Running "{testName}"...')
                     self.results[testName] = testFunc()
@@ -1229,6 +1234,28 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
                     if options['debug']:
                         raise
+
+        for testName, testFunc in testsReturningArray:
+            try:
+                self.logger.dbg(f'Running "{testName}"...')
+                outs = testFunc()
+
+                num = 0
+                for o in outs:
+                    num += 1
+                    self.results[testName + ' ' + str(num)] = o
+
+            except Exception as e:
+                self.logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+
+                self.results[testName] = {
+                    'header' : '',
+                    'value' : '',
+                    'analysis' : 'Internal script error. Use --debug to find out more what happened.',
+                }
+
+                if options['debug']:
+                    raise
 
         for k in self.results.keys():
             if len(self.results[k]) == 0: 
@@ -1379,6 +1406,18 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             'description' : '',
         }
 
+    def testAnyOtherIP(self):
+        outputs = []
+
+        for (num, header, value) in self.headers:
+            if header.lower().endswith('-ip'):
+
+                result = f'- Connecting Client IP detected in header {header}:'
+                outputs.append(self._originatingIPTest(result, '', num, header, value))
+
+        return outputs
+
+
     def testXTMApprSender(self):
         (num, header, value) = self.getHeader('X-TM-AS-User-Approved-Sender')
         if num == -1: return []
@@ -1391,6 +1430,42 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         if value.strip().lower() == 'no': 
             result += self.logger.colored('\t- system did not Approve this Sender\n', 'red')
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result,
+            'description' : '',
+        }
+
+    def testMimecastImpersonationProtect(self):
+        (num, header, value) = self.getHeader('X-Mimecast-Impersonation-Protect')
+        if num == -1: return []
+
+        result = '- Mimecast mail impersonation report:\n\n'
+        self.securityAppliances.add('Mimecast')
+
+        value = SMTPHeadersAnalysis.flattenLine(value)
+
+        for line in value.split(';'):
+            if '=' in line:
+                (a, b) = line.split('=')
+                a = a.strip()
+                b = b.strip()
+                
+                if b.lower() == 'false':
+                    b = self.logger.colored(b, 'green')
+
+                elif b.lower() == 'true':
+                    b = self.logger.colored(b, 'red')
+                    a = self.logger.colored(a, 'red')
+
+                if a.lower() == 'policy':
+                    b = self.logger.colored(b, 'magenta')
+
+                result += f'\t- {a}: {b}\n'
+            else:
+                result += f'\t- {line}\n'
 
         return {
             'header': header,
@@ -3551,6 +3626,24 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
         vvv = self.logger.colored(value, 'magenta')
         self.securityAppliances.add('Mimecast')
         result = f'- Mimecast attached following Spam score: {vvv}\n'
+
+        try:
+            score = int(value.strip())
+
+            if score < 3: 
+                result += '\t- ' + self.logger.colored('Not a spam', 'green')
+
+            if score >= 3 and score < 5: 
+                result += '\t- ' + self.logger.colored('Low confidence it is a spam', 'green')
+
+            if score > 5 and score <= 7: 
+                result += '\t- ' + self.logger.colored('Medium confidence that might be a spam', 'yellow')
+
+            if score > 7: 
+                result += '\t- ' + self.logger.colored('High confidence - this is a SPAM', 'red')
+
+        except:
+            pass
 
         return {
             'header' : header,
