@@ -7,39 +7,75 @@
 
   Resulting output will contain useful information on why this e-mail might have been blocked.
 
-  Processed headers (more than **32+** headers are parsed):
+  Processed headers (more than **67+** headers are parsed):
 
-  - `Authentication-Results`
-  - `From`
-  - `Received-SPF`
+  - `X-forefront-antispam-report`
+  - `X-exchange-antispam`
+  - `X-exchange-antispam-mailbox-delivery`
+  - `X-exchange-antispam-message-info`
+  - `X-microsoft-antispam-report-cfa-test`
   - `Received`
+  - `From`
   - `To`
-  - `X-Forefront-Antispam-Report`
-  - `X-Mailer`
-  - `X-Microsoft-Antispam-Mailbox-Delivery`
-  - `X-Microsoft-Antispam-Message-Info`
-  - `X-Microsoft-Antispam`
-  - `X-MS-Exchange-Transport-EndToEndLatency`
-  - `X-MS-Oob-TLC-OOBClassifiers`
-  - `X-MS-Exchange-AtpMessageProperties`
-  - `X-Exchange-Antispam-Report-CFA-Test`
-  - `X-Microsoft-Antispam-Report-CFA-Test`
-  - `X-MS-Exchange-AtpMessageProperties`
-  - `X-Spam-Status`
-  - `X-Spam-Level`
-  - `X-Spam-Flag`
-  - `X-Spam-Report`
-  - `ARC-Authentication-Results`
-  - `X-MSFBL`
-  - `X-Ovh-Spam-Reason`
-  - `X-VR-SPAMCAUSE`
-  - `X-VR-SPAMSCORE`
-  - `X-Virus-Scanned`
-  - `X-Spam-Checker-Version`
-  - `X-IronPort-AV`
-  - `X-Mimecast-Spam-Score`
-  - `User-Agent`
-  - `X-Originating-IP`
+  - `Subject`
+  - `Thread-topic`
+  - `Received-spf`
+  - `X-mailer`
+  - `X-originating-ip`
+  - `User-agent`
+  - `X-forefront-antispam-report`
+  - `X-microsoft-antispam-mailbox-delivery`
+  - `X-microsoft-antispam`
+  - `X-exchange-antispam-report-cfa-test`
+  - `X-spam-status`
+  - `X-spam-level`
+  - `X-spam-flag`
+  - `X-spam-report`
+  - `X-vr-spamcause`
+  - `X-ovh-spam-reason`
+  - `X-vr-spamscore`
+  - `X-virus-scanned`
+  - `X-spam-checker-version`
+  - `X-ironport-av`
+  - `X-ironport-anti-spam-filtered`
+  - `X-ironport-anti-spam-result`
+  - `X-mimecast-spam-score`
+  - `Spamdiagnosticmetadata`
+  - `X-ms-exchange-atpmessageproperties`
+  - `X-msfbl`
+  - `X-ms-exchange-transport-endtoendlatency`
+  - `X-ms-oob-tlc-oobclassifiers`
+  - `X-ip-spam-verdict`
+  - `X-amp-result`
+  - `X-ironport-remoteip`
+  - `X-ironport-reputation`
+  - `X-sbrs`
+  - `X-ironport-sendergroup`
+  - `X-policy`
+  - `X-ironport-mailflowpolicy`
+  - `X-remote-ip`
+  - `X-sea-spam`
+  - `X-fireeye`
+  - `X-antiabuse`
+  - `X-tmase-version`
+  - `X-tm-as-product-ver`
+  - `X-tm-as-result`
+  - `X-imss-scan-details`
+  - `X-tm-as-user-approved-sender`
+  - `X-tm-as-user-blocked-sender`
+  - `X-tmase-result`
+  - `X-tmase-snap-result`
+  - `X-imss-dkim-white-list`
+  - `X-tm-as-result-xfilter`
+  - `X-tm-as-smtp`
+  - `X-scanned-by`
+  - `X-mimecast-spam-signature`
+  - `X-mimecast-bulk-signature`
+  - `X-sender-ip`
+  - `X-forefront-antispam-report-untrusted`
+  - `X-microsoft-antispam-untrusted`
+  - `X-sophos-senderhistory`
+  - `X-sophos-rescan`
   - and more...
 
   Most of these headers are not fully documented, therefore the script is unable to pinpoint all the details, but at least it collects all I could find on them.
