@@ -111,6 +111,7 @@ except ImportError:
 [!] You need to install packaging: 
         # pip3 install packaging
 ''')
+    sys.exit(1)
 
 try:
     import dns.resolver
@@ -124,7 +125,6 @@ except ImportError:
         # pip3 uninstall dnspython
         # pip3 install dnspython
 ''')
-
     sys.exit(1)
 
 options = {
