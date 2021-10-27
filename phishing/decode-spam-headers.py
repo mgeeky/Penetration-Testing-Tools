@@ -325,7 +325,7 @@ class SMTPHeadersAnalysis:
         'mailgun', 'sendgrid', 'mailchimp', 'x-ses', 'x-avas', 'X-Gmail-Labels', 'X-vrfbldomain',
         'mandrill', 'bulk',  'sendinblue', 'amazonses', 'mailjet', 'postmark', 'postfix', 'dovecot',  'roundcube',
         'seg', '-IP', 'crosspremises', 'brightmail', 'check', 'exim',  'postfix',   'exchange', 'microsoft', 'office365',
-        'dovecot', 'sendmail'
+        'dovecot', 'sendmail', 'score', 'report', 'status', 
     )
 
     Headers_Known_For_Breaking_Line = (
@@ -573,6 +573,20 @@ class SMTPHeadersAnalysis:
             }
         ),
     }
+
+    Barracuda_Score_Thresholds = [
+        [0.0, 2.99, logger.colored('Delivered to Inbox', 'green')],
+        [3.0, 4.99, logger.colored('Delivered to Inbox. Subject line tagged with [Suspected SPAM]', 'yellow')],
+        [5.0, 6.99, logger.colored('Delivered to Barracuda Quarantine Inbox', 'red')],
+        [7.0, 10.0, logger.colored('Blocked from delivery', 'red')],
+    ]
+
+    Barracuda_Aggressive_Score_Thresholds = [
+        [0.0, 1.99, logger.colored('Delivered to Inbox', 'green')],
+        [2.0, 3.49, logger.colored('Delivered to Inbox. Subject line tagged with [SPAM?]', 'yellow')],
+        [3.5, 5.00, logger.colored('Delivered to Barracuda Quarantine Inbox', 'red')],
+        [5.1, 10.0, logger.colored('Blocked from delivery', 'red')],
+    ]
 
     Trend_Type_AntiSpam = {
         1 : logger.colored('Spam', 'red'),
@@ -909,7 +923,6 @@ class SMTPHeadersAnalysis:
     )
 
 
-
     def __init__(self, logger, resolve, decode_all):
         self.text = ''
         self.results = {}
@@ -1120,7 +1133,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             ('ARC-Authentication-Results',                  self.testARCAuthenticationResults),
             ('Received-SPF',                                self.testReceivedSPF),
             ('Mail Client Version',                         self.testXMailer),
-            ('X-Originating-IP',                            self.testXOriginatingIP),
             ('User-Agent Version',                          self.testUserAgent),
             ('X-Forefront-Antispam-Report',                 self.testForefrontAntiSpamReport),
             ('X-Microsoft-Antispam-Mailbox-Delivery',       self.testAntispamMailboxDelivery),
@@ -1153,7 +1165,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             ('X-IronPort-SenderGroup',                      self.testXIronPortSenderGroup),
             ('X-Policy',                                    self.testXPolicy),
             ('X-IronPort-MailFlowPolicy',                   self.testXIronPortMailFlowPolicy),
-            ('X-Remote-IP',                                 self.testXRemoteIP),
             ('X-SEA-Spam',                                  self.testXSeaSpam),
             ('X-FireEye',                                   self.testXFireEye),
             ('X-AntiAbuse',                                 self.testXAntiAbuse),
@@ -1173,10 +1184,18 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             ('X-Scanned-By',                                self.testXScannedBy),
             ('X-Mimecast-Spam-Signature',                   self.testXMimecastSpamSignature),
             ('X-Mimecast-Bulk-Signature',                   self.testXMimecastBulkSignature),
-            ('X-Sender-IP',                                 self.testXSenderIP),
             ('X-Forefront-Antispam-Report-Untrusted',       self.testForefrontAntiSpamReportUntrusted),
             ('X-Microsoft-Antispam-Untrusted',              self.testForefrontAntiSpamUntrusted),
             ('X-Mimecast-Impersonation-Protect',            self.testMimecastImpersonationProtect),
+            ('X-Proofpoint-Spam-Details',                   self.testXProofpointSpamDetails),
+            ('X-Proofpoint-Virus-Version',                  self.testXProofpointVirusVersion),
+            ('SPFCheck',                                    self.testSPFCheck),
+
+            ('X-Barracuda-Spam-Score',                      self.testXBarracudaSpamScore),
+            ('X-Barracuda-Spam-Status',                     self.testXBarracudaSpamStatus),
+            ('X-Barracuda-Spam-Report',                     self.testXBarracudaSpamReport),
+            ('X-Barracuda-Bayes',                           self.testXBarracudaBayes),
+            ('X-Barracuda-Start-Time',                      self.testXBarracudaStartTime),
 
             #
             # These tests shall be the last ones.
@@ -1258,7 +1277,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     raise
 
         for k in self.results.keys():
-            if len(self.results[k]) == 0: 
+            if not self.results[k] or len(self.results[k]) == 0: 
                 continue
 
             for kk in ['description', 'header', 'value']:
@@ -1366,6 +1385,68 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             'description' : '',
         }
 
+    def testXProofpointSpamDetails(self):
+        (num, header, value) = self.getHeader('X-Proofpoint-Spam-Details')
+        if num == -1: return []
+
+        result = '- Proofpoint Email Protection Spam details report\n'
+        self.securityAppliances.add('Proofpoint Email Protection')
+        return self._parseProofpoint(result, '', num, header, value)
+
+    def _parseProofpoint(self, topic, description, num, header, value):
+        value = SMTPHeadersAnalysis.flattenLine(value)
+        parts = value.split(' ')
+
+        result = topic
+
+        for part in parts:
+            if '=' not in part:
+                result += f'\t- {part}\n'
+            else:
+                (k, v) = part.split('=')
+
+                col = 'yellow'
+                if k.lower() == 'rule':
+                    if v.lower() == 'notspam': col = 'green'
+                    elif v.lower() == 'spam': col = 'red'
+                    elif 'definitive' in v.lower(): col = 'red'
+                    elif 'malware' in v.lower(): col = 'red'
+                    elif 'phish' in v.lower(): col = 'red'
+                    elif 'quarantine' in v.lower(): col = 'red'
+
+                    v = self.logger.colored(v.upper(), col)
+
+                elif k.lower() == 'vendor':
+                    v = self.logger.colored(v, 'green')                    
+
+                else:
+                    try:
+                        num = float(v)
+                        if num > 0:
+                            v = self.logger.colored(v, 'yellow')
+                        else:
+                            v = self.logger.colored(v, 'green')
+
+                    except:
+                        pass
+
+                result += f'\t- {k: <20}: {v}\n'
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result,
+            'description' : description,
+        }
+
+    def testXProofpointVirusVersion(self):
+        (num, header, value) = self.getHeader('X-Proofpoint-Virus-Version')
+        if num == -1: return []
+
+        result = '- Proofpoint Email Protection Anti-Virus version\n'
+        self.securityAppliances.add('Proofpoint Email Protection')
+        return self._parseProofpoint(result, '', num, header, value)
+
     def testXTMVersion(self):
         (num, header, value) = self.getHeader('X-TMASE-Version')
         if num == -1: return []
@@ -1378,6 +1459,105 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if len(parts) > 1: result += f'\t\t- Product Version:           {parts[1]}\n'
         if len(parts) > 2: result += f'\t\t- Anti-Spam Enginge Version: {parts[2]}\n'
         if len(parts) > 3: result += f'\t\t- Spam Pattern Version:      {parts[3]}\n'
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result,
+            'description' : '',
+        }
+
+    def _parseThresholdsBasedScore(self, value, thresholds):
+        score = 0
+        try:
+            score = float(value.strip())
+        except:
+            return ''
+
+        for step in thresholds:
+            if score >= step[0] and score <= step[1]:
+                return step[2]
+
+        return ''
+
+    def testXBarracudaSpamScore(self):
+        (num, header, value) = self.getHeader('X-Barracuda-Spam-Score')
+        if num == -1: return []
+
+        result = '- Barracuda Email Security Spam Score\n'
+        self.securityAppliances.add('Barracuda Email Security')
+
+        thresholds = SMTPHeadersAnalysis.Barracuda_Score_Thresholds
+        aggressive = False
+
+        if aggressive:
+            thresholds = SMTPHeadersAnalysis.Barracuda_Aggressive_Score_Thresholds
+
+        score = self._parseThresholdsBasedScore(value, thresholds)
+        result += f'\t- Score: {value.strip()}'
+
+        if score != '':
+            result += f' - {score}'
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result + '\n',
+            'description' : '',
+        }
+
+    def testXBarracudaSpamStatus(self):
+        (num, header, value) = self.getHeader('X-Barracuda-Spam-Status')
+        if num == -1: return []
+
+        result = '- Barracuda Email Security Spam Status (based on SpamAssassin)\n\n'
+        self.securityAppliances.add('Barracuda Email Security')
+
+        thresholds = SMTPHeadersAnalysis.Barracuda_Score_Thresholds
+        aggressive = False
+
+        if aggressive:
+            thresholds = SMTPHeadersAnalysis.Barracuda_Aggressive_Score_Thresholds
+
+        return self._parseSpamAssassinStatus(result, '', num, header, value, thresholds)
+
+    def testXBarracudaSpamReport(self):
+        (num, header, value) = self.getHeader('X-Barracuda-Spam-Report')
+        if num == -1: return []
+
+        result = f'- Barracuda Email Security Spam Report:\n\t- {value.strip()}\n'
+        self.securityAppliances.add('Barracuda Email Security')
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result,
+            'description' : '',
+        }
+
+    def testXBarracudaBayes(self):
+        (num, header, value) = self.getHeader('X-Barracuda-Bayes')
+        if num == -1: return []
+
+        result = f'- Barracuda Email Security Spam Bayesian analysis:\n\t- {value.strip()}\n'
+        self.securityAppliances.add('Barracuda Email Security')
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result,
+            'description' : '',
+        }
+
+    def testXBarracudaStartTime(self):
+        (num, header, value) = self.getHeader('X-Barracuda-Start-Time')
+        if num == -1: return []
+
+        ts = int(value.strip())
+        val = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        
+        result = f'- Barracuda Email Security Start Time: {self.logger.colored(val, "green")} ({ts})\n'
+        self.securityAppliances.add('Barracuda Email Security')
 
         return {
             'header': header,
@@ -1712,6 +1892,21 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             'description' : '',
         }
 
+    def testSPFCheck(self):
+        (num, header, value) = self.getHeader('SPFCheck')
+        if num == -1: return []
+
+        result = f'- SPF Check:\n'
+        for line in value.split(','):
+            result += f'\t- {line.strip()}\n'
+
+        return {
+            'header': header,
+            'value' : value,
+            'analysis' : result,
+            'description' : '',
+        }
+
     def testXTMASSMTP(self):
         (num, header, value) = self.getHeader('X-TM-AS-SMTP')
         if num == -1: return []
@@ -1835,27 +2030,6 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             'analysis' : result,
             'description' : '',
         }
-
-    def testXSenderIP(self):
-        (num, header, value) = self.getHeader('X-Sender-IP')
-        if num == -1: return []
-
-        result = f'- Connecting Client probably leaved its IP address: '
-        return self._originatingIPTest(result, '', num, header, value)
-
-    def testXRemoteIP(self):
-        (num, header, value) = self.getHeader('X-Remote-IP')
-        if num == -1: return []
-
-        result = f'- Connecting Client probably leaved its IP address: '
-        return self._originatingIPTest(result, '', num, header, value)
-
-    def testXOriginatingIP(self):
-        (num, header, value) = self.getHeader('x-originating-ip')
-        if num == -1: return []
-
-        result = f'- Connecting Client leaved its IP address: '
-        return self._originatingIPTest(result, '', num, header, value)
 
     def testXIronPortRemoteIP(self):
         (num, header, value) = self.getHeader('X-IronPort-RemoteIP')
@@ -2534,17 +2708,22 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
         self.securityAppliances.add('SpamAssassin')
         result = '- SpamAssassin spam report\n\n'
-        
+        return self._parseSpamAssassinStatus(result, '', num, header, value)
+
+    def _parseSpamAssassinStatus(self, topic, description, num, header, value, thresholds):        
         parsed = {}
+        result = topic
         col = 'green'
-        parsed['_result'] = value.strip().split(',')[0]
+        _result = value.strip().split(',')[0]
+        parsed['_result'] = _result
 
         if parsed['_result'].lower() == 'yes':
             col = 'red'
         
-        parsed['_result'] = self.logger.colored(value.strip().split(',')[0], col)
+        parsed['_result'] = self.logger.colored(value.strip().split(',')[0].upper(), col)
 
-        pos = len(parsed['_result'])+2
+        pos = len(_result)+2
+        extranum = 0
         stop = False
 
         while pos < len(value):
@@ -2552,6 +2731,15 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             if pose == -1: break
 
             k = value[pos:pose]
+            
+            pos2 = len(k) - 1
+            while pos2 >= 0:
+                if k[pos2] == ' ':
+                    parsed[f'extra{extranum}'] = k[:pos2]
+                    k = k[pos2+1:]
+                    extranum += 1
+                    break
+                pos2 -= 1
 
             l = len(k) - len(k.lstrip())
             if l > 0:
@@ -2580,27 +2768,43 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             if stop:
                 break
 
+        keys = [x.lower() for x in parsed.keys()]
+
+        if 'tag_level' in keys:
+            level = float(parsed[list(parsed.keys())[keys.index('tag_level')]])
+            thresholds[0][1] = level - 0.01
+            thresholds[1][0] = level
+
+        if 'quarantine_level' in keys:
+            level = float(parsed[list(parsed.keys())[keys.index('quarantine_level')]])
+            thresholds[1][1] = level - 0.01
+            thresholds[2][0] = level
+
+        if 'kill_level' in keys:
+            level = float(parsed[list(parsed.keys())[keys.index('kill_level')]])
+            thresholds[2][1] = level - 0.01
+            thresholds[3][0] = level
+
         for k, v in parsed.items():
             if k in SMTPHeadersAnalysis.SpamAssassin_Spam_Status[1].keys():
                 k0 = self.logger.colored(k, 'magenta')
                 result += f'\t- {k0}: ' + SMTPHeadersAnalysis.SpamAssassin_Spam_Status[1][k] + '\n'
 
-                if type(v) == str:
-                    result += f'\t\t- {v}\n'
-                else:
-                    result += f'\t\t- elements {len(v)}:\n'
-                    for a in v:
-                        result += f'\t\t\t- {a}\n'
             else:
                 k0 = self.logger.colored(k, 'magenta')
                 result += f'\t- {k0}: \n'
 
-                if type(v) == str:
-                    result += f'\t\t- {v}\n'
-                else:
-                    result += f'\t\t- elements {len(v)}:\n'
-                    for a in v:
-                        result += f'\t\t\t- {a}\n'
+            if k.lower() == 'score':
+                score = self._parseThresholdsBasedScore(v, thresholds)
+                if score != '':
+                    v += f' - {score}'
+
+            if type(v) == str:
+                result += f'\t\t- {v}\n'
+            else:
+                result += f'\t\t- elements {len(v)}:\n'
+                for a in v:
+                    result += f'\t\t\t- {a}\n'
 
             result += '\n'
 
@@ -2608,7 +2812,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             'header' : header,
             'value': value,
             'analysis' : result,
-            'description' : '',
+            'description' : description,
         }
 
     def testDomainImpersonation(self):

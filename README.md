@@ -5,7 +5,7 @@ Most of them came handy at least once during my real-world engagements.
 
 **Notice:** In order to clone this repository properly - use `--recurse-submodules` switch:
 ```
-bash$ git clone --recurse-submodules https://github.com/mgeeky/Penetration-Testing-Tools
+git clone --recurse https://github.com/mgeeky/Penetration-Testing-Tools.git
 ```
 
 Most of these files were initially shared on my [Gists](https://gist.github.com/mgeeky) but eventually got moved into this repository.
