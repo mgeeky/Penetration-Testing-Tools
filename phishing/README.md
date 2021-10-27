@@ -1,7 +1,7 @@
 ## Phishing and Social-Engineering related scripts, tools and CheatSheets
 
 
-- **`decode-spam-headers.py`** - This tool accepts on input an `*.EML` or `*.txt` file with all the SMTP headers. It will then extract a subset of interesting headers and using **37+** tests will attempt to decode them as much as possible.
+- **`decode-spam-headers.py`** - This tool accepts on input an `*.EML` or `*.txt` file with all the SMTP headers. It will then extract a subset of interesting headers and using **79+** tests will attempt to decode them as much as possible.
 
   This script also extracts all IPv4 addresses and domain names and performs full DNS resolution of them.
 

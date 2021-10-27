@@ -1233,8 +1233,11 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             ('Header Containing Client IP',                 self.testAnyOtherIP),
         )
 
+        testsConducted = 0
+
         for testName, testFunc in tests:
             try:
+                testsConducted += 1
                 self.logger.dbg(f'Running "{testName}"...')
                 self.results[testName] = testFunc()
 
@@ -1253,6 +1256,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
         if self.decode_all:
             for testName, testFunc in testsDecodeAll:
                 try:
+                    testsConducted += 1
                     self.logger.dbg(f'Running "{testName}"...')
                     self.results[testName] = testFunc()
 
@@ -1270,6 +1274,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         for testName, testFunc in testsReturningArray:
             try:
+                testsConducted += 1
                 self.logger.dbg(f'Running "{testName}"...')
                 outs = testFunc()
 
@@ -1304,6 +1309,8 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
             self.logger.dbg(f'\t- {header.capitalize()}')
 
         self.logger.dbg('\n------------------------------------------\n\n')
+
+        self.logger.dbg(f'Conducted {testsConducted} tests on provided SMTP headers.')
 
         return {k: v for k, v in self.results.items() if v}
 
