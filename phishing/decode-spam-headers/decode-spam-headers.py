@@ -576,7 +576,7 @@ class SMTPHeadersAnalysis:
                 'BLK' : logger.colored('Filtering was skipped and the message was blocked because it was sent from an address in a user\'s Blocked Senders list.', 'red'),
                 'NSPM' : logger.colored('Spam filtering marked the message as non-spam and the message was sent to the intended recipients.', 'green'),
                 'SFE' : logger.colored('Filtering was skipped and the message was allowed because it was sent from an address in a user\'s Safe Senders list.', 'green'),
-                'SKA' : 'The message skipped spam filtering and was delivered to the Inbox because the sender was in the allowed senders list or allowed domains list in an anti-spam policy.',
+                'SKA' : logger.colored('The message skipped spam filtering and was delivered to the Inbox because the sender was in the allowed senders list or allowed domains list in an anti-spam policy.', 'green'),
                 'SKB' : logger.colored('The message was marked as spam because it matched a sender in the blocked senders list or blocked domains list in an anti-spam policy.', 'red'),
                 'SKI' : 'Similar to SFV:SKN, the message skipped spam filtering for another reason (for example, an intra-organizational email within a tenant).',
                 'SKN' : logger.colored('The message was marked as non-spam prior to being processed by spam filtering. For example, the message was marked as SCL -1 or Bypass spam filtering by a mail flow rule.', 'green'),
@@ -3074,7 +3074,8 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                             _domain1 = SMTPHeadersAnalysis.extractDomain(_domain)
 
                             if _domain1.lower() == firstHopDomain1:
-                                result += self.logger.colored(f'\n\t- First Hop ({firstHopDomain1}) is authorized to send e-mails on behalf of ({domain}) due to SPF records.\n\n', 'green')
+                                result += self.logger.colored(f'\n\t- [+] First Hop ({firstHopDomain1}) is authorized to send e-mails on behalf of ({domain}) due to SPF records.\n', 'yellow')
+                                result += '\t- So I\'m not sure if there was Domain Impersonation or not, but my best guess is negative.\n'
                                 spf = True
                                 break
 
@@ -3179,7 +3180,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
         for prop in props:
             if prop in SMTPHeadersAnalysis.ATP_Message_Properties.keys():
-                result += f'- ' + self.logger.colored(SMTPHeadersAnalysis.ATP_Message_Properties[prop], 'magenta') + '\n'
+                result += f'\t- ' + self.logger.colored(SMTPHeadersAnalysis.ATP_Message_Properties[prop], 'magenta') + '\n'
 
         return {
             'header' : header,
@@ -3469,7 +3470,8 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                     elif match2:
                         obj['ip'] = match2.group(1)
 
-            path.append(obj)
+            if len(obj) > 0:
+                path.append(obj)
 
         if n2 != -1:
             path.append({
@@ -3608,7 +3610,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             levels.sort()
 
             if scl in levels:
-                tmp += '\t' + SMTPHeadersAnalysis.ForeFront_Bulk_Confidence_Levels[scl] + '\n'
+                tmp += '\t- ' + SMTPHeadersAnalysis.ForeFront_Bulk_Confidence_Levels[scl] + '\n'
 
             else:
                 for i in range(len(levels)):
@@ -4104,9 +4106,6 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
         if words[0] != 'pass':
             result += self.logger.colored(f'- Received-SPF test failed', 'red') + ': Should be "pass", but was: "' + str(words[0]) + '"\n'
 
-            if words[0] in SMTPHeadersAnalysis.auth_result.keys():
-                result += '\t- Meaning: ' + str(SMTPHeadersAnalysis.auth_result[words[0]]) + '\n\n'
-
         if len(result) == 0:
             return []
 
@@ -4168,7 +4167,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
                 result += self.logger.colored(f'- {k.upper()} test failed:', 'red') + f' Should be "{p}", but was: "' + p2 + '"\n'
 
-                if tests[k] in SMTPHeadersAnalysis.auth_result.keys():
+                if k.lower() == 'dkim' and tests[k] in SMTPHeadersAnalysis.auth_result.keys():
                     result += '\t- Meaning: ' + SMTPHeadersAnalysis.auth_result[tests[k]] + '\n\n'
 
         if len(result) == 0:
@@ -4184,6 +4183,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
     def testExtractIP(self):
         addresses = re.findall(r'([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})', self.text)
         result = ''
+        tmp = ''
         resolved = set()
 
         if len(addresses) == 0: return []
@@ -4201,13 +4201,21 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                     out = SMTPHeadersAnalysis.resolveAddress(ipaddr)
 
                     addr = self.logger.colored(addr, 'magenta')
-                    result += f'\t- Found IP address: ({addr}) that resolves to: {out[0]}\n'
+                    tmp += f'\t- Found IP address: ({addr}) that resolves to: {out[0]}\n'
                 else:
                     addr = self.logger.colored(addr, 'magenta')
-                    result += f'\t- Found IP address: ({addr})\n'
+                    tmp += f'\t- Found IP address: ({addr})\n'
             
             except Exception as e:
-                result += f'\t- Found IP address: ({addr}) that wasn\'t resolved\n'
+                tmp += f'\t- Found IP address: ({addr}) that wasn\'t resolved\n'
+
+        if len(tmp) > 0:
+            if self.resolve:
+                result = '\n\t- Extracted IP addresses from headers and attempted resolve them:\n\n'
+            else:
+                result = '\n\t- Extracted IP addresses from headers:\n\n'
+
+            result += tmp
 
         if len(resolved) == 0:
             return []
@@ -4223,6 +4231,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
         domains = set(re.findall(r'([a-zA-Z0-9_\-\.]+\.[a-zA-Z]{2,})', self.text, re.I))
         resolved = set()
         result = ''
+        tmp = ''
 
         skip = (
             'smtp.mailfrom',
@@ -4239,6 +4248,8 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
             try:
                 resolved.add(d)
+                d2 = self.colorizeKeywords(d)
+
                 if self.resolve:
                     self.logger.dbg(f'testResolveIntoIP: Resolving {d}...')
                     out = socket.gethostbyname(d)
@@ -4246,13 +4257,21 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                     if type(out) == list:
                         out = out[0]
 
-                    result += f'\t- Found Domain: {self.logger.colored(d, "magenta")}\n\t\t- that resolves to: {out}\n'
+                    tmp += f'\t- Found Domain:   {d2}\n\t\t- that resolves to: {out}\n'
                 else:
-                    result += f'\t- Found Domain: {self.logger.colored(d, "magenta")}\n'
+                    tmp += f'\t- Found Domain:   {d2}\n'
 
             
             except Exception as e:
-                result += f'\t- Found Domain: ({self.logger.colored(d, "magenta")}) that wasn\'t resolved\n'
+                tmp += f'\t- Found Domain:   ({self.logger.colored(d, "magenta")}) that wasn\'t resolved\n'
+
+        if len(tmp) > 0:
+            if self.resolve:
+                result = '\n\t- Extracted domains from headers and attempted resolve them:\n\n'
+            else:
+                result = '\n\t- Extracted domains from headers:\n\n'
+
+            result += tmp
 
         if len(resolved) == 0:
             return []
