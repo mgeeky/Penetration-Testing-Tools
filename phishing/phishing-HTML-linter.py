@@ -4,6 +4,7 @@ import os, sys, re
 import string
 import argparse
 import yaml
+import textwrap
 import json
 
 from bs4 import BeautifulSoup
@@ -24,6 +25,7 @@ class PhishingMailParser:
         self.results['Embedded Images'] = self.testEmbeddedImages()
         self.results['Images without ALT'] = self.testImagesNoAlt()
         self.results['Masqueraded Links'] = self.testMaskedLinks()
+        self.results['Use of underline tag <u>'] = self.testUnderlineTag()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -38,6 +40,26 @@ class PhishingMailParser:
         end = s[-50:]
 
         return f'{beg}...{end}'
+
+    def testUnderlineTag(self):
+        links = self.soup('u')
+
+        if not links or len(links) == 0:
+            return []
+
+        desc = 'Underline tags are recognized by anti-spam filters and trigger additional rule (Office365: 67856001), but by their own shouldnt impact spam score.'
+        result = f'- Found {len(links)} <u> tags. This is not by itself an indication of spam, but is known to trigger some rules (like Office365: 67856001)\n'
+
+        context = ''
+        for i in range(len(links)):
+            context += '\t- ' + str(links[i]) + '\n'
+            if i > 10: break
+
+        return {
+            'description' : desc,
+            'context' : context,
+            'analysis' : result
+        }
 
     def testMaskedLinks(self):
         links = self.soup('a')
@@ -166,12 +188,21 @@ def printOutput(out):
             num += 1
             analysis = v['analysis']
             context = v['context']
+            desc = '\n'.join(textwrap.wrap(
+                v['description'],
+                width = 80,
+                initial_indent = '',
+                subsequent_indent = '    '
+            ))
 
             analysis = analysis.replace('- ', '\t- ')
 
             print(f'''
 ------------------------------------------
 ({num}) Test: {k}
+
+DESCRIPTION:
+    {desc}
 
 CONTEXT: 
     {context}

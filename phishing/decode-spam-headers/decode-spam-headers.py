@@ -611,15 +611,53 @@ class SMTPHeadersAnalysis:
         'SPAM' : logger.colored('SPAM', 'red'),
     }
 
-    Anti_Spam_Rules_ReverseEngineered = {
+
+    #
+    # Below rules were collected solely in a trial-and-error manner or by scraping any 
+    # pieces of information from all around the Internet.
+    #
+    # They do not represent the actual Anti-Spam rule name or context and surely represent 
+    # something close to what is understood (or they may have totally different meaning).
+    # 
+    # Until we'll be able to review anti-spam rules documention, there is no viable mean to map
+    # rule ID to its meaning.
+    #
+
+    Anti_Spam_Rules_ReverseEngineered = \
+    {
         '35100500006' : logger.colored('(SPAM) Message contained embedded image. Score +4', 'red'),
 
         # https://docs.microsoft.com/en-us/answers/questions/416100/what-is-meanings-of-39x-microsoft-antispam-mailbox.html
         '520007050' : logger.colored('(SPAM) Moved message to Spam and created Email Rule to move messages from this particular sender to Junk.', 'red'),
+
+        # triggered on an empty mail with subject being: "test123 - viagra"
+        '162623004' : 'Subject line contained suspicious words (like Viagra).',
+
+        # triggered on mail with subject "test123" and body being single word "viagra"
+        '19618925003' : 'Mail body contained suspicious words (like Viagra).',
+
+        # triggered on mail with empty body and subject "Click here"
+        '28233001' : 'Subject line contained suspicious words luring action (like "Click here"). ',
+
+        # triggered on a mail with test subject and 1500 words of http://nietzsche-ipsum.com/
+        '30864003' : 'Mail body contained a lot of text (more than 10.000 characters).',
+
+        # mails that had simple message such as "Hello world" triggered this rule, whereas mails with
+        # more than 150 words did not.
+        '564344004' : 'HTML mail body with less than 150 words of text (not sure how much less though)',
+
+        # message was sent with a basic html and only one <u> tag in body.
+        '67856001' : 'HTML mail body contained underline <u> tag.',
+
+        # message with html,head,body and body containing simple text with no b/i/u formatting.
+        '579124003' : 'HTML mail body contained text, but no text formatting (<b>, <i>, <u>) was present',
+
+        # This is a strong signal. Mails without <a> doesnt have this rule.
+        '166002' : 'HTML mail body contained URL <a> link.',
     }
 
     ForeFront_Spam_Confidence_Levels = {
-        -1 : (False, logger.colored('The message skipped spam filtering. Probably Whitelisted.', 'green')),
+        -1 : (False, logger.colored('The message skipped spam filtering. WHITELISTED.', 'green')),
         0 : (False, logger.colored('Spam filtering determined the message was not spam.', 'green')),
         1 : (False, 'The message skipped spam filtering'),
         5 : (True, logger.colored('Spam filtering marked the message as Spam', 'red')),
