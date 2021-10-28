@@ -1,10 +1,24 @@
-## `decode-spam-headers.py`** 
+## `decode-spam-headers.py`
 
 This tool accepts on input an `*.EML` or `*.txt` file with all the SMTP headers. It will then extract a subset of interesting headers and using **79+** tests will attempt to decode them as much as possible.
 
 This script also extracts all IPv4 addresses and domain names and performs full DNS resolution of them.
 
 Resulting output will contain useful information on why this e-mail might have been blocked.
+
+
+### Example screenshots
+
+![1.png](img/1.png)
+
+![2.png](img/2.png)
+
+![3.png](img/3.png)
+
+![4.png](img/4.png)
+
+
+### Processed headers
 
 Processed headers (more than **67+** headers are parsed):
 
@@ -106,16 +120,6 @@ Tests:
   -r, --resolve         Resolve IPv4 addresses / Domain names.
   -a, --decode-all      Decode all =?us-ascii?Q? mail encoded messages and print their contents.
 ```
-
-### Example screenshots
-
-![1.png](img/1.png)
-
-![2.png](img/2.png)
-
-![3.png](img/3.png)
-
-![4.png](img/4.png)
 
 
 ### Sample run
