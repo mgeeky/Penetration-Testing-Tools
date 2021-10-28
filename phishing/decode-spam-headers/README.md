@@ -9,13 +9,22 @@ Resulting output will contain useful information on why this e-mail might have b
 
 ### Example screenshots
 
+- Chain of MTA servers (nicely parsed `Received` headers):
+
 ![1.png](img/1.png)
+
+- Various headers decoded as much as possible, according to publicly available documentation (here _Office365 ForeFront Spam Report_):
 
 ![2.png](img/2.png)
 
+- Different custom heuristics implement to actively validate and seek for clues of spam categorization, here logic detecting _Domain Impersonation_:
+
 ![3.png](img/3.png)
 
+- Script attempts to reverse-engineer and document some of the Office365 Anti-Spam rules, as well as collect public knowledge about other opaque Anti-Spam headers:
+
 ![4.png](img/4.png)
+
 
 
 ### Processed headers
