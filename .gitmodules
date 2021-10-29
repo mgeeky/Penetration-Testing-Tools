@@ -52,3 +52,6 @@
 [submodule "windows/ShellcodeFluctuation"]
 	path = windows/ShellcodeFluctuation
 	url = https://github.com/mgeeky/ShellcodeFluctuation
+[submodule "phishing/decode-spam-headers"]
+	path = phishing/decode-spam-headers
+	url = https://github.com/mgeeky/decode-spam-headers
