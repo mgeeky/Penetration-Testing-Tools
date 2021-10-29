@@ -95,9 +95,14 @@
 
   It looks for things such as:
 
-  - Embedded images
-  - Images with lacking `ALT=""` attribute
-  - Anchors trying to masquerade links
+  - `Embedded Images`
+  - `Images without ALT`
+  - `Masqueraded Links`
+  - `Use of underline tag <u>`
+  - `HTML code in <a> link tags`
+  - `<a href="..."> URL contained GET parameter`
+  - `<a href="..."> URL contained GET parameter with URL`
+  - `<a href="..."> URL pointed to an executable file`
   
   Such characteristics are known bad smells that will let your e-mail blocked.
 

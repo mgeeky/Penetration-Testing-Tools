@@ -114,7 +114,7 @@ optional arguments:
   -h, --help            show this help message and exit
 
 Required arguments:
-  infile                Input file to be analysed
+  infile                Input file to be analysed or --list tests to show available tests.
 
 Options:
   -o OUTFILE, --outfile OUTFILE
@@ -124,10 +124,111 @@ Options:
   -N, --nocolor         Dont use colors in text output.
   -v, --verbose         Verbose mode.
   -d, --debug           Debug mode.
+  -l, --list            List available tests and quit. Use it like so: --list tests
 
 Tests:
+  -i tests, --include-tests tests
+                        Comma-separated list of test IDs to run. Ex. --include-tests 1,3,7
+  -e tests, --exclude-tests tests
+                        Comma-separated list of test IDs to skip. Ex. --exclude-tests 1,3,7
   -r, --resolve         Resolve IPv4 addresses / Domain names.
   -a, --decode-all      Decode all =?us-ascii?Q? mail encoded messages and print their contents.
+```
+
+If you want to run only a subset of tests, you'll first need to learn Test IDs of which to pick.
+Run the script with `-l tests` to grab that list.
+
+List available test and their corresponding IDs:
+
+```
+C:\> py decode-spam-headers.py -l tests
+
+[.] Available tests:
+
+        TEST_ID - TEST_NAME
+        --------------------------------------
+              1 - Received - Mail Servers Flow
+              2 - Extracted IP addresses
+              3 - Extracted Domains
+              4 - Bad Keywords In Headers
+              5 - From Address Analysis
+              6 - Subject and Thread Topic Difference
+              7 - Authentication-Results
+              8 - ARC-Authentication-Results
+              9 - Received-SPF
+             10 - Mail Client Version
+             11 - User-Agent Version
+             12 - X-Forefront-Antispam-Report
+             13 - X-MS-Exchange-Organization-SCL
+             14 - X-Microsoft-Antispam-Mailbox-Delivery
+             15 - X-Microsoft-Antispam Bulk Mail
+             16 - X-Exchange-Antispam-Report-CFA-Test
+             17 - Domain Impersonation
+             18 - SpamAssassin Spam Status
+             19 - SpamAssassin Spam Level
+             20 - SpamAssassin Spam Flag
+             21 - SpamAssassin Spam Report
+             22 - OVH's X-VR-SPAMCAUSE
+             23 - OVH's X-Ovh-Spam-Reason
+             24 - OVH's X-Ovh-Spam-Score
+             25 - X-Virus-Scan
+             26 - X-Spam-Checker-Version
+             27 - X-IronPort-AV
+             28 - X-IronPort-Anti-Spam-Filtered
+             29 - X-IronPort-Anti-Spam-Result
+             30 - X-Mimecast-Spam-Score
+             31 - Spam Diagnostics Metadata
+             32 - MS Defender ATP Message Properties
+             33 - Message Feedback Loop
+             34 - End-to-End Latency - Message Delivery Time
+             35 - X-MS-Oob-TLC-OOBClassifiers
+             36 - X-IP-Spam-Verdict
+             37 - X-Amp-Result
+             38 - X-IronPort-RemoteIP
+             39 - X-IronPort-Reputation
+             40 - X-SBRS
+             41 - X-IronPort-SenderGroup
+             42 - X-Policy
+             43 - X-IronPort-MailFlowPolicy
+             44 - X-SEA-Spam
+             45 - X-FireEye
+             46 - X-AntiAbuse
+             47 - X-TMASE-Version
+             48 - X-TM-AS-Product-Ver
+             49 - X-TM-AS-Result
+             50 - X-IMSS-Scan-Details
+             51 - X-TM-AS-User-Approved-Sender
+             52 - X-TM-AS-User-Blocked-Sender
+             53 - X-TMASE-Result
+             54 - X-TMASE-SNAP-Result
+             55 - X-IMSS-DKIM-White-List
+             56 - X-TM-AS-Result-Xfilter
+             57 - X-TM-AS-SMTP
+             58 - X-TMASE-SNAP-Result
+             59 - X-TM-Authentication-Results
+             60 - X-Scanned-By
+             61 - X-Mimecast-Spam-Signature
+             62 - X-Mimecast-Bulk-Signature
+             63 - X-Forefront-Antispam-Report-Untrusted
+             64 - X-Microsoft-Antispam-Untrusted
+             65 - X-Mimecast-Impersonation-Protect
+             66 - X-Proofpoint-Spam-Details
+             67 - X-Proofpoint-Virus-Version
+             68 - SPFCheck
+             69 - X-Barracuda-Spam-Score
+             70 - X-Barracuda-Spam-Status
+             71 - X-Barracuda-Spam-Report
+             72 - X-Barracuda-Bayes
+             73 - X-Barracuda-Start-Time
+             74 - Similar to SpamAssassin Spam Level headers
+             75 - SMTP Header Contained IP address
+             76 - Other unrecognized Spam Related Headers
+             77 - Other interesting headers
+             78 - Security Appliances Spotted
+             79 - Email Providers Infrastructure Clues
+             80 - X-Microsoft-Antispam-Message-Info
+             81 - Decoded Mail-encoded header values
+             82 - Header Containing Client IP
 ```
 
 

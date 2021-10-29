@@ -625,7 +625,7 @@ class SMTPHeadersAnalysis:
 
     Anti_Spam_Rules_ReverseEngineered = \
     {
-        '35100500006' : logger.colored('(SPAM) Message contained embedded image. Score +4', 'red'),
+        '35100500006' : logger.colored('(SPAM) Message contained embedded image.', 'red'),
 
         # https://docs.microsoft.com/en-us/answers/questions/416100/what-is-meanings-of-39x-microsoft-antispam-mailbox.html
         '520007050' : logger.colored('(SPAM) Moved message to Spam and created Email Rule to move messages from this particular sender to Junk.', 'red'),
@@ -654,6 +654,27 @@ class SMTPHeadersAnalysis:
 
         # This is a strong signal. Mails without <a> doesnt have this rule.
         '166002' : 'HTML mail body contained URL <a> link.',
+
+        # Message contained <a href="https://something.com/file.html?parameter=value" - GET parameter with value.
+        '21615005' : 'Mail body contained <a> tag with URL containing GET parameter: href="https://foo.bar/file?aaa=bbb"',
+
+        # Message contained <a href="https://something.com/file.html?parameter=https://another.com/website" 
+        # - GET parameter with value, being a URL to another website
+        '45080400002' : 'Mail body contained <a> tag with URL containing GET parameter with value of another URL: href="https://foo.bar/file?aaa=https://baz.xyz/"',
+
+        # Message contained <a> with href pointing to a file with dangerous extension, such as file.exe
+        '460985005' : 'Mail body contained HTML <a> tag with href URL pointing to a file with dangerous extension (such as .exe)',
+
+        #
+        # Message1: GoPhish -> VPS 587/tcp redirector -> smtp.gmail.com:587 -> target
+        # Message2: GoPhish -> VPS 587/tcp redirector -> smtp-relay.gmail.com:587 -> target
+        #
+        # These were the only differences I spotted:
+        #   Message1 - FirstHop Gmail SMTP Received with ESMTPS.
+        #   Message2 - FirstHop Gmail SMTP-Relay Received with ESMTPSA.
+        #
+        '121216002' : 'First Hop MTA SMTP Server used as a SMTP Relay. It used to originate e-mails, but here it acted as a Relay. Or it\'s due to use of "with ESMTPSA" instead of ESMTPS',
+
     }
 
     ForeFront_Spam_Confidence_Levels = {
@@ -744,6 +765,22 @@ class SMTPHeadersAnalysis:
             {
                 '0' : 'Not Authenticated',
                 '1' : 'Authenticated',
+            }
+        ),
+
+        'ucf' : (
+            'User Custom Flow (?) - custom mail flow rule applied on message?',
+            {
+                '0' : 'No user custom mail rule applied.',
+                '1' : 'User custom mail rule applied.',
+            }
+        ),
+
+        'jmr' : (
+            'Junk Mail Rule (?) - mail considered as Spam by previous, existing mail rules?',
+            {
+                '0' : logger.colored('Mail is not a Junk', 'green'),
+                '1' : logger.colored('Mail is a Junk', 'red'),
             }
         ),
 
@@ -973,18 +1010,118 @@ class SMTPHeadersAnalysis:
         Verstring('Exchange Server 2019 CU3', 'March 2, 2021', '15.2.464.15'),
     )
 
-
-    def __init__(self, logger, resolve, decode_all):
+    def __init__(self, logger, resolve = False, decode_all = False, testsToRun = []):
         self.text = ''
         self.results = {}
         self.resolve = resolve
         self.decode_all = decode_all
         self.logger = logger
-        self.received_path = None
+        self.received_path = []
+        self.testsToRun = testsToRun
         self.securityAppliances = set()
 
         # (number, header, value)
         self.headers = []
+
+    def getAllTests(self):
+
+        tests = (
+            ( '1', 'Received - Mail Servers Flow',                self.testReceived),
+            ( '2', 'Extracted IP addresses',                      self.testExtractIP),
+            ( '3', 'Extracted Domains',                           self.testResolveIntoIP),
+            ( '4', 'Bad Keywords In Headers',                     self.testBadKeywords),
+            ( '5', 'From Address Analysis',                       self.testFrom),
+            ( '6', 'Subject and Thread Topic Difference',         self.testSubjecThreadTopic),
+            ( '7', 'Authentication-Results',                      self.testAuthenticationResults),
+            ( '8', 'ARC-Authentication-Results',                  self.testARCAuthenticationResults),
+            ( '9', 'Received-SPF',                                self.testReceivedSPF),
+            ('10', 'Mail Client Version',                         self.testXMailer),
+            ('11', 'User-Agent Version',                          self.testUserAgent),
+            ('12', 'X-Forefront-Antispam-Report',                 self.testForefrontAntiSpamReport),
+            ('13', 'X-MS-Exchange-Organization-SCL',              self.testForefrontAntiSCL),
+            ('14', 'X-Microsoft-Antispam-Mailbox-Delivery',       self.testAntispamMailboxDelivery),
+            ('15', 'X-Microsoft-Antispam Bulk Mail',              self.testMicrosoftAntiSpam),
+            ('16', 'X-Exchange-Antispam-Report-CFA-Test',         self.testAntispamReportCFA),
+            ('17', 'Domain Impersonation',                        self.testDomainImpersonation),
+            ('18', 'SpamAssassin Spam Status',                    self.testSpamAssassinSpamStatus),
+            ('19', 'SpamAssassin Spam Level',                     self.testSpamAssassinSpamLevel),
+            ('20', 'SpamAssassin Spam Flag',                      self.testSpamAssassinSpamFlag),
+            ('21', 'SpamAssassin Spam Report',                    self.testSpamAssassinSpamReport),
+            ('22', 'OVH\'s X-VR-SPAMCAUSE',                       self.testSpamCause),
+            ('23', 'OVH\'s X-Ovh-Spam-Reason',                    self.testOvhSpamReason),
+            ('24', 'OVH\'s X-Ovh-Spam-Score',                     self.testOvhSpamScore),
+            ('25', 'X-Virus-Scan',                                self.testXVirusScan),
+            ('26', 'X-Spam-Checker-Version',                      self.testXSpamCheckerVersion),
+            ('27', 'X-IronPort-AV',                               self.testXIronPortAV),
+            ('28', 'X-IronPort-Anti-Spam-Filtered',               self.testXIronPortSpamFiltered),
+            ('29', 'X-IronPort-Anti-Spam-Result',                 self.testXIronPortSpamResult),
+            ('30', 'X-Mimecast-Spam-Score',                       self.testXMimecastSpamScore),
+            ('31', 'Spam Diagnostics Metadata',                   self.testSpamDiagnosticMetadata),
+            ('32', 'MS Defender ATP Message Properties',          self.testATPMessageProperties),
+            ('33', 'Message Feedback Loop',                       self.testMSFBL),
+            ('34', 'End-to-End Latency - Message Delivery Time',  self.testTransportEndToEndLatency),
+            ('35', 'X-MS-Oob-TLC-OOBClassifiers',                 self.testTLCOObClasifiers),
+            ('36', 'X-IP-Spam-Verdict',                           self.testXIPSpamVerdict),
+            ('37', 'X-Amp-Result',                                self.testXAmpResult),
+            ('38', 'X-IronPort-RemoteIP',                         self.testXIronPortRemoteIP),
+            ('39', 'X-IronPort-Reputation',                       self.testXIronPortReputation),
+            ('40', 'X-SBRS',                                      self.testXSBRS),
+            ('41', 'X-IronPort-SenderGroup',                      self.testXIronPortSenderGroup),
+            ('42', 'X-Policy',                                    self.testXPolicy),
+            ('43', 'X-IronPort-MailFlowPolicy',                   self.testXIronPortMailFlowPolicy),
+            ('44', 'X-SEA-Spam',                                  self.testXSeaSpam),
+            ('45', 'X-FireEye',                                   self.testXFireEye),
+            ('46', 'X-AntiAbuse',                                 self.testXAntiAbuse),
+            ('47', 'X-TMASE-Version',                             self.testXTMVersion),
+            ('48', 'X-TM-AS-Product-Ver',                         self.testXTMProductVer),
+            ('49', 'X-TM-AS-Result',                              self.testXTMResult),
+            ('50', 'X-IMSS-Scan-Details',                         self.testXTMScanDetails),
+            ('51', 'X-TM-AS-User-Approved-Sender',                self.testXTMApprSender),
+            ('52', 'X-TM-AS-User-Blocked-Sender',                 self.testXTMBlockSender),
+            ('53', 'X-TMASE-Result',                              self.testXTMASEResult),
+            ('54', 'X-TMASE-SNAP-Result',                         self.testXTMSnapResult),
+            ('55', 'X-IMSS-DKIM-White-List',                      self.testXTMDKIM),
+            ('56', 'X-TM-AS-Result-Xfilter',                      self.testXTMXFilter),
+            ('57', 'X-TM-AS-SMTP',                                self.testXTMASSMTP),
+            ('58', 'X-TMASE-SNAP-Result',                         self.testXTMASESNAP),
+            ('59', 'X-TM-Authentication-Results',                 self.testXTMAuthenticationResults),
+            ('60', 'X-Scanned-By',                                self.testXScannedBy),
+            ('61', 'X-Mimecast-Spam-Signature',                   self.testXMimecastSpamSignature),
+            ('62', 'X-Mimecast-Bulk-Signature',                   self.testXMimecastBulkSignature),
+            ('63', 'X-Forefront-Antispam-Report-Untrusted',       self.testForefrontAntiSpamReportUntrusted),
+            ('64', 'X-Microsoft-Antispam-Untrusted',              self.testForefrontAntiSpamUntrusted),
+            ('65', 'X-Mimecast-Impersonation-Protect',            self.testMimecastImpersonationProtect),
+            ('66', 'X-Proofpoint-Spam-Details',                   self.testXProofpointSpamDetails),
+            ('67', 'X-Proofpoint-Virus-Version',                  self.testXProofpointVirusVersion),
+            ('68', 'SPFCheck',                                    self.testSPFCheck),
+
+            ('69', 'X-Barracuda-Spam-Score',                      self.testXBarracudaSpamScore),
+            ('70', 'X-Barracuda-Spam-Status',                     self.testXBarracudaSpamStatus),
+            ('71', 'X-Barracuda-Spam-Report',                     self.testXBarracudaSpamReport),
+            ('72', 'X-Barracuda-Bayes',                           self.testXBarracudaBayes),
+            ('73', 'X-Barracuda-Start-Time',                      self.testXBarracudaStartTime),
+
+            #
+            # These tests shall be the last ones.
+            #
+            ('74', 'Similar to SpamAssassin Spam Level headers',  self.testSpamAssassinSpamAlikeLevels),
+            ('75', 'SMTP Header Contained IP address',            self.testMessageHeaderContainedIP),
+            ('76', 'Other unrecognized Spam Related Headers',     self.testSpamRelatedHeaders),
+            ('77', 'Other interesting headers',                   self.testInterestingHeaders),
+            ('78', 'Security Appliances Spotted',                 self.testSecurityAppliances),
+            ('79', 'Email Providers Infrastructure Clues',        self.testEmailIntelligence),
+        )
+
+        testsDecodeAll = (
+            ('80', 'X-Microsoft-Antispam-Message-Info',           self.testMicrosoftAntiSpamMessageInfo),
+            ('81', 'Decoded Mail-encoded header values',          self.testDecodeEncodedHeaders),
+        )
+
+        testsReturningArray = (
+            ('82', 'Header Containing Client IP',                 self.testAnyOtherIP),
+        )
+
+        return (tests, testsDecodeAll, testsReturningArray)
 
     @staticmethod
     def safeBase64Decode(value):
@@ -1173,114 +1310,22 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
         self.headers = self.collect(text)
 
-        tests = (
-            ('Received - Mail Servers Flow',                self.testReceived),
-            ('Extracted IP addresses',                      self.testExtractIP),
-            ('Extracted Domains',                           self.testResolveIntoIP),
-            ('Bad Keywords In Headers',                     self.testBadKeywords),
-            ('From Address Analysis',                       self.testFrom),
-            ('Subject and Thread Topic Difference',         self.testSubjecThreadTopic),
-            ('Authentication-Results',                      self.testAuthenticationResults),
-            ('ARC-Authentication-Results',                  self.testARCAuthenticationResults),
-            ('Received-SPF',                                self.testReceivedSPF),
-            ('Mail Client Version',                         self.testXMailer),
-            ('User-Agent Version',                          self.testUserAgent),
-            ('X-Forefront-Antispam-Report',                 self.testForefrontAntiSpamReport),
-            ('X-Microsoft-Antispam-Mailbox-Delivery',       self.testAntispamMailboxDelivery),
-            ('X-Microsoft-Antispam Bulk Mail',              self.testMicrosoftAntiSpam),
-            ('X-Exchange-Antispam-Report-CFA-Test',         self.testAntispamReportCFA),
-            ('Domain Impersonation',                        self.testDomainImpersonation),
-            ('SpamAssassin Spam Status',                    self.testSpamAssassinSpamStatus),
-            ('SpamAssassin Spam Level',                     self.testSpamAssassinSpamLevel),
-            ('SpamAssassin Spam Flag',                      self.testSpamAssassinSpamFlag),
-            ('SpamAssassin Spam Report',                    self.testSpamAssassinSpamReport),
-            ('OVH\'s X-VR-SPAMCAUSE',                       self.testSpamCause),
-            ('OVH\'s X-Ovh-Spam-Reason',                    self.testOvhSpamReason),
-            ('OVH\'s X-Ovh-Spam-Score',                     self.testOvhSpamScore),
-            ('X-Virus-Scan',                                self.testXVirusScan),
-            ('X-Spam-Checker-Version',                      self.testXSpamCheckerVersion),
-            ('X-IronPort-AV',                               self.testXIronPortAV),
-            ('X-IronPort-Anti-Spam-Filtered',               self.testXIronPortSpamFiltered),
-            ('X-IronPort-Anti-Spam-Result',                 self.testXIronPortSpamResult),
-            ('X-Mimecast-Spam-Score',                       self.testXMimecastSpamScore),
-            ('Spam Diagnostics Metadata',                   self.testSpamDiagnosticMetadata),
-            ('MS Defender ATP Message Properties',          self.testATPMessageProperties),
-            ('Message Feedback Loop',                       self.testMSFBL),
-            ('End-to-End Latency - Message Delivery Time',  self.testTransportEndToEndLatency),
-            ('X-MS-Oob-TLC-OOBClassifiers',                 self.testTLCOObClasifiers),
-            ('X-IP-Spam-Verdict',                           self.testXIPSpamVerdict),
-            ('X-Amp-Result',                                self.testXAmpResult),
-            ('X-IronPort-RemoteIP',                         self.testXIronPortRemoteIP),
-            ('X-IronPort-Reputation',                       self.testXIronPortReputation),
-            ('X-SBRS',                                      self.testXSBRS),
-            ('X-IronPort-SenderGroup',                      self.testXIronPortSenderGroup),
-            ('X-Policy',                                    self.testXPolicy),
-            ('X-IronPort-MailFlowPolicy',                   self.testXIronPortMailFlowPolicy),
-            ('X-SEA-Spam',                                  self.testXSeaSpam),
-            ('X-FireEye',                                   self.testXFireEye),
-            ('X-AntiAbuse',                                 self.testXAntiAbuse),
-            ('X-TMASE-Version',                             self.testXTMVersion),
-            ('X-TM-AS-Product-Ver',                         self.testXTMProductVer),
-            ('X-TM-AS-Result',                              self.testXTMResult),
-            ('X-IMSS-Scan-Details',                         self.testXTMScanDetails),
-            ('X-TM-AS-User-Approved-Sender',                self.testXTMApprSender),
-            ('X-TM-AS-User-Blocked-Sender',                 self.testXTMBlockSender),
-            ('X-TMASE-Result',                              self.testXTMASEResult),
-            ('X-TMASE-SNAP-Result',                         self.testXTMSnapResult),
-            ('X-IMSS-DKIM-White-List',                      self.testXTMDKIM),
-            ('X-TM-AS-Result-Xfilter',                      self.testXTMXFilter),
-            ('X-TM-AS-SMTP',                                self.testXTMASSMTP),
-            ('X-TMASE-SNAP-Result',                         self.testXTMASESNAP),
-            ('X-TM-Authentication-Results',                 self.testXTMAuthenticationResults),
-            ('X-Scanned-By',                                self.testXScannedBy),
-            ('X-Mimecast-Spam-Signature',                   self.testXMimecastSpamSignature),
-            ('X-Mimecast-Bulk-Signature',                   self.testXMimecastBulkSignature),
-            ('X-Forefront-Antispam-Report-Untrusted',       self.testForefrontAntiSpamReportUntrusted),
-            ('X-Microsoft-Antispam-Untrusted',              self.testForefrontAntiSpamUntrusted),
-            ('X-Mimecast-Impersonation-Protect',            self.testMimecastImpersonationProtect),
-            ('X-Proofpoint-Spam-Details',                   self.testXProofpointSpamDetails),
-            ('X-Proofpoint-Virus-Version',                  self.testXProofpointVirusVersion),
-            ('SPFCheck',                                    self.testSPFCheck),
-
-            ('X-Barracuda-Spam-Score',                      self.testXBarracudaSpamScore),
-            ('X-Barracuda-Spam-Status',                     self.testXBarracudaSpamStatus),
-            ('X-Barracuda-Spam-Report',                     self.testXBarracudaSpamReport),
-            ('X-Barracuda-Bayes',                           self.testXBarracudaBayes),
-            ('X-Barracuda-Start-Time',                      self.testXBarracudaStartTime),
-
-            #
-            # These tests shall be the last ones.
-            #
-            ('Similar to SpamAssassin Spam Level headers',  self.testSpamAssassinSpamAlikeLevels),
-            ('SMTP Header Contained IP address',            self.testMessageHeaderContainedIP),
-            ('Other unrecognized Spam Related Headers',     self.testSpamRelatedHeaders),
-            ('Other interesting headers',                   self.testInterestingHeaders),
-            ('Security Appliances Spotted',                 self.testSecurityAppliances),
-            ('Email Providers Infrastructure Clues',        self.testEmailIntelligence),
-        )
-
-        for i in range(len(SMTPHeadersAnalysis.Handled_Spam_Headers)):
-            SMTPHeadersAnalysis.Handled_Spam_Headers[i] = SMTPHeadersAnalysis.Handled_Spam_Headers[i].lower()
-
-        testsDecodeAll = (
-            ('X-Microsoft-Antispam-Message-Info',           self.testMicrosoftAntiSpamMessageInfo),
-            ('Decoded Mail-encoded header values',          self.testDecodeEncodedHeaders),
-        )
-
-        testsReturningArray = (
-            ('Header Containing Client IP',                 self.testAnyOtherIP),
-        )
+        (tests, testsDecodeAll, testsReturningArray) = self.getAllTests()
 
         testsConducted = 0
 
-        for testName, testFunc in tests:
+        for testId, testName, testFunc in tests:
             try:
+                if len(self.testsToRun) > 0 and int(testId) not in self.testsToRun:
+                    self.logger.dbg(f'Skipping test {testId} {testName}')
+                    continue
+
                 testsConducted += 1
-                self.logger.dbg(f'Running "{testName}"...')
+                self.logger.dbg(f'Running test {testId}: "{testName}"...')
                 self.results[testName] = testFunc()
 
             except Exception as e:
-                self.logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+                self.logger.err(f'Test {testId}: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
 
                 self.results[testName] = {
                     'header' : '',
@@ -1292,14 +1337,18 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     raise
 
         if self.decode_all:
-            for testName, testFunc in testsDecodeAll:
+            for testId, testName, testFunc in testsDecodeAll:
                 try:
+                    if len(self.testsToRun) > 0 and int(testId) not in self.testsToRun:
+                        self.logger.dbg(f'Skipping test {testId} {testName}')
+                        continue
+                    
                     testsConducted += 1
-                    self.logger.dbg(f'Running "{testName}"...')
+                    self.logger.dbg(f'Running test {testId}: "{testName}"...')
                     self.results[testName] = testFunc()
 
                 except Exception as e:
-                    self.logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+                    self.logger.err(f'Test {testId}: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
 
                     self.results[testName] = {
                         'header' : '',
@@ -1310,10 +1359,14 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     if options['debug']:
                         raise
 
-        for testName, testFunc in testsReturningArray:
+        for testId, testName, testFunc in testsReturningArray:
             try:
+                if len(self.testsToRun) > 0 and int(testId) not in self.testsToRun:
+                    self.logger.dbg(f'Skipping test {testId} {testName}')
+                    continue
+                    
                 testsConducted += 1
-                self.logger.dbg(f'Running "{testName}"...')
+                self.logger.dbg(f'Running test {testId}: "{testName}"...')
                 outs = testFunc()
 
                 num = 0
@@ -1322,7 +1375,7 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
                     self.results[testName + ' ' + str(num)] = o
 
             except Exception as e:
-                self.logger.err(f'Test: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
+                self.logger.err(f'Test {testId}: "{testName}" failed: {e} . Use --debug to show entire stack trace.')
 
                 self.results[testName] = {
                     'header' : '',
@@ -2933,7 +2986,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
         self.securityAppliances.add('SpamAssassin')
         result = '- SpamAssassin spam report\n\n'
-        return self._parseSpamAssassinStatus(result, '', num, header, value)
+        return self._parseSpamAssassinStatus(result, '', num, header, value, SMTPHeadersAnalysis.Barracuda_Score_Thresholds)
 
     def _parseSpamAssassinStatus(self, topic, description, num, header, value, thresholds):        
         parsed = {}
@@ -3048,82 +3101,83 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
         m = re.search(r'<([^<@\s]+)@([^\s]+)>', value)
         domain = ''
 
-        if m and len(self.received_path) > 2:
-            username = m.group(1)
-            domain = m.group(2)
-            email = f'{username}@{domain}'
+        if m and len(self.received_path) < 3:
+            return []
 
-            firstHop = self.received_path[1]
-            
-            mailDomainAddr = ''
-            revMailDomain = ''
-            revFirstSenderDomain = ''
-            
-            firstSenderAddr = ''
-            revFirstSenderDomain
+        username = m.group(1)
+        domain = m.group(2)
+        email = f'{username}@{domain}'
 
-            try:
-                mailDomainAddr = socket.gethostbyname(domain)
-                revMailDomain = socket.gethostbyaddr(mailDomainAddr)[0]
+        firstHop = self.received_path[1]
+        
+        mailDomainAddr = ''
+        revMailDomain = ''
+        revFirstSenderDomain = firstHop['host2']
+        firstSenderAddr = ''
 
-                if(len(firstHop['ip'])) > 0:
-                    revFirstSenderDomain = socket.gethostbyaddr(firstHop['ip'])[0]
+        try:
+            mailDomainAddr = socket.gethostbyname(domain)
+            revMailDomain = socket.gethostbyaddr(mailDomainAddr)[0]
 
-                if(len(firstHop['host'])) > 0:
-                    firstSenderAddr = socket.gethostbyname(firstHop['host'])
+            if(len(firstHop['ip'])) > 0 and len(revFirstSenderDomain) == 0:
+                revFirstSenderDomain = socket.gethostbyaddr(firstHop['ip'])[0]
+
+            if(len(firstHop['host'])) > 0:
+                firstSenderAddr = socket.gethostbyname(firstHop['host'])
+                if len(revFirstSenderDomain) == 0:
                     revFirstSenderDomain = socket.gethostbyaddr(firstSenderAddr)[0]
-            except: 
-                pass
+        except: 
+            pass
 
-            senderDomain = SMTPHeadersAnalysis.extractDomain(revMailDomain)
-            firstHopDomain1 = SMTPHeadersAnalysis.extractDomain(revFirstSenderDomain)
+        senderDomain = SMTPHeadersAnalysis.extractDomain(revMailDomain)
+        firstHopDomain1 = SMTPHeadersAnalysis.extractDomain(revFirstSenderDomain)
 
-            if len(senderDomain) == 0: senderDomain = domain
-            if len(firstHopDomain1) == 0: firstHopDomain1 = firstHop["host"]
+        if len(senderDomain) == 0: senderDomain = domain
+        if len(firstHopDomain1) == 0: firstHopDomain1 = firstHop["host"]
 
-            result += f'\t- Mail From: <{email}>\n\n'
-            result += f'\t- Mail Domain: {domain}\n'
-            result += f'\t               --> resolves to: {mailDomainAddr}\n'
-            result += f'\t                   --> reverse-DNS resolves to: {revMailDomain}\n'
-            result += f'\t                       (sender\'s domain: {self.logger.colored(senderDomain, "cyan")})\n\n'
+        result += f'\t- Mail From: <{email}>\n\n'
+        result += f'\t- Mail Domain: {domain}\n'
+        result += f'\t               --> resolves to: {mailDomainAddr}\n'
+        result += f'\t                   --> reverse-DNS resolves to: {revMailDomain}\n'
+        result += f'\t                       (sender\'s domain: {self.logger.colored(senderDomain, "cyan")})\n\n'
 
-            result += f'\t- First Hop:   {firstHop["host"]} ({firstHop["ip"]})\n'
-            result += f'\t               --> resolves to: {firstSenderAddr}\n'
-            result += f'\t                   --> reverse-DNS resolves to: {revFirstSenderDomain}\n'
-            result += f'\t                       (first hop\'s domain: {self.logger.colored(firstHopDomain1, "cyan")})\n\n'
+        result += f'\t- First Hop:   {firstHop["host"]} ({firstHop["ip"]})\n'
+        result += f'\t               --> resolves to: {firstSenderAddr}\n'
+        result += f'\t                   --> reverse-DNS resolves to: {revFirstSenderDomain}\n'
+        result += f'\t                       (first hop\'s domain: {self.logger.colored(firstHopDomain1, "cyan")})\n\n'
 
-            if firstHopDomain1.lower() != senderDomain.lower():
-                response = None
-                try:
-                    if domain.endswith('.'): domain = domain[:-1]
-                    response = dns.resolver.resolve(domain, 'TXT')
+        if firstHopDomain1.lower() != senderDomain.lower():
+            response = None
+            try:
+                if domain.endswith('.'): domain = domain[:-1]
+                response = dns.resolver.resolve(domain, 'TXT')
 
-                except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer) as e:
-                    response = []
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer) as e:
+                response = []
 
-                spf = False
+            spf = False
 
-                for answer in response:
-                    txt = str(answer)
-                    if 'v=spf' in txt:
-                        result += f'- Domain SPF: {txt[:64]}\n'
+            for answer in response:
+                txt = str(answer)
+                if 'v=spf' in txt:
+                    result += f'- Domain SPF: {txt[:64]}\n'
 
-                        for _domain in re.findall(r'([a-z0-9_\.-]+\.[a-z]{2,})', txt):
-                            _domain1 = SMTPHeadersAnalysis.extractDomain(_domain)
+                    for _domain in re.findall(r'([a-z0-9_\.-]+\.[a-z]{2,})', txt):
+                        _domain1 = SMTPHeadersAnalysis.extractDomain(_domain)
 
-                            if _domain1.lower() == firstHopDomain1:
-                                result += self.logger.colored(f'\n\t- [+] First Hop ({firstHopDomain1}) is authorized to send e-mails on behalf of ({domain}) due to SPF records.\n', 'yellow')
-                                result += '\t- So I\'m not sure if there was Domain Impersonation or not, but my best guess is negative.\n'
-                                spf = True
-                                break
+                        if _domain1.lower() == firstHopDomain1:
+                            result += self.logger.colored(f'\n\t- [+] First Hop ({firstHopDomain1}) is authorized to send e-mails on behalf of ({domain}) due to SPF records.\n', 'yellow')
+                            result += '\t- So I\'m not sure if there was Domain Impersonation or not, but my best guess is negative.\n'
+                            spf = True
+                            break
 
-                    if spf:
-                        break
+                if spf:
+                    break
 
-                if not spf:
-                    result += self.logger.colored('\n- WARNING! Potential Domain Impersonation!\n', 'red')
-                    result += f'\t- Mail\'s domain should resolve to: \t{self.logger.colored(senderDomain, "green")}\n'
-                    result += f'\t- But instead first hop resolved to:\t{self.logger.colored(firstHopDomain1, "red")}\n'
+            if not spf:
+                result += self.logger.colored('\n- WARNING! Potential Domain Impersonation!\n', 'red')
+                result += f'\t- Mail\'s domain should resolve to: \t{self.logger.colored(senderDomain, "green")}\n'
+                result += f'\t- But instead first hop resolved to:\t{self.logger.colored(firstHopDomain1, "red")}\n'
 
         return {
             'header' : header,
@@ -3386,8 +3440,19 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                     pass
 
             if len(obj['host2']) > 0:
-                if obj['ip'] == None or len(obj['ip']) == 0:
-                    obj['ip'] = obj['host2']
+                match = re.match(r'\[?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]?', obj['host2'])
+                if obj['ip'] == None or len(obj['ip']) == 0 and match:
+                    obj['ip'] = match.group(1)
+                    obj['host2'] = ''
+
+            if len(obj['host2']) == 0:
+                if obj['ip'] != None and len(obj['ip']) > 0:
+                    try:
+                        res = socket.gethostbyaddr(obj['ip'])
+                        if len(res) > 0:
+                            obj['host2'] = res[0]
+                    except:
+                        obj['host2'] = self.logger.colored('NXDomain', 'red')
 
             if extrapos == 0:
                 a = received.find(obj['host']) + len(obj['host'])
@@ -3543,20 +3608,24 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             else:
                 result += iindent + indent * (num+1) + f'{s} ({num}) {self.logger.colored(elem["host"], "yellow")}'
 
-            if len(elem['host2']) > 0:
-                if elem['host2'].endswith('.'):
-                    elem['host2'] = self.logger.colored(elem['host2'][:-1], 'yellow')
-
-                if elem['host2'] != elem['host'] and elem['host2'] != elem['ip']:
-                    result += f' (rev: {self.logger.colored(elem["host2"], "yellow")})'
-
             if elem['ip'] != None and len(elem['ip']) > 0:
+                if elem['ip'][0] == '[' and elem['ip'][-1] == ']':
+                    elem['ip'] = elem['ip'][1:-1]
+
                 if num == 2:
                     result += f' ({self.logger.colored(elem["ip"], "green")})\n'
                 else:
                     result += f' ({self.logger.colored(elem["ip"], "yellow")})\n'
             else:
                 result += '\n'
+
+            if len(elem['host2']) > 0:
+                if elem['host2'].endswith('.'):
+                    elem['host2'] = self.logger.colored(elem['host2'][:-1], 'yellow')
+
+                if elem['host2'] != elem['host'] and elem['host2'] != elem['ip']:
+                    #result += f' (rev: {self.logger.colored(elem["host2"], "yellow")})'
+                    result += iindent + indent * (num+3) + 'rev-DNS:  ' + self.logger.colored(elem["host2"], "yellow") + '\n'
 
             if elem['timestamp'] != None:
                 result += iindent + indent * (num+3) + 'time:     ' + elem['timestamp'] + '\n'
@@ -3587,6 +3656,9 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             result += '\n'
 
         self.received_path = path
+
+        if '1' not in self.testsToRun:
+            return []
 
         return {
             'header' : 'Received',
@@ -3625,6 +3697,72 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
         self.securityAppliances.add('MS ForeFront Anti-Spam')
         return self._parseBulk(num, header, value)
+
+    def testForefrontAntiSCL(self):
+        (num, header, value) = self.getHeader('X-MS-Exchange-Organization-SCL')
+        if num == -1: return []
+
+        tmp = self._parseSCLBased(value.strip(), 'SCL', 'Spam Confidence Level', 'spam', SMTPHeadersAnalysis.ForeFront_Spam_Confidence_Levels)
+
+        if len(tmp) == 0:
+            return []
+
+        result = tmp + '\n'
+
+        return {
+            'header' : header,
+            'value': value,
+            'analysis' : result,
+            'description' : '',
+        }
+
+    def _parseSCLBased(self, score, key, topic, listname, listelems):
+        addscl = False
+        tmpfoo = ''
+        result = ''
+
+        v = (topic, listname, listelems)
+
+        k = key
+        addscl = True
+        scl = int(score)
+        k0 = self.logger.colored(k, 'magenta')
+        tmpfoo += f'- {k0}: {v[0]}: ' + str(scl) + '\n'
+
+        levels = list(v[2].keys())
+        levels.sort()
+
+        if scl in levels:
+            s = v[2][scl]
+            f = self.logger.colored(f'Not {v[1]}', 'green')
+            if s[0]:
+                f = self.logger.colored(v[1].upper(), 'red')
+
+            tmpfoo += f'\t- {f}: {s[1]}\n'
+
+        else:
+            for i in range(len(levels)):
+                if scl <= levels[i] and i > 0:
+                    s = v[2][levels[i-1]]
+                    f = self.logger.colored(f'Not {v[1]}', 'green')
+                    if s[0]:
+                        f = self.logger.colored(v[1].upper(), 'red')
+
+                    tmpfoo += f'\t- {f}: {s[1]}\n'
+                    break
+                elif scl <= levels[0]:
+                    s = v[2][levels[0]]
+                    f = self.logger.colored(f'Not {v[1]}', 'green')
+                    if s[0]:
+                        f = self.logger.colored(v[1].upper(), 'red')
+
+                    tmpfoo += f'\t- {f}: {s[1]}\n'
+                    break
+
+        if addscl:
+            result += tmpfoo
+
+        return result
 
     def _parseBulk(self, num, header, value):
         parsed = {}
@@ -3740,6 +3878,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                 if found:
                     result += tmp + '\n'
 
+        usedRE = False
         for k in ['SFS', 'RULEID', 'ENG']:
             if k in parsed.keys():
                 res = ''
@@ -3749,19 +3888,26 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                     rules = []
 
                 k0 = self.logger.colored(k, 'magenta')
-                tmp = f'- Message matched {len(rules)} Anti-Spam rules ({k0}):\n'
+                tmp = f'- Message matched {self.logger.colored(str(len(rules)), "yellow")} Anti-Spam rules ({k0}):\n'
 
                 rules.sort()
                 for r in rules:
                     if len(r) == 0: continue
 
+                    r2 = f'({r})'
                     if r in SMTPHeadersAnalysis.Anti_Spam_Rules_ReverseEngineered.keys():
                         e = SMTPHeadersAnalysis.Anti_Spam_Rules_ReverseEngineered[r]
-                        tmp += f'\t- ({r}) - {e}\n'
+                        tmp += f'\t- {r2: <15} - {e}\n'
+                        usedRE = True
                     else:
-                        tmp += f'\t- ({r})\n'
+                        tmp += f'\t- {r2}\n'
 
                 result += tmp + '\n'
+
+        if usedRE:
+            result += '\tNOTICE:\n'
+            result += '\t(Anti-Spam rule explanation can only be considered as a clue, hint rather than a definitive explanation.)\n'
+            result += '\t(Rules meaning was established merely in a trial-and-error process by observing SMTP header differences.)\n\n'
 
         sclpcl = {
             'SCL' : ('Spam Confidence Level', 'spam', SMTPHeadersAnalysis.ForeFront_Spam_Confidence_Levels),
@@ -3974,19 +4120,28 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
                     rules = []
 
                 k0 = self.logger.colored(k, 'magenta')
-                tmp = f'- Message matched {len(rules)} Anti-Spam Delivery rules ({k0}):\n'
+                tmp = f'- Message matched {self.logger.colored(len(rules), "yellow")} Anti-Spam Delivery rules ({k0}):\n'
 
                 rules.sort()
+                usedRE = False
+
                 for r in rules:
                     if len(r) == 0: continue
 
+                    r2 = f'({r})'
                     if r in SMTPHeadersAnalysis.Anti_Spam_Rules_ReverseEngineered.keys():
                         e = SMTPHeadersAnalysis.Anti_Spam_Rules_ReverseEngineered[r]
-                        tmp += f'\t- ({r}) - {e}\n'
+                        tmp += f'\t- {r2: <15} - {e}\n'
+                        usedRE = True
                     else:
-                        tmp += f'\t- ({r})\n'
+                        tmp += f'\t- {r2}\n'
 
                 result += tmp + '\n'
+
+        if usedRE:
+            result += '\tNOTICE:\n'
+            result += '\t(Anti-Spam rule explanation can only be considered as a clue, hint rather than a definitive explanation.)\n'
+            result += '\t(Rules meaning was established merely in a trial-and-error process by observing SMTP header differences.)\n\n'
 
         return {
             'header' : header,
@@ -4349,11 +4504,11 @@ def opts(argv):
     global logger
 
     o = argparse.ArgumentParser(
-        usage = 'decode-spam-headers.py [options] <file>'
+        usage = 'decode-spam-headers.py [options] <file | --list tests>'
     )
     
     req = o.add_argument_group('Required arguments')
-    req.add_argument('infile', help = 'Input file to be analysed')
+    req.add_argument('infile', help = 'Input file to be analysed or --list tests to show available tests.')
 
     opt = o.add_argument_group('Options')
     opt.add_argument('-o', '--outfile', default='', type=str, help = 'Output file with report')
@@ -4363,6 +4518,9 @@ def opts(argv):
     opt.add_argument('-d', '--debug', default=False, action='store_true', help='Debug mode.')
 
     tst = o.add_argument_group('Tests')
+    opt.add_argument('-l', '--list', default=False, action='store_true', help='List available tests and quit. Use it like so: --list tests')
+    tst.add_argument('-i', '--include-tests', default='', metavar='tests', help='Comma-separated list of test IDs to run. Ex. --include-tests 1,3,7')
+    tst.add_argument('-e', '--exclude-tests', default='', metavar='tests', help='Comma-separated list of test IDs to skip. Ex. --exclude-tests 1,3,7')
     tst.add_argument('-r', '--resolve', default=False, action='store_true', help='Resolve IPv4 addresses / Domain names.')
     tst.add_argument('-a', '--decode-all', default=False, action='store_true', help='Decode all =?us-ascii?Q? mail encoded messages and print their contents.')
 
@@ -4446,7 +4604,26 @@ def printOutput(out):
 def main(argv):
     args = opts(argv)
     if not args:
-        return False
+        return Falsex
+
+    if args.list:
+        print('[.] Available tests:\n')
+
+        print('\tTEST_ID - TEST_NAME')
+        print('\t--------------------------------------')
+
+        an = SMTPHeadersAnalysis(logger)
+
+        (a, b, c) = an.getAllTests()
+        tests = a+b+c
+
+        for test in tests:
+            (testId, testName, testFunc) = test
+
+            print(f'\t{testId: >7} - {testName}')
+
+        print('\n')
+        return True
 
     logger.info('Analysing: ' + args.infile)
 
@@ -4454,7 +4631,32 @@ def main(argv):
     with open(args.infile) as f:
         text = f.read()
 
-    an = SMTPHeadersAnalysis(logger, args.resolve, args.decode_all)
+    try:
+        include_tests = []
+        exclude_tests = []
+
+        if len(args.include_tests) > 0: include_tests = [int(x) for x in args.include_tests.split(',')]
+        if len(args.exclude_tests) > 0: exclude_tests = [int(x) for x in args.exclude_tests.split(',')]
+
+        if len(include_tests) > 0 and len(exclude_tests) > 0:
+            logger.fatal('--include-tests and --exclude-tests options are mutually exclusive!')
+    except:
+        raise
+        logger.fatal('Tests to be included/excluded need to be numbers! Ex. --include-tests 1,5,7')
+
+    testsToRun = set()
+    for i in range(1000):
+        if len(include_tests) > 0:
+            if i not in include_tests:
+                continue
+
+        elif len(exclude_tests) > 0:
+            if i in exclude_tests:
+                continue
+        
+        testsToRun.add(i)
+
+    an = SMTPHeadersAnalysis(logger, args.resolve, args.decode_all, testsToRun)
     out = an.parse(text)
 
     output = printOutput(out)
