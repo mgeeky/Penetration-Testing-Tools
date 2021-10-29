@@ -104,6 +104,7 @@ import textwrap
 import socket
 import time
 import base64
+from html import escape
 
 from dateutil import parser
 from email import header as emailheader
@@ -139,6 +140,7 @@ options = {
     'verbose': False,
     'nocolor' : False,
     'log' : sys.stderr,
+    'format' : 'text',
 }
 
 class Logger:
@@ -171,6 +173,35 @@ class Logger:
     @staticmethod
     def with_color(c, s):
         return "\x1b[%dm%s\x1b[0m" % (c, s)
+
+    @staticmethod
+    def replaceColorToHtml(s):
+        out = ''
+        i = 0
+
+        while i < len(s):
+            if s[i] == '\x1b' and s[i+1] == '[' and s[i+2] != '0':
+                c = int(s[i+2:i+4])
+                pos = 0
+                while pos < len(s):
+                    if s[pos] == '\x1b' and s[pos+1] == '[' and s[pos+2] == '0' and s[pos+3] == 'm':
+                        break
+                    pos += 1
+
+                txt = s[i+5:pos]
+                i = i + 5 + pos + 4
+
+                for k, v in Logger.colors_map.items():
+                    if v == c:
+                        out += f'<p style="color:{k}">{escape(txt)}</p>'
+                        break
+
+                continue
+
+            out += s[i]
+            i += 1
+
+        return out
 
     def colored(self, txt, col):
         if self.options['nocolor']:
@@ -257,6 +288,9 @@ class Logger:
 
     def dbg(self, txt, **kwargs):
         if self.options['debug']:
+            if self.options['format'] == 'html':
+                txt = f'<!-- {txt} -->'
+
             kwargs['nocolor'] = self.options['nocolor']
             Logger.out(txt, self.options['log'], 'debug', **kwargs)
 
@@ -637,7 +671,7 @@ class SMTPHeadersAnalysis:
         '19618925003' : 'Mail body contained suspicious words (like Viagra).',
 
         # triggered on mail with empty body and subject "Click here"
-        '28233001' : 'Subject line contained suspicious words luring action (like "Click here"). ',
+        '28233001' : 'Subject line contained suspicious words luring action (ex. "Click here"). ',
 
         # triggered on a mail with test subject and 1500 words of http://nietzsche-ipsum.com/
         '30864003' : 'Mail body contained a lot of text (more than 10.000 characters).',
@@ -656,11 +690,11 @@ class SMTPHeadersAnalysis:
         '166002' : 'HTML mail body contained URL <a> link.',
 
         # Message contained <a href="https://something.com/file.html?parameter=value" - GET parameter with value.
-        '21615005' : 'Mail body contained <a> tag with URL containing GET parameter: href="https://foo.bar/file?aaa=bbb"',
+        '21615005' : 'Mail body contained <a> tag with URL containing GET parameter: ex. href="https://foo.bar/file?aaa=bbb"',
 
         # Message contained <a href="https://something.com/file.html?parameter=https://another.com/website" 
         # - GET parameter with value, being a URL to another website
-        '45080400002' : 'Mail body contained <a> tag with URL containing GET parameter with value of another URL: href="https://foo.bar/file?aaa=https://baz.xyz/"',
+        '45080400002' : 'Mail body contained <a> tag with URL containing GET parameter with value of another URL: ex. href="https://foo.bar/file?aaa=https://baz.xyz/"',
 
         # Message contained <a> with href pointing to a file with dangerous extension, such as file.exe
         '460985005' : 'Mail body contained HTML <a> tag with href URL pointing to a file with dangerous extension (such as .exe)',
@@ -673,7 +707,7 @@ class SMTPHeadersAnalysis:
         #   Message1 - FirstHop Gmail SMTP Received with ESMTPS.
         #   Message2 - FirstHop Gmail SMTP-Relay Received with ESMTPSA.
         #
-        '121216002' : 'First Hop MTA SMTP Server used as a SMTP Relay. It used to originate e-mails, but here it acted as a Relay. Or it\'s due to use of "with ESMTPSA" instead of ESMTPS',
+        '121216002' : 'First Hop MTA SMTP Server used as a SMTP Relay. It\'s known to originate e-mails, but here it acted as a Relay. Or maybe due to use of "with ESMTPSA" instead of ESMTPS?',
 
     }
 
@@ -1335,6 +1369,13 @@ Results will be unsound. Make sure you have pasted your headers with correct spa
 
                 if options['debug']:
                     raise
+
+        idsOfDecodeAll = [int(x[0]) for x in testsDecodeAll]
+
+        for a in self.testsToRun:
+            if a in idsOfDecodeAll:
+                self.decode_all = True
+                break
 
         if self.decode_all:
             for testId, testName, testFunc in testsDecodeAll:
@@ -3657,7 +3698,7 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
 
         self.received_path = path
 
-        if '1' not in self.testsToRun:
+        if 1 not in self.testsToRun:
             return []
 
         return {
@@ -4057,6 +4098,8 @@ Src: https://www.cisco.com/c/en/us/td/docs/security/esa/esa11-1/user_guide/b_ESA
             tmp += '\n\n\n'
         else:
             tmp += '\n\n\t- Use --decode-all to print its hexdump.'
+
+        result += tmp
 
         return {
             'header' : header,
@@ -4512,7 +4555,7 @@ def opts(argv):
 
     opt = o.add_argument_group('Options')
     opt.add_argument('-o', '--outfile', default='', type=str, help = 'Output file with report')
-    opt.add_argument('-f', '--format', choices=['json', 'text'], default='text', help='Analysis report format. JSON, text. Default: text')
+    opt.add_argument('-f', '--format', choices=['json', 'text', 'html'], default='text', help='Analysis report format. JSON, text. Default: text')
     opt.add_argument('-N', '--nocolor', default=False, action='store_true', help='Dont use colors in text output.')
     opt.add_argument('-v', '--verbose', default=False, action='store_true', help='Verbose mode.')
     opt.add_argument('-d', '--debug', default=False, action='store_true', help='Debug mode.')
@@ -4526,7 +4569,7 @@ def opts(argv):
 
     args = o.parse_args()
 
-    if len(args.outfile) > 0 or args.format == 'json':
+    if len(args.outfile) > 0 and (args.format == 'json' or args.format == 'text'):
         args.nocolor = True
 
     options.update(vars(args))
@@ -4537,7 +4580,7 @@ def opts(argv):
 def printOutput(out):
     output = ''
 
-    if options['format'] == 'text':
+    if options['format'] == 'text' or options['format'] == 'html':
         width = 100
         num = 0
 
@@ -4596,6 +4639,27 @@ def printOutput(out):
     {analysis}
 '''
 
+        if options['format'] == 'html':
+            output2 = f'''<html>
+    <head>
+    <title>decode-spam-headers</title>
+    </head>
+    <body>
+    {output}
+    </body>
+</html>'''
+
+            output = output2.replace('\n', '<br/>').replace('\t', '&nbsp;' * 4).replace(' ', '&nbsp;')
+            output2 = output
+
+            for m in re.finditer(r'(<[^>]+>)', output, re.I):
+                a = m.group(1)
+                b = a.replace('&nbsp;', ' ')
+                output2 = output2.replace(a, b)
+
+            return Logger.replaceColorToHtml(output2)
+            #return output
+
     elif options['format'] == 'json':
         output = json.dumps(out)
 
@@ -4604,7 +4668,7 @@ def printOutput(out):
 def main(argv):
     args = opts(argv)
     if not args:
-        return Falsex
+        return False
 
     if args.list:
         print('[.] Available tests:\n')
@@ -4627,16 +4691,25 @@ def main(argv):
 
     logger.info('Analysing: ' + args.infile)
 
+    an0 = SMTPHeadersAnalysis(logger)
+    (a, b, c) = an0.getAllTests()
+    maxTest = 0
+    for i in a+b+c:
+        test = int(i[0])
+
+        if test > maxTest:
+            maxTest = test
+
     text = ''
     with open(args.infile) as f:
         text = f.read()
 
     try:
-        include_tests = []
-        exclude_tests = []
+        include_tests = set()
+        exclude_tests = set()
 
-        if len(args.include_tests) > 0: include_tests = [int(x) for x in args.include_tests.split(',')]
-        if len(args.exclude_tests) > 0: exclude_tests = [int(x) for x in args.exclude_tests.split(',')]
+        if len(args.include_tests) > 0: include_tests = set([int(x) for x in args.include_tests.replace(' ', '').split(',')])
+        if len(args.exclude_tests) > 0: exclude_tests = set([int(x) for x in args.exclude_tests.replace(' ', '').split(',')])
 
         if len(include_tests) > 0 and len(exclude_tests) > 0:
             logger.fatal('--include-tests and --exclude-tests options are mutually exclusive!')
@@ -4644,8 +4717,9 @@ def main(argv):
         raise
         logger.fatal('Tests to be included/excluded need to be numbers! Ex. --include-tests 1,5,7')
 
-    testsToRun = set()
-    for i in range(1000):
+    _testsToRun = set()
+
+    for i in range(maxTest + 5):
         if len(include_tests) > 0:
             if i not in include_tests:
                 continue
@@ -4654,7 +4728,9 @@ def main(argv):
             if i in exclude_tests:
                 continue
         
-        testsToRun.add(i)
+        _testsToRun.add(i)
+
+    testsToRun = sorted(_testsToRun)
 
     an = SMTPHeadersAnalysis(logger, args.resolve, args.decode_all, testsToRun)
     out = an.parse(text)
@@ -4663,7 +4739,11 @@ def main(argv):
 
     if len(args.outfile) > 0:
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        output2 = ansi_escape.sub('', output)
+        
+        output2 = output
+
+        if args.format != 'html':
+            output2 = ansi_escape.sub('', output)
 
         with open(args.outfile, 'w') as f:
             f.write(output2)
