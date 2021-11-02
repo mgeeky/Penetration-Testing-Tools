@@ -170,6 +170,959 @@ class Logger:
 logger = Logger(options)
 
 class PhishingMailParser:
+
+    #
+    # Based on:
+    #    https://journeys.autopilotapp.com/blog/email-spam-trigger-words/
+    #    https://www.activecampaign.com/blog/spam-words
+    #    https://blog.hubspot.com/blog/tabid/6307/bid/30684/the-ultimate-list-of-email-spam-trigger-words.aspx
+    #
+    Suspicious_Words = {
+        'Manipulative': (
+            'creating unnecessary urgency or pressure',
+            (
+                "Act now", 
+                "Action", 
+                "Apply now", 
+                "Apply online", 
+                "Buy", 
+                "Buy direct", 
+                "Call", 
+                "Call now", 
+                "Click here", 
+                "Clearance", 
+                "Click here", 
+                "Do it today", 
+                "Don't delete", 
+                "Drastically reduced", 
+                "Exclusive deal", 
+                "Expire", 
+                "Get", 
+                "Get it now", 
+                "Get started now", 
+                "Important information regarding", 
+                "Instant", 
+                "Limited time", 
+                "New customers only", 
+                "Now only", 
+                "Offer expires", 
+                "Once in a lifetime", 
+                "Order now", 
+                "Please read", 
+                "Special promotion", 
+                "Take action", 
+                "This won't last", 
+                "Urgent", 
+                "While stocks last"
+            )
+        ),
+        
+        'Needy' : (
+            'sounding desperate or exaggerated claims',
+            (
+                "All-new", 
+                "Bargain", 
+                "Best price", 
+                "Bonus", 
+                "Email marketing", 
+                "Free", 
+                "For instant access", 
+                "Free gift", 
+                "Free trial", 
+                "Have you been turned down?", 
+                "Great offer", 
+                "Join millions of Americans", 
+                "Incredible deal", 
+                "Prize", 
+                "Satisfaction guaranteed", 
+                "Will not believe your eyes"
+            )
+        ),
+        
+        'Sleazy' : (
+            'being too pushy',
+            (
+                "As seen on", 
+                "Click here", 
+                "Click below", 
+                "Deal", 
+                "Direct email", 
+                "Direct marketing", 
+                "Do it today", 
+                "Order now", 
+                "Order today", 
+                "Unlimited", 
+                "What are you waiting for?", 
+                "Visit our website"
+            )
+        ),
+        
+        'Cheap' : (
+            'no pre-qualifications, everybody wins',
+            (
+                "Acceptance", 
+                "Access", 
+                "Avoid bankruptcy", 
+                "Boss", 
+                "Cancel", 
+                "Card accepted", 
+                "Certified", 
+                "Cheap", 
+                "Compare", 
+                "Compare rates", 
+                "Congratulations", 
+                "Credit card offers", 
+                "Cures", 
+                "Dear ", 
+                "Dear friend", 
+                "Drastically reduced", 
+                "Easy terms", 
+                "Free grant money", 
+                "Free hosting", 
+                "Free info", 
+                "Free membership", 
+                "Friend", 
+                "Get out of debt", 
+                "Giving away", 
+                "Guarantee", 
+                "Guaranteed", 
+                "Have you been turned down?", 
+                "Hello", 
+                "Information you requested", 
+                "Join millions", 
+                "No age restrictions", 
+                "No catch", 
+                "No experience", 
+                "No obligation", 
+                "No purchase necessary", 
+                "No questions asked", 
+                "No strings attached", 
+                "Offer", 
+                "Opportunity", 
+                "Save big", 
+                "Winner", 
+                "Winning", 
+                "Won", 
+                "You are a winner!", 
+                "You've been selected!"
+            )
+        ),
+        
+        'Far-fetched' : (
+            'statements that are too good to be true',
+            (
+                "Additional income", 
+                "All-natural", 
+                "Amazing", 
+                "Be your own boss", 
+                "Big bucks", 
+                "Billion", 
+                "Billion dollars", 
+                "Cash", 
+                "Cash bonus", 
+                "Consolidate debt and credit", 
+                "Consolidate your debt", 
+                "Double your income", 
+                "Earn", 
+                "Earn cash", 
+                "Earn extra cash", 
+                "Eliminate bad credit", 
+                "Eliminate debt", 
+                "Extra", 
+                "Fantastic deal", 
+                "Financial freedom", 
+                "Financially independent", 
+                "Free investment", 
+                "Free money", 
+                "Get paid", 
+                "Home", 
+                "Home-based", 
+                "Income", 
+                "Increase sales", 
+                "Increase traffic", 
+                "Lose", 
+                "Lose weight", 
+                "Money back", 
+                "No catch", 
+                "No fees", 
+                "No hidden costs", 
+                "No strings attached", 
+                "Potential earnings", 
+                "Pure profit", 
+                "Removes wrinkles", 
+                "Reverses aging", 
+                "Risk-free", 
+                "Serious cash", 
+                "Stop snoring", 
+                "Vacation", 
+                "Vacation offers", 
+                "Weekend getaway", 
+                "Weight loss", 
+                "While you sleep", 
+                "Work from home"
+            )
+        ),
+
+        'Exaggeration' : (
+            'exaggerated claims and promises',
+            (
+                "100% more",
+                "100% free",
+                "100% satisfied",
+                "Additional income",
+                "Be your own boss",
+                "Best price",
+                "Big bucks",
+                "Billion",
+                "Cash bonus",
+                "Cents on the dollar",
+                "Consolidate debt",
+                "Double your cash",
+                "Double your income",
+                "Earn extra cash",
+                "Earn money",
+                "Eliminate bad credit",
+                "Extra cash",
+                "Extra income",
+                "Expect to earn",
+                "Fast cash",
+                "Financial freedom",
+                "Free access",
+                "Free consultation",
+                "Free gift",
+                "Free hosting",
+                "Free info",
+                "Free investment",
+                "Free membership",
+                "Free money",
+                "Free preview",
+                "Free quote",
+                "Free trial",
+                "Full refund",
+                "Get out of debt",
+                "Get paid",
+                "Giveaway",
+                "Guaranteed",
+                "Increase sales",
+                "Increase traffic",
+                "Incredible deal",
+                "Lower rates",
+                "Lowest price",
+                "Make money",
+                "Million dollars",
+                "Miracle",
+                "Money back",
+                "Once in a lifetime",
+                "One time",
+                "Pennies a day",
+                "Potential earnings",
+                "Prize",
+                "Promise",
+                "Pure profit",
+                "Risk-free",
+                "Satisfaction guaranteed",
+                "Save big money",
+                "Save up to",
+                "Special promotion",
+            )
+        ),
+
+        'Urgency' : (
+            'create unnecessary urgency and pressure',
+            (
+                "Act now",
+                "Apply now",
+                "Become a member",
+                "Call now",
+                "Click below",
+                "Click here",
+                "Get it now",
+                "Do it today",
+                "Don’t delete",
+                "Exclusive deal",
+                "Get started now",
+                "Important information regarding",
+                "Information you requested",
+                "Instant",
+                "Limited time",
+                "New customers only",
+                "Order now",
+                "Please read",
+                "See for yourself",
+                "Sign up free",
+                "Take action",
+                "This won’t last",
+                "Urgent",
+                "What are you waiting for?",
+                "While supplies last",
+                "Will not believe your eyes",
+                "Winner",
+                "Winning",
+                "You are a winner",
+                "You have been selected",
+
+            )
+        ),
+
+        'Spammy' : (
+            'shady, spammy, or unethical behavior',
+            (
+                "Bulk email",
+                "Buy direct",
+                "Cancel at any time",
+                "Check or money order",
+                "Congratulations",
+                "Confidentiality",
+                "Cures",
+                "Dear friend",
+                "Direct email",
+                "Direct marketing",
+                "Hidden charges",
+                "Human growth hormone",
+                "Internet marketing",
+                "Lose weight",
+                "Mass email",
+                "Meet singles",
+                "Multi-level marketing",
+                "No catch",
+                "No cost",
+                "No credit check",
+                "No fees",
+                "No gimmick",
+                "No hidden costs",
+                "No hidden fees",
+                "No interest",
+                "No investment",
+                "No obligation",
+                "No purchase necessary",
+                "No questions asked",
+                "No strings attached",
+                "Not junk",
+                "Notspam",
+                "Obligation",
+                "Passwords",
+                "Requires initial investment",
+                "Social security number",
+                "This isn’t a scam",
+                "This isn’t junk",
+                "This isn’t spam",
+                "Undisclosed",
+                "Unsecured credit",
+                "Unsecured debt",
+                "Unsolicited",
+                "Valium",
+                "Viagra",
+                "Vicodin",
+                "We hate spam",
+                "Weight loss",
+                "Xanax",
+            )
+        ),
+
+        'Jargon' : (
+            'jargon or legalese',
+            (
+                "Accept credit cards",
+                "All new",
+                "As seen on",
+                "Bargain",
+                "Beneficiary",
+                "Billing",
+                "Bonus",
+                "Cards accepted",
+                "Cash",
+                "Certified",
+                "Cheap",
+                "Claims",
+                "Clearance",
+                "Compare rates",
+                "Credit card offers",
+                "Deal",
+                "Debt",
+                "Discount",
+                "Fantastic",
+                "In accordance with laws",
+                "Income",
+                "Investment",
+                "Join millions",
+                "Lifetime",
+                "Loans",
+                "Luxury",
+                "Marketing solution",
+                "Message contains",
+                "Mortgage rates",
+                "Name brand",
+                "Offer",
+                "Online marketing",
+                "Opt in",
+                "Pre-approved",
+                "Quote",
+                "Rates",
+                "Refinance",
+                "Removal",
+                "Reserves the right",
+                "Score",
+                "Search engine",
+                "Sent in compliance",
+                "Subject to",
+                "Terms and conditions",
+                "Trial",
+                "Unlimited",
+                "Warranty",
+                "Web traffic",
+                "Work from home",
+            )
+        ),
+        
+        'Shady' : (
+            'ethically or legally questionable behavior',
+            (
+                "Addresses", 
+                "Beneficiary", 
+                "Billing", 
+                "Casino", 
+                "Celebrity", 
+                "Collect child support", 
+                "Copy DVDs", 
+                "Fast viagra delivery", 
+                "Hidden", 
+                "Human growth hormone", 
+                "In accordance with laws", 
+                "Investment", 
+                "Junk", 
+                "Legal", 
+                "Life insurance", 
+                "Loan", 
+                "Lottery", 
+                "Luxury car", 
+                "Medicine", 
+                "Meet singles", 
+                "Message contains", 
+                "Miracle", 
+                "Money", 
+                "Multi-level marketing", 
+                "Nigerian", 
+                "Offshore", 
+                "Online degree", 
+                "Online pharmacy", 
+                "Passwords", 
+                "Refinance", 
+                "Request", 
+                "Rolex", 
+                "Score", 
+                "Social security number", 
+                "Spam", 
+                "This isn't spam", 
+                "Undisclosed recipient", 
+                "University diplomas", 
+                "Unsecured credit", 
+                "Unsolicited", 
+                "US dollars", 
+                "Valium", 
+                "Viagra", 
+                "Vicodin", 
+                "Warranty", 
+                "Xanax"
+            )
+        ),
+
+        "Commerce" : (
+            "",
+            (
+                "As seen on",
+                "Buy",
+                "Buy direct",
+                "Buying judgments",
+                "Clearance",
+                "Order",
+                "Order status",
+                "Orders shipped by shopper",
+            )
+        ),
+
+        "Personal" : (
+            "",
+            (
+                "Dig up dirt on friends",
+                "Meet singles",
+                "Score with babes",
+                "XXX",
+                "Near you",
+            )
+        ),
+
+        "Employment" : (
+            "",
+            (
+                "Additional income",
+                "Be your own boss",
+                "Compete for your business",
+                "Double your",
+                "Earn $",
+                "Earn extra cash",
+                "Earn per week",
+                "Expect to earn",
+                "Extra income",
+                "Home based",
+                "Home employment",
+                "Homebased business",
+                "Income from home",
+                "Make $",
+                "Make money",
+                "Money making",
+                "Online biz opportunity",
+                "Online degree",
+                "Opportunity",
+                "Potential earnings",
+                "University diplomas",
+                "While you sleep",
+                "Work at home",
+                "Work from home",
+            )
+        ),
+
+        "Financial - General" : (
+            "",
+            (
+                "$$$",
+                "Affordable",
+                "Bargain",
+                "Beneficiary",
+                "Best price",
+                "Big bucks",
+                "Cash",
+                "Cash bonus",
+                "Cashcashcash",
+                "Cents on the dollar",
+                "Cheap",
+                "Check",
+                "Claims",
+                "Collect",
+                "Compare rates",
+                "Cost",
+                "Credit",
+                "Credit bureaus",
+                "Discount",
+                "Earn",
+                "Easy terms",
+                "F r e e",
+                "Fast cash",
+                "For just $XXX",
+                "Hidden assets",
+                "hidden charges",
+                "Income",
+                "Incredible deal",
+                "Insurance",
+                "Investment",
+                "Loans",
+                "Lowest price",
+                "Million dollars",
+                "Money",
+                "Money back",
+                "Mortgage",
+                "Mortgage rates",
+                "No cost",
+                "No fees",
+                "One hundred percent free",
+                "Only $",
+                "Pennies a day",
+                "Price",
+                "Profits",
+                "Pure profit",
+                "Quote",
+                "Refinance",
+                "Save $",
+                "Save big money",
+                "Save up to",
+                "Serious cash",
+                "Subject to credit",
+                "They keep your money — no refund!",
+                "Unsecured credit",
+                "Unsecured debt",
+                "US dollars",
+                "Why pay more?",
+            )
+        ),
+
+        "Financial - Business" : (
+            "",
+            (
+                "Accept credit cards",
+                "Cards accepted",
+                "Check or money order",
+                "Credit card offers",
+                "Explode your business",
+                "Full refund",
+                "Investment decision",
+                "No credit check",
+                "No hidden Costs",
+                "No investment",
+                "Requires initial investment",
+                "Sent in compliance",
+                "Stock alert",
+                "Stock disclaimer statement",
+                "Stock pick",
+            )
+        ),
+
+        "Financial - Personal" : (
+            "",
+            (
+                "Avoice bankruptcy",
+                "Calling creditors",
+                "Collect child support",
+                "Consolidate debt and credit",
+                "Consolidate your debt",
+                "Eliminate bad credit",
+                "Eliminate debt",
+                "Financially independent",
+                "Get out of debt",
+                "Get paid",
+                "Lower interest rate",
+                "Lower monthly payment",
+                "Lower your mortgage rate",
+                "Lowest insurance rates",
+                "Pre-approved",
+                "Refinance home",
+                "Social security number",
+                "Your income",
+            )
+        ),
+
+        "General" : (
+            "",
+            (
+                "Acceptance",
+                "Accordingly",
+                "Avoid",
+                "Chance",
+                "Dormant",
+                "Freedom",
+                "Here",
+                "Hidden",
+                "Home",
+                "Leave",
+                "Lifetime",
+                "Lose",
+                "Maintained",
+                "Medium",
+                "Miracle",
+                "Never",
+                "Passwords",
+                "Problem",
+                "Remove",
+                "Reverses",
+                "Sample",
+                "Satisfaction",
+                "Solution",
+                "Stop",
+                "Success",
+                "Teen",
+                "Wife",
+            )
+        ),
+
+        "Greetings" : (
+            "",
+            (
+                "Dear ",
+                "Friend",
+                "Hello",
+            )
+        ),
+
+        "Marketing" : (
+            "",
+            (
+                "Ad",
+                "Auto email removal",
+                "Bulk email",
+                "Click",
+                "Click below",
+                "Click here",
+                "Click to remove",
+                "Direct email",
+                "Direct marketing",
+                "Email harvest",
+                "Email marketing",
+                "Form",
+                "Increase sales",
+                "Increase traffic",
+                "Increase your sales",
+                "Internet market",
+                "Internet marketing",
+                "Marketing",
+                "Marketing solutions",
+                "Mass email",
+                "Member",
+                "Month trial offer",
+                "More Internet Traffic",
+                "Multi level marketing",
+                "Notspam",
+                "One time mailing",
+                "Online marketing",
+                "Open",
+                "Opt in",
+                "Performance",
+                "Removal instructions",
+                "Sale",
+                "Sales",
+                "Search engine listings",
+                "Search engines",
+                "Subscribe",
+                "The following form",
+                "This isn't junk",
+                "This isn't spam",
+                "Undisclosed recipient",
+                "Unsubscribe",
+                "Visit our website",
+                "We hate spam",
+                "Web traffic",
+                "Will not believe your eyes",
+            )
+        ),
+
+        "Medical" : (
+            "",
+            (
+                "Cures baldness",
+                "Diagnostic",
+                "Fast Viagra delivery",
+                "Human growth hormone",
+                "Life insurance",
+                "Lose weight",
+                "Lose weight spam",
+                "Medicine",
+                "No medical exams",
+                "Online pharmacy",
+                "Removes wrinkles",
+                "Reverses aging",
+                "Stop snoring",
+                "Valium",
+                "Viagra",
+                "Vicodin",
+                "Weight loss",
+                "Xanax",
+            )
+        ),
+
+        "Numbers" : (
+            "",
+            (
+                "#1",
+                "100% free",
+                "100% satisfied",
+                "4U",
+                "50% off",
+                "Billion",
+                "Billion dollars",
+                "Join millions",
+                "Join millions of Americans",
+                "Million",
+                "One hundred percent guaranteed",
+                "Thousands",
+            )
+        ),
+
+        "Offers" : (
+            "",
+            (
+                "Being a member",
+                "Billing address",
+                "Call",
+                "Cannot be combined with any other offer",
+                "Confidentially on all orders",
+                "Deal",
+                "Financial freedom",
+                "Gift certificate",
+                "Giving away",
+                "Guarantee",
+                "Have you been turned down?",
+                "If only it were that easy",
+                "Important information regarding",
+                "In accordance with laws",
+                "Long distance phone offer",
+                "Mail in order form",
+                "Message contains",
+                "Name brand",
+                "Nigerian",
+                "No age restrictions",
+                "No catch",
+                "No claim forms",
+                "No disappointment",
+                "No experience",
+                "No gimmick",
+                "No inventory",
+                "No middleman",
+                "No obligation",
+                "No purchase necessary",
+                "No questions asked",
+                "No selling",
+                "No strings attached",
+                "No-obligation",
+                "Not intended",
+                "Obligation",
+                "Off shore",
+                "Offer",
+                "Per day",
+                "Per week",
+                "Priority mail",
+                "Prize",
+                "Prizes",
+                "Produced and sent out",
+                "Reserves the right",
+                "Shopping spree",
+                "Stuff on sale",
+                "Terms and conditions",
+                "The best rates",
+                "They’re just giving it away",
+                "Trial",
+                "Unlimited",
+                "Unsolicited",
+                "Vacation",
+                "Vacation offers",
+                "Warranty",
+                "We honor all",
+                "Weekend getaway",
+                "What are you waiting for?",
+                "Who really wins?",
+                "Win",
+                "Winner",
+                "Winning",
+                "Won",
+                "You are a winner!",
+                "You have been selected",
+                "You’re a Winner!",
+            )
+        ),
+
+        "Calls-to-Action" : (
+            "",
+            (
+                "Cancel at any time",
+                "Compare",
+                "Copy accurately",
+                "Get",
+                "Give it away",
+                "Print form signature",
+                "Print out and fax",
+                "See for yourself",
+                "Sign up free today",
+            )
+        ),
+
+        "Free" : (
+            "",
+            (
+                "Free",
+                "Free access",
+                "Free cell phone",
+                "Free consultation",
+                "Free DVD",
+                "Free gift",
+                "Free grant money",
+                "Free hosting",
+                "Free installation",
+                "Free Instant",
+                "Free investment",
+                "Free leads",
+                "Free membership",
+                "Free money",
+                "Free offer",
+                "Free preview",
+                "Free priority mail",
+                "Free quote",
+                "Free sample",
+                "Free trial",
+                "Free website",
+            )
+        ),
+
+        "Descriptions/Adjectives" : (
+            "",
+            (
+                "All natural",
+                "All new",
+                "Amazing",
+                "Certified",
+                "Congratulations",
+                "Drastically reduced",
+                "Fantastic deal",
+                "For free",
+                "Guaranteed",
+                "It’s effective",
+                "Outstanding values",
+                "Promise you",
+                "Real thing",
+                "Risk free",
+                "Satisfaction guaranteed",
+            )
+        ),
+
+        "Sense of Urgency" : (
+            "",
+            (
+                "Access",
+                "Act now!",
+                "Apply now",
+                "Apply online",
+                "Call free",
+                "Call now",
+                "Can't live without",
+                "Do it today",
+                "Don't delete",
+                "Don't hesitate",
+                "For instant access",
+                "For Only",
+                "For you",
+                "Get it now",
+                "Get started now",
+                "Great offer",
+                "Info you requested",
+                "Information you requested",
+                "Instant",
+                "Limited time",
+                "New customers only",
+                "Now",
+                "Now only",
+                "Offer expires",
+                "Once in lifetime",
+                "One time",
+                "Only",
+                "Order now",
+                "Order today",
+                "Please read",
+                "Special promotion",
+                "Supplies are limited",
+                "Take action now",
+                "Time limited",
+                "Urgent",
+                "While supplies last",
+            )
+        ),
+
+        "Nouns" : (
+            "",
+            (
+                "Addresses on CD",
+                "Beverage",
+                "Bonus",
+                "Brand new pager",
+                "Cable converter",
+                "Casino",
+                "Celebrity",
+                "Copy DVDs",
+                "Laser printer",
+                "Legal",
+                "Luxury car",
+                "New domain extensions",
+                "Phone",
+                "Rolex",
+                "Stainless steel"
+            )
+        )
+    }
+
     def __init__(self, options):
         self.options = options
         self.results = {}
@@ -186,6 +1139,7 @@ class PhishingMailParser:
         self.results['<a href="..."> URL contained GET parameter']              = self.testLinksWithGETParams()
         self.results['<a href="..."> URL contained GET parameter with URL']     = self.testLinksWithGETParamsBeingURLs()
         self.results['<a href="..."> URL pointed to an executable file']        = self.testLinksWithDangerousExtensions()
+        self.results['Mail message contained suspicious words']                 = self.testSuspiciousWords()
 
         return {k: v for k, v in self.results.items() if v}
 
@@ -214,6 +1168,68 @@ class PhishingMailParser:
         for i in range(len(links)):
             context += str(links[i]) + '\n\n'
             if i > 5: break
+
+        return {
+            'description' : desc,
+            'context' : context,
+            'analysis' : result
+        }
+
+    def testSuspiciousWords(self):
+        desc = '''
+
+Input text message contained words considered as suspicious in context of E-Mails.  
+Therefore you will have better chances of delivering your phishing e-mail when you get rid of them.
+
+'''
+        context = ''
+        result = ''
+
+        text = self.html
+        foundWords = set()
+        totalFound = 0
+
+        for title, words in PhishingMailParser.Suspicious_Words.items():
+            found = set()
+
+            for word in words[1]:
+                if word.lower() in foundWords: 
+                    continue
+
+                if re.search(r'\b' + re.escape(word) + r'\b', text, re.I):
+                    found.add(word.lower())
+
+                    foundWords.add(word.lower())
+                    pos = text.find(word.lower())
+
+                    if pos != -1:
+                        line = ''
+                        N = 50
+                        if pos > N:
+                            line = text[pos-N:pos]
+
+                        line += text[pos:pos+N]
+                        pos2 = line.find(word.lower())
+
+                        line = line[:pos2] + logger.colored(line[pos2:pos2+len(word)], "red") + line[pos2+len(word):]
+                        line = line.replace('\n', '')
+                        line = re.sub(r' {2,}', '  ', line)
+
+                        context += '\n' + line + '\n'
+
+            if len(found) > 0:
+                totalFound += len(found)
+                result += f'- Found {logger.colored(len(found), "red")} {logger.colored(title, "yellow")} words {logger.colored(words[0], "cyan")}:\n'
+
+                for w in found:
+                    result += f'\t- {w}\n'
+
+                result += '\n'
+
+        if totalFound == 0:
+            return {}
+
+        result += f'- Found in total {logger.colored(totalFound, "red")} suspicious words.\n'
 
         return {
             'description' : desc,
@@ -438,9 +1454,10 @@ class PhishingMailParser:
             text = link.getText()
 
             url = re.compile(r'((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*')
+            url2 = re.compile(r'((http|https)\:\/\/)[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*')
 
             m1 = url.match(href)
-            m2 = url.match(text)
+            m2 = url2.search(text)
 
             if m1 and m2:
                 num += 1
