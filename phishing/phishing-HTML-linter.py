@@ -650,23 +650,29 @@ Therefore you will have better chances of delivering your phishing e-mail when y
             except:
                 continue
         
-            text = link.getText()
+            text = link.getText().replace('\n', '').strip()
             params = dict(parse.parse_qsl(parse.urlsplit(href).query))
 
             if len(params) > 0:
                 num += 1
 
                 if num < 5:
-                    context += PhishingMailParser.context(link) + '\n'
-                    hr = href[:90]
+                    context += PhishingMailParser.context(link) + '\n\n'
+                    hr = href
                     pos = hr.find('?')
-                    hr = hr[:pos] + logger.colored(hr[pos:], 'yellow')
+                    if pos != -1:
+                        hr = hr[:pos] + logger.colored(hr[pos:], 'yellow')
 
-                    context += f'\thref = "{hr}"\n'
-                    context += f'\ttext = "{text[:90]}"\n\n'
+                    hr = hr.replace('\n', '').strip()
+                    context += f'\thref = "{hr}"\n\n'
+                    f = ''
+                    for k, v in params.items():
+                        f += f'{k}={v[:5]}..., '
+
+                    context += f'\tparams = {f}\n\n'
 
         if num > 0:
-            result += f'- Found {num} <a> tags with href="..." URLs containing GET params.\n'
+            result += f'- Found {logger.colored(num, "red")} <a> tags with href="..." {logger.colored("URLs containing GET params", "yellow")}.\n'
             result +=  '\t  Links with URLs that contain GET params might trigger anti-spam rule (Office365: 21615005)\n'
 
         if len(result) == 0:
@@ -869,7 +875,8 @@ Therefore you will have better chances of delivering your phishing e-mail when y
     def testEmbeddedImages(self):
         images = self.soup('img')
 
-        desc = 'Embedded images can increase Spam Confidence Level (SCL) in Office365 by 4 points. Embedded images are those with <img src="data:image/png;base64,<BLOB>"/> . They should be avoided.'
+        x = '<img src="data:image/png;base64,<BLOB>"/>'
+        desc = f'Embedded images can increase Spam Confidence Level (SCL) in Office365. Embedded images are those with {logger.colored(x,"yellow")} . They should be avoided.'
         context = ''
         result = ''
         num = 0
@@ -903,8 +910,8 @@ Therefore you will have better chances of delivering your phishing e-mail when y
                         context += ctx + '\n'
 
         if num > 0:
-            result += f'- Found {num} <img> tags with embedded image ({embed}).\n'
-            result +=  '\t  Embedded images increase Office365 SCL (Spam) level by 4 points!\n'
+            result += f'- Found {logger.colored(num, "red")} <img> tags with embedded image ({logger.colored(embed, "yellow")}).\n'
+            result +=  '\t  Embedded images increase Office365 SCL (Spam) level!\n'
 
         if len(result) == 0:
             return []
