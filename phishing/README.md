@@ -103,6 +103,7 @@
   - `<a href="..."> URL contained GET parameter`
   - `<a href="..."> URL contained GET parameter with URL`
   - `<a href="..."> URL pointed to an executable file`
+  - `Mail message contained suspicious words`
   
   Such characteristics are known bad smells that will let your e-mail blocked.
 
