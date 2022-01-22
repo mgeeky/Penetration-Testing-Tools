@@ -30,7 +30,14 @@
 
   - *`Add-ARTUserToGroup`*
   - *`Add-ARTUserToRole`*
+  - *`Add-ARTADAppSecret`*
 
   Lateral Movement:
 
   - *`Invoke-ARTAutomationRunbook`*
+
+  Misc:
+  
+  - *`Get-ARTUserId`*
+  - *`Parse-JWTtokenRT`*
+  - *`Get-ARTRESTMethod`*
