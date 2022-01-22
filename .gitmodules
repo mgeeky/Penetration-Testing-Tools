@@ -55,3 +55,6 @@
 [submodule "phishing/decode-spam-headers"]
 	path = phishing/decode-spam-headers
 	url = https://github.com/mgeeky/decode-spam-headers
+[submodule "clouds/azure/AzureRT"]
+	path = clouds/azure/AzureRT
+	url = https://github.com/mgeeky/AzureRT
