@@ -21,7 +21,7 @@
   - *`Get-ARTResource`*
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
-  - *`Get-ARTAzRoleAssignment`*
+  - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
 
   Privilege Escalation:
