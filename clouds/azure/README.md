@@ -18,6 +18,8 @@
 
   Recon and Situational Awareness:
 
+  - *`Get-ARTAccess`*
+  - *`Get-ARTADAccess`*
   - *`Get-ARTResource`*
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
