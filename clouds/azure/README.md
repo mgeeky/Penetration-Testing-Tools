@@ -6,6 +6,7 @@
 
   Authentication & Token mechanics:
 
+  - *`Get-ARTWhoami`*
   - *`Connect-ART`*
   - *`Connect-ARTAD`*
   - *`Connect-ARTADServicePrincipal`*
