@@ -21,12 +21,14 @@
 
   - *`Get-ARTAccess`*
   - *`Get-ARTADAccess`*
+  - *`Get-ARTDangerousPermissions`*
   - *`Get-ARTResource`*
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
   - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
   - *`Get-ARTAutomationRunbookCode`*
+  - *`Get-ARTAzureVMPublicIP`*
 
   Privilege Escalation:
 
@@ -37,6 +39,7 @@
   Lateral Movement:
 
   - *`Invoke-ARTAutomationRunbook`*
+  - *`Invoke-ARTRunCommand`*
 
   Misc:
 
