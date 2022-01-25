@@ -80,7 +80,6 @@ Function Get-ARTRolePermissions {
         }
         catch {
             Write-Host "[!] Could not get Role Definition. Possibly due to lacking privileges or lack of connection."
-            Throw
             Return
         }
 
@@ -154,12 +153,12 @@ Second part contains full definitions of each role along with their permissions 
 |---|----------|-----------------|--------|
 "@
 
-    $azureRbacRoles = Get-AzRoleDefinition | ? { $_.IsCustom -eq $false } | sort -property Name
+    $azureRbacRoles = (Get-AzRoleDefinition | ? { $_.IsCustom -eq $false } | sort -property Name)
 
     $count = 0
     $azureRbacRoles | % {
         $count += 1
-        Write-Host "| $count | ``$($_.Name)`` | _$($_.Description)_ | ``$($_.Id)`` |"
+        #Write-Host "| $count | ``$($_.Name)`` | _$($_.Description)_ | ``$($_.Id)`` |"
     }
 
     Write-Host @"
@@ -172,12 +171,12 @@ Second part contains full definitions of each role along with their permissions 
 |---|----------|-----------------|--------|
 "@
 
-    $azureADRoles = Get-AzureADDirectoryRoleTemplate | sort -property displayname
+    #$azureADRoles = (Get-AzureADDirectoryRoleTemplate | sort -property displayname)
 
     $count = 0
     $azureADRoles | % {
         $count += 1
-        Write-Host "| $count | ``$($_.DisplayName)`` | _$($_.Description)_ | ``$($_.ObjectId)`` |"
+        #Write-Host "| $count | ``$($_.DisplayName)`` | _$($_.Description)_ | ``$($_.ObjectId)`` |"
     }
 
     Write-Host @"
@@ -205,6 +204,6 @@ This section contains detailed definitions of each role along with their assigne
 "@
 
     $azureADRoles | % {
-        Get-ARTADRolePermissions -RoleName $_.DisplayName
+        #Get-ARTADRolePermissions -RoleName $_.DisplayName
     }
 }
