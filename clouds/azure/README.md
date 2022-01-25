@@ -25,6 +25,7 @@
   - *`Get-ARTADRolePermissions`*
   - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
+  - *`Get-ARTAutomationRunbookCode`*
 
   Privilege Escalation:
 
@@ -37,7 +38,7 @@
   - *`Invoke-ARTAutomationRunbook`*
 
   Misc:
-  
+
   - *`Get-ARTUserId`*
   - *`Parse-JWTtokenRT`*
-  - *`Get-ARTRESTMethod`*
+  - *`Invoke-ARTGETRequest`*
