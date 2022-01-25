@@ -1,6 +1,7 @@
 
 ## Azure-related penetration testing scripts, tools and Cheatsheets
 
+- **`Azure Roles`** - All Azure RBAC and Azure AD Role Definitions, along with their permissions associated listed in a handy markdown report.
 
 - **`AzureRT`** - Powershell module implementing various cmdlets to interact with Azure and Azure AD from an offensive perspective. Helpful utilities dealing with access token based authentication, easily switching from `Az` to `AzureAD` and `az cli` interfaces, easy to use pre-made attacks such as Runbook-based command execution and more.
 
