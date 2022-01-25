@@ -44,5 +44,6 @@
   Misc:
 
   - *`Get-ARTUserId`*
+  - *`Get-ARTSubscriptionId`*
   - *`Parse-JWTtokenRT`*
   - *`Invoke-ARTGETRequest`*
