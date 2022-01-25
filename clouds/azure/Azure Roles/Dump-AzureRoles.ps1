@@ -1,14 +1,3 @@
-#
-# This script collects Azure RBAC and Azure AD Roles, their definitions and associated permissions.
-# Then lists them in a nice Markdown report.
-#
-# Usage:
-#   PS C:\> powershell -c '. .\Dump-AzureRoles.ps1 ; Dump-AzureRoles' | Out-File roles.md
-#
-# mgeeky / Mariusz Banach, '22
-# <mb [at] binary-offensive.com
-#
-
 Function Get-ARTADRolePermissions {
     <#
     .SYNOPSIS
@@ -163,10 +152,9 @@ Second part contains full definitions of each role along with their permissions 
 
 | # | RoleName | RoleDescription | RoleId |
 |---|----------|-----------------|--------|
-
 "@
 
-    $azureRbacRoles = Get-AzRoleDefinition | ? { $_.IsCustom -eq $false } | sort -property displayname
+    $azureRbacRoles = Get-AzRoleDefinition | ? { $_.IsCustom -eq $false } | sort -property Name
 
     $count = 0
     $azureRbacRoles | % {
@@ -196,11 +184,11 @@ Second part contains full definitions of each role along with their permissions 
 
 --- 
 
-## Role Definitions
+## Role Permissions
 
 This section contains detailed definitions of each role along with their assigned permissions sets.
 
-### Azure RBAC Role Definitions
+### Azure RBAC Role Permissions
 
 "@
 
@@ -212,7 +200,7 @@ This section contains detailed definitions of each role along with their assigne
 
 ---
     
-### Azure AD Role Definitions
+### Azure AD Role Permissions
 
 "@
 
