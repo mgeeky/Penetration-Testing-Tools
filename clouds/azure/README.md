@@ -22,6 +22,7 @@
   - *`Get-ARTAccess`*
   - *`Get-ARTADAccess`*
   - *`Get-ARTDangerousPermissions`*
+  - *`Get-ARTADScopedRoleAssignment`*
   - *`Get-ARTResource`*
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
