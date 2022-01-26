@@ -33,6 +33,7 @@
 
   Privilege Escalation:
 
+  - *`Set-ARTADUserPassword`*
   - *`Add-ARTUserToGroup`*
   - *`Add-ARTUserToRole`*
   - *`Add-ARTADAppSecret`*
