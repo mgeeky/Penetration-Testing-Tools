@@ -31,6 +31,7 @@
   - *`Get-ARTKeyVaultSecrets`*
   - *`Get-ARTAutomationRunbookCode`*
   - *`Get-ARTAzureVMPublicIP`*
+  - *`Get-ARTResourceGroupDeploymentTemplate`*
 
   Privilege Escalation:
 
