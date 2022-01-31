@@ -30,8 +30,9 @@
   - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
   - *`Get-ARTAutomationRunbookCode`*
-  - *`Get-ARTAzureVMPublicIP`*
+  - *`Get-ARTAzVMPublicIP`*
   - *`Get-ARTResourceGroupDeploymentTemplate`*
+  - *`Get-ARTAzVMUserDataFromInside`*
 
   Privilege Escalation:
 
@@ -44,6 +45,8 @@
 
   - *`Invoke-ARTAutomationRunbook`*
   - *`Invoke-ARTRunCommand`*
+  - *`Update-ARTAzVMUserData`*
+  - *`Set-ARTAzVMExtension`*
 
   Misc:
 
