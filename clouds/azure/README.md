@@ -50,7 +50,10 @@
 
   Misc:
 
+  - *`Get-ARTPRTToken`*
+  - *`Get-ARTPRTNonce`*
   - *`Get-ARTUserId`*
+  - *`Get-ARTTenantID`*
   - *`Get-ARTSubscriptionId`*
   - *`Parse-JWTtokenRT`*
   - *`Invoke-ARTGETRequest`*
