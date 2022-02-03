@@ -22,6 +22,7 @@
 
   - *`Get-ARTAccess`*
   - *`Get-ARTADAccess`*
+  - *`Get-ARTTenants`*
   - *`Get-ARTDangerousPermissions`*
   - *`Get-ARTADScopedRoleAssignment`*
   - *`Get-ARTResource`*
@@ -38,6 +39,7 @@
 
   Privilege Escalation:
 
+  - *`Add-ARTADGuestUser`*
   - *`Set-ARTADUserPassword`*
   - *`Add-ARTUserToGroup`*
   - *`Add-ARTUserToRole`*
