@@ -14,6 +14,7 @@
   - *`Get-ARTAccessTokenAzCli`*
   - *`Get-ARTAccessTokenAz`*
   - *`Get-ARTAccessTokenAzureAD`* 
+  - *`Get-ARTAccessTokenAzureADCached`* 
   - *`Parse-JWTtokenRT`* 
   - *`Remove-ARTServicePrincipalKey`*
 
@@ -26,6 +27,7 @@
   - *`Get-ARTResource`*
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
+  - *`Get-ARTADDynamicGroups`*
   - *`Get-ARTADApplications`*
   - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
@@ -45,8 +47,8 @@
 
   - *`Invoke-ARTAutomationRunbook`*
   - *`Invoke-ARTRunCommand`*
+  - *`Invoke-ARTCustomScriptExtension`*
   - *`Update-ARTAzVMUserData`*
-  - *`Set-ARTAzVMExtension`*
 
   Misc:
 
@@ -57,3 +59,4 @@
   - *`Get-ARTSubscriptionId`*
   - *`Parse-JWTtokenRT`*
   - *`Invoke-ARTGETRequest`*
+  - *`Import-ARTModules`*
