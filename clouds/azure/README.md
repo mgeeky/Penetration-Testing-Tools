@@ -29,7 +29,7 @@
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
   - *`Get-ARTADDynamicGroups`*
-  - *`Get-ARTADApplications`*
+  - *`Get-ARTADApplication`*
   - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
   - *`Get-ARTAutomationRunbookCode`*
