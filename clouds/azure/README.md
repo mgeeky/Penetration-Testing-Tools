@@ -29,7 +29,9 @@
   - *`Get-ARTRolePermissions`*
   - *`Get-ARTADRolePermissions`*
   - *`Get-ARTADDynamicGroups`*
-  - *`Get-ARTADApplication`*
+  - *`Get-ARTApplication`*
+  - *`Get-ARTApplicationProxy`*
+  - *`Get-ARTApplicationProxyPrincipals`*
   - *`Get-ARTRoleAssignment`*
   - *`Get-ARTKeyVaultSecrets`*
   - *`Get-ARTAutomationRunbookCode`*
