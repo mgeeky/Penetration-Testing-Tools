@@ -25,6 +25,7 @@ def opts(argv):
     parser.add_argument('filename', help='Payload file that we wish to rename.')
     parser.add_argument('decoy_extension', help='Extension that we wish our payload to mimic via RTLO')
     parser.add_argument('-p', '--padding', default=' ', help='If current file extension length is different than decoy extension length, pad filename with this character. Default: space.')
+    parser.add_argument('-n', '--dryrun', action='store_true', help='Dry run. Do not rename file, just show how it would look like.')
 
     args = parser.parse_args()
 
@@ -36,6 +37,11 @@ def opts(argv):
     if '.' not in args.filename:
         print('[!] Input filename does not have extension! You must point this script to the existing file having some original extension.')
         sys.exit(1)
+
+    if not args.dryrun:
+        if not os.path.isfile(args.filename):
+            print('[!] Input file does not exist!')
+            sys.exit(1)
 
     return args
 
@@ -97,9 +103,12 @@ OUTPUT:
     #
     # Using manual bytes copy cause I was having some weird issues with shutil.copy()
     # 
-    with open(old, 'rb') as oldfile:
-        with open(new, 'wb') as newfile:
-            newfile.write(oldfile.read())
+    if not args.dryrun:
+        with open(old, 'rb') as oldfile:
+            with open(new, 'wb') as newfile:
+                newfile.write(oldfile.read())
+    else:
+        print('Dry run. Did not rename the actual file.')
 
 if __name__ == '__main__':
     main(sys.argv)
