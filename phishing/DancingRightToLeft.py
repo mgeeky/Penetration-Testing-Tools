@@ -19,13 +19,6 @@ import argparse
 
 RTLO = '\u202E'      # Right-To-Left Override
 
-def rightToLeftOverride(phrase):
-
-    for i in range(len(phrase)-1)[::-1]:
-        if options['simulate']:
-            cand = phrase[:i] + phrase[i:][::-1]
-        else:
-            cand = phrase[:i] + Constants['RTLO'] + phrase[i:]
 
 def opts(argv):
     parser = argparse.ArgumentParser(prog = argv[0], usage='%(prog)s [options] <filename> <decoy-extension>')
