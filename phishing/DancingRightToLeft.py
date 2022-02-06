@@ -86,8 +86,8 @@ def main(argv):
     print(f'''INPUT:
 
     Payload Filename                                 :  {os.path.basename(args.filename)}
-    Payload Extension                                :  {q}.{ext}{q}
-    Decoy payloads' extension as                     :  {q}.{args.decoy_extension}{q}
+    Payload Extension                                :  .{ext}
+    Decoy payloads' extension as                     :  .{args.decoy_extension}
 
 OUTPUT:
 
