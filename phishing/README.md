@@ -24,7 +24,7 @@ OUTPUT:
     Your file was named in following way             :  "502 \u202exaf.html"
 
     Your filename will look like this (simulated)    :  "502 lmth.fax"
-    Your filename will look like this (real display) :  502 ‮xaf
+    Your filename will look like this (real display) :  502                                              lmth.fax
 ```
 
 - [**`decode-spam-headers.py`**](https://github.com/mgeeky/decode-spam-headers) - This tool accepts on input an `*.EML` or `*.txt` file with all the SMTP headers. It will then extract a subset of interesting headers and using **79+** tests will attempt to decode them as much as possible.
