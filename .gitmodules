@@ -58,3 +58,6 @@
 [submodule "clouds/azure/AzureRT"]
 	path = clouds/azure/AzureRT
 	url = https://github.com/mgeeky/AzureRT
+[submodule "red-teaming/PackMyPayload"]
+	path = red-teaming/PackMyPayload
+	url = https://github.com/mgeeky/PackMyPayload

@@ -310,6 +310,16 @@ $ ./markOwnedNodesInNeo4j.py kerberoasted.txt
 
 - **`muti-stage-1.md`** - Multi-Stage Penetration-Testing / Red Teaming Malicious Word document creation process. ([gist](https://gist.github.com/mgeeky/6097ea56e0f541aa7d98161e2aa76dfb))
 
+- [**`PackMyPayload`**](https://github.com/mgeeky/PackMyPayload) - A script that takes file/directory on input and creates a new (or backdoors existing) container file with input ones embedded. Some of the formats (ISO, IMG, VHD, VHDX) could be used to bypass Mark-of-the-Web (MOTW) file taint flag. Supported formats: 
+  1. `ZIP` (+password)
+  2. `7zip` (+password)
+  3. `PDF` (+password)
+  4. `ISO` 
+  5. `IMG` 
+  6. `CAB` 
+  7. `VHD` 
+  8. `VHDX` 
+
 - [**`RedWarden`**](https://github.com/mgeeky/RedWarden) - A Cobalt Strike C2 Reverse proxy fending off Blue Teams, AVs, EDRs, scanners through packet inspection and malleable profile correlation.
 
 - [**`rogue-dot-net`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/rogue-dot-net) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs**/**InstallUtil** code execution primitives. 
