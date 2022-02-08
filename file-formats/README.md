@@ -1,5 +1,16 @@
 ## File-Formats Penetration Testing related scripts, tools and Cheatsheets
 
+- [**`PackMyPayload`**](https://github.com/mgeeky/PackMyPayload) - A script that takes file/directory on input and creates a new (or backdoors existing) container file with input ones embedded. Some of the formats (ISO, IMG, VHD, VHDX) could be used to bypass Mark-of-the-Web (MOTW) file taint flag. Supported formats: 
+  1. `ZIP` (+password)
+  2. `7zip` (+password)
+  3. `PDF` (+password)
+  4. `ISO` 
+  5. `IMG` 
+  6. `CAB` 
+  7. `VHD` 
+  8. `VHDX` 
+
+
 - **`tamperUpx.py`** - A small utility that corrupts UPX-packed executables, making them much harder to be decompressed & restored.
 
 ```powershell
