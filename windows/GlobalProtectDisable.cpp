@@ -8,6 +8,8 @@
  * Tested on Palo Alto Networks: 
  *  GlobalProtect client 3.1.6.19 (x64)
  *  GlobalProtect client 5.0.3.29 (x64)
+ *  GlobalProtect client 5.1.3.12 (x64)
+ *  GlobalProtect client 5.2.8.23 (x64)
  *
  * Compilation:
  *   C:> g++ GlobalProtectDisable.cpp -o GlobalProtectDisable.exe -static -static-libgcc -static-libstdc++
@@ -22,14 +24,13 @@
 
 using namespace std;
 
-const wchar_t *processName = L"PanGPA.exe";
-const size_t PatternsNum = 3;
-const size_t SizeOfReplacingBytes = 2;
+const size_t PatternsNum = 4;
 
 const wchar_t *versionsArray[PatternsNum] = {
     L"3.1.6.19",
     L"5.0.3.29",
-    L"5.1.3.12"
+    L"5.1.3.12",
+    L"5.2.8.23",
 };
 
 //
@@ -84,6 +85,8 @@ const BYTE patternToFind51312[] = {
     0x00, 0x00, 0x00, 0x85, 0xD2
 };
 
+const wchar_t *processName = L"PanGPA.exe";
+const size_t SizeOfReplacingBytes = 2;
 
 // jne     pangpa.7FF621B7D08F
 const BYTE bytesToBeReplaced31619[SizeOfReplacingBytes] = {
@@ -119,24 +122,28 @@ const BYTE replacingBytes51312[SizeOfReplacingBytes] = {
 const BYTE *patternsArray[PatternsNum] = {
     patternToFind31619,
     patternToFind50329,
+    patternToFind51312,
     patternToFind51312
 };
 
 const size_t patternsSizes[PatternsNum] = {
     sizeof(patternToFind31619),
     sizeof(patternToFind50329),
+    sizeof(patternToFind51312),
     sizeof(patternToFind51312)
 };
 
 const BYTE *patternsToBeReplaced[PatternsNum] = {
     bytesToBeReplaced31619,
     bytesToBeReplaced50329,
+    bytesToBeReplaced51312,
     bytesToBeReplaced51312
 };
 
 const BYTE *replacingBytes[PatternsNum] = {
     replacingBytes31619,
     replacingBytes50329,
+    replacingBytes51312,
     replacingBytes51312
 };
 

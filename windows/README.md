@@ -83,6 +83,7 @@ cmd> py findSymbols.py "c:\Program Files\Microsoft Office" -e -r -u -s exec -s l
     - 3.1.6.19
     - 5.0.3.29
     - 5.1.3.12
+    - 5.2.8.23
 
     Steps are following:
     
