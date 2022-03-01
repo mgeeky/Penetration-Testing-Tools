@@ -213,7 +213,7 @@ class NtlmParser:
 
             if len(self.raw) >= 2 and self.raw[1] == 0:
                 try:
-                    self.string = self.raw.decode('utf-16')
+                    self.string = self.raw.decode('utf-16', 'ignore')
                 except:
                     self.string = ''.join(filter(lambda x: str(x) != str('\0'), self.raw))
                 self.utf16 = True
