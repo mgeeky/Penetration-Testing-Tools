@@ -885,6 +885,9 @@ class ExchangeRecon:
             if kl == 'x-owa-version':
                 ver = ExchangeRecon.parseVersion(v)
                 if ver:
+                    if ExchangeRecon.owaVersionInHttpHeader not in self.results.keys():
+                        self.results[ExchangeRecon.owaVersionInHttpHeader] = ''
+                        
                     self.results[ExchangeRecon.owaVersionInHttpHeader] += '\n\t({})'.format(str(ver))
 
             elif kl == 'www-authenticate':
