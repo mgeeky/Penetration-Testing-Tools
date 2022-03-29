@@ -33,7 +33,9 @@
   - *`Get-ARTApplicationProxy`*
   - *`Get-ARTApplicationProxyPrincipals`*
   - *`Get-ARTRoleAssignment`*
+  - *`Get-ARTStorageAccountKeys`*
   - *`Get-ARTKeyVaultSecrets`*
+  - *`Get-ARTAutomationCredentials`*
   - *`Get-ARTAutomationRunbookCode`*
   - *`Get-ARTAzVMPublicIP`*
   - *`Get-ARTResourceGroupDeploymentTemplate`*
@@ -56,10 +58,10 @@
 
   Misc:
 
+  - *`Get-ARTTenantID`*
   - *`Get-ARTPRTToken`*
   - *`Get-ARTPRTNonce`*
   - *`Get-ARTUserId`*
-  - *`Get-ARTTenantID`*
   - *`Get-ARTSubscriptionId`*
   - *`Parse-JWTtokenRT`*
   - *`Invoke-ARTGETRequest`*
