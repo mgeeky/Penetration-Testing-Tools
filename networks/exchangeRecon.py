@@ -213,7 +213,7 @@ class NtlmParser:
 
             if len(self.raw) >= 2 and self.raw[1] == 0:
                 try:
-                    self.string = self.raw.decode('utf-16')
+                    self.string = self.raw.decode('utf-16', 'ignore')
                 except:
                     self.string = ''.join(filter(lambda x: str(x) != str('\0'), self.raw))
                 self.utf16 = True
@@ -885,6 +885,9 @@ class ExchangeRecon:
             if kl == 'x-owa-version':
                 ver = ExchangeRecon.parseVersion(v)
                 if ver:
+                    if ExchangeRecon.owaVersionInHttpHeader not in self.results.keys():
+                        self.results[ExchangeRecon.owaVersionInHttpHeader] = ''
+                        
                     self.results[ExchangeRecon.owaVersionInHttpHeader] += '\n\t({})'.format(str(ver))
 
             elif kl == 'www-authenticate':

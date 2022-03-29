@@ -128,6 +128,8 @@ Hostname: 10.10.10.9
 
 - **`pingsweep.py`** - Quick Python Scapy-based ping-sweeper. ([gist](https://gist.github.com/mgeeky/a360e4a124ddb9ef6a9ac1557b47d14c))
 
+- **`RandMyProxy.py`** - This script polls various online proxy list providers to build a list of currently active proxies meeting this script's user input search criterias.
+
 - **`RoutingAttackKit.py`** - Tool collecting various Routing Protocols exploitation techniques in one place, one file, handy for Penetration Testing and Red-Teaming assignments. Currently supporting RIPv1/RIPv2 attacks, planning to cover OSPF, EIGRP, MPLS, IS-IS tricks someday.
 
 TODO:
