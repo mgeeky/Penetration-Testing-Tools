@@ -25,7 +25,7 @@ MATCH (c {hasspn: True}) RETURN c.name as name, c.allowedtodelegate as AllowedTo
 
 - Pulls users eligible for ASREP roasting
 ```
-MATCH (u:User {dontreqpreauth: true}) RETURN u
+MATCH (u:User {dontreqpreauth: true}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
 ```
 
 - Shortest path from ASREP roastable users to Domain Admins
@@ -33,10 +33,31 @@ MATCH (u:User {dontreqpreauth: true}) RETURN u
 MATCH (A:User {dontreqpreauth: true}), (B:Group), x=shortestPath((A)-[*1..]->(B)) WHERE B.name STARTS WITH 'DOMAIN ADMINS' RETURN x
 ```
 
+- Pulls users with `adminCount=1`
+```
+MATCH (u:User {admincount: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+```
+
+- Pulls users with `PasswordNeverExpires` set.
+```
+MATCH (u:User {pwdneverexpires: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+```
+
+- Pulls kerberoastable users with `adminCount=1`
+```
+MATCH (u:User {admincount: True, hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.hasspn as Kerberoastable, u.description, u.objectid
+```
+
+- Pulls users with `adminCount=1` and displays whether they're Kerberoastable, ASREPRoastable or Owned
+```
+MATCH (u:User {admincount: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.owned as owned, u.hasspn as Kerberoastable, u.dontreqpreauth as ASREPRoastable, u.description, u.objectid
+```
+
 - Pulls users eligible for Kerberoasting
 ```
-MATCH (u:User {hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u
+MATCH (u:User {hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
 ```
+
 - Shortest path from Kerberoastable users to Domain Admins
 ```
 MATCH (A:User),(B:Group),p=shortestPath((A)-[*1..]->(B)) WHERE A.hasspn=true AND B.name STARTS WITH 'DOMAIN ADMINS' RETURN p
@@ -47,14 +68,14 @@ MATCH (A:User),(B:Group),p=shortestPath((A)-[*1..]->(B)) WHERE A.hasspn=true AND
 MATCH p = (:GPO)-[:GpLink]->(d)-[:Contains*1..]->(u:User)-[:MemberOf*1..]->(g:Group {name:'GROUP_NAME@CONTOSO.LOCAL'}) RETURN p
 ```
 
-- Return users that have PASSWORD_NOT_REQUIRED flag set in their UserAccountControl field (thus they have an empty password set) and are enabled
+- Return enabled users that have PASSWORD_NOT_REQUIRED flag set in their UserAccountControl field (thus they have an empty password set)
 ```
-MATCH (n:User {enabled: True, passwordnotreqd: True}) RETURN n
+MATCH (u:User {enabled: True, passwordnotreqd: True}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
 ```
 
-- Find users not requiring Pre-Authentication (their passwords will be a lot easier to crack):
+- Find enabled users not requiring Pre-Authentication (their passwords will be a lot easier to crack):
 ```
-MATCH (u:User {dontreqpreauth: true}) RETURN u.name, u.description
+MATCH (u:User {enabled: True, dontreqpreauth: true}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
 ```
 
 - Find a shortest path from any user that has PASSWORD_NOT_REQUIRED set to Domain Admins group:
@@ -69,7 +90,7 @@ MATCH (m:User {enabled: True, passwordnotreqd: True}), (n:Computer), p = shortes
 
 - Find all users that have userPassword attribute not empty
 ```
-MATCH (u:User) WHERE u.userpassword =~ ".+" RETURN u.name, u.userpassword
+MATCH (u:User) WHERE u.userpassword =~ ".+" RETURN u.samaccountname, u.name, u.userpassword, u.displayname, u.description, u.objectid
 ```
 
 - Counts unrolled members of Tier-0 privileged AD groups (copy all query lines, as they are UNION ALL joined):
@@ -281,6 +302,11 @@ MATCH (u)-[:CanPrivesc]->(c) RETURN u.name, c.name
 ```
 
 ## CREATE Nodes and Edges
+
+- Mark High Value all members of High Value groups:
+```
+MATCH (u)-[:MemberOf]->(n {highvalue: true}) SET u.highvalue = true
+```
 
 - Add `HasSession` edge for user `ALICE@DOMAIN` being logged onto `COMPUTER@DOMAIN` : 
 ```
