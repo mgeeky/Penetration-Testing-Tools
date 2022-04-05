@@ -39,7 +39,7 @@ MATCH (u {highvalue: true})                        WHERE toLower(u.name) ENDS WI
 
 - Pulls users eligible for ASREP roasting
 ```
-MATCH (u:User {dontreqpreauth: true}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+MATCH (u:User {dontreqpreauth: true}) RETURN u.name, u.displayname, u.description, u.objectid
 ```
 
 - Shortest path from ASREP roastable users to Domain Admins
@@ -49,27 +49,32 @@ MATCH (A:User {dontreqpreauth: true}), (B:Group), x=shortestPath((A)-[*1..]->(B)
 
 - Pulls users with `adminCount=1`
 ```
-MATCH (u:User {admincount: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+MATCH (u:User {admincount: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.name, u.displayname, u.description, u.objectid
 ```
 
 - Pulls users with `PasswordNeverExpires` set.
 ```
-MATCH (u:User {pwdneverexpires: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+MATCH (u:User {pwdneverexpires: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.name, u.displayname, u.description, u.objectid
 ```
 
 - Pulls kerberoastable users with `adminCount=1`
 ```
-MATCH (u:User {admincount: True, hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.hasspn as Kerberoastable, u.description, u.objectid
+MATCH (u:User {admincount: True, hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.name, u.displayname, u.hasspn as Kerberoastable, u.description, u.objectid
 ```
 
 - Pulls users with `adminCount=1` and displays whether they're Kerberoastable, ASREPRoastable or Owned
 ```
-MATCH (u:User {admincount: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.owned as owned, u.hasspn as Kerberoastable, u.dontreqpreauth as ASREPRoastable, u.description, u.objectid
+MATCH (u:User {admincount: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.name, u.displayname, u.owned as owned, u.hasspn as Kerberoastable, u.dontreqpreauth as ASREPRoastable, u.description, u.objectid
 ```
 
 - Pulls users eligible for Kerberoasting
 ```
-MATCH (u:User {hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+MATCH (u:User {hasspn: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u.name, u.displayname, u.description, u.objectid
+```
+
+- Return Kerberoastable users with a path to High Value groups:
+```
+MATCH p=shortestPath((u:User {hasspn: true})-[r:MemberOf*1..]->(g:Group {highvalue: true})) RETURN u.name AS kerberoastable_user, g.name AS high_value_group, u.displayname AS user_displayname
 ```
 
 - Shortest path from Kerberoastable users to Domain Admins
@@ -84,12 +89,12 @@ MATCH p = (:GPO)-[:GpLink]->(d)-[:Contains*1..]->(u:User)-[:MemberOf*1..]->(g:Gr
 
 - Return enabled users that have PASSWORD_NOT_REQUIRED flag set in their UserAccountControl field (thus they have an empty password set)
 ```
-MATCH (u:User {enabled: True, passwordnotreqd: True}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+MATCH (u:User {enabled: True, passwordnotreqd: True}) RETURN u.name, u.displayname, u.description, u.objectid
 ```
 
 - Find enabled users not requiring Pre-Authentication (their passwords will be a lot easier to crack):
 ```
-MATCH (u:User {enabled: True, dontreqpreauth: true}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
+MATCH (u:User {enabled: True, dontreqpreauth: true}) RETURN u.name, u.displayname, u.description, u.objectid
 ```
 
 - Find a shortest path from any user that has PASSWORD_NOT_REQUIRED set to Domain Admins group:
@@ -104,7 +109,7 @@ MATCH (m:User {enabled: True, passwordnotreqd: True}), (n:Computer), p = shortes
 
 - Find all users that have userPassword attribute not empty
 ```
-MATCH (u:User) WHERE u.userpassword =~ ".+" RETURN u.samaccountname, u.name, u.userpassword, u.displayname, u.description, u.objectid
+MATCH (u:User) WHERE u.userpassword =~ ".+" RETURN u.name, u.userpassword, u.displayname, u.description, u.objectid
 ```
 
 - Counts unrolled members of Tier-0 privileged AD groups (copy all query lines, as they are UNION ALL joined):
