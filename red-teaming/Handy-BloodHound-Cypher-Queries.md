@@ -23,6 +23,20 @@ MATCH (o:OU)-[:Contains]->(c) RETURN o.name,o.guid, COUNT(c) ORDER BY COUNT(c) D
 MATCH (c {hasspn: True}) RETURN c.name as name, c.allowedtodelegate as AllowedToDelegate, c.unconstraineddelegation as UnconstrainedDelegation, c.admincount as AdminCount, c.serviceprincipalnames as SPNs
 ```
 
+- Counts various Active Directory weaknesses such as users with Password Not Required of a domain named `contoso.com` (leave `ENDS WITH ""` to run through all the domains collected):
+```
+MATCH (u {pwdneverexpires: True})                  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Never Expires" AS what, count(u) AS number UNION ALL
+MATCH (u {passwordnotreqd: True})                  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Not Required" AS what, count(u) AS number UNION ALL
+MATCH (u {dontreqpreauth: true})                   WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Pre-Authentication Not Required" AS what, count(u) AS number UNION ALL
+MATCH (u:User {hasspn: True})                      WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable" AS what, count(u) AS number UNION ALL
+MATCH (u:User {dontreqpreauth: true})              WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "ASREProastable" AS what, count(u) AS number UNION ALL
+MATCH (u {admincount: True})                       WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "adminCount=1" AS what, count(u) AS number UNION ALL
+MATCH (u)                                          WHERE toLower(u.name) ENDS WITH "contoso.com" AND u.userpassword =~ ".+" RETURN "userPassword Not Empty" AS what, count(u) AS number UNION ALL
+MATCH (u:Computer {unconstraineddelegation: true}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
+MATCH (u {owned: true})                            WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Owned Principals" AS what, count(u) AS number UNION ALL
+MATCH (u {highvalue: true})                        WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "High Value" AS what, count(u) AS number
+```
+
 - Pulls users eligible for ASREP roasting
 ```
 MATCH (u:User {dontreqpreauth: true}) RETURN u.samaccountname, u.name, u.displayname, u.description, u.objectid
