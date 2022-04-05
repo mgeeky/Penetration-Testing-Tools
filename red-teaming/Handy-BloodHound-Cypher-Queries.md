@@ -139,10 +139,10 @@ UNWIND ["360totalsecurity", "acronis", "adaware", "aegislab", "ahnlab", "alienva
 ```
 MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true 
 WITH u.name as name, LABELS(u)[1] as type, 
-COUNT(DISTINCT(n)) as number 
+COUNT(DISTINCT(n)) as controlled 
 WHERE name IS NOT NULL 
-RETURN type, name, number 
-ORDER BY number DESC 
+RETURN type, name, controlled 
+ORDER BY controlled DESC 
 LIMIT 20
 ```
 
@@ -150,10 +150,10 @@ LIMIT 20
 ```
 MATCH p=(u)-[r1:MemberOf*1..]->(g:Group)-[r2]->(n) WHERE r2.isacl=true
 WITH u.name as name, LABELS(u)[1] as type, g.highvalue as highly_privileged,
-COUNT(DISTINCT(n)) as number 
+COUNT(DISTINCT(n)) as controlled 
 WHERE name IS NOT NULL 
-RETURN type, name, highly_privileged, number 
-ORDER BY number DESC 
+RETURN type, name, highly_privileged, controlled 
+ORDER BY controlled DESC 
 LIMIT 20
 ```
 
@@ -162,11 +162,44 @@ LIMIT 20
 MATCH p=shortestPath((u)-[r1:MemberOf|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n))
 WHERE u<>n
 WITH u.name as name, LABELS(u)[1] as type, 
-COUNT(DISTINCT(n)) as number 
+COUNT(DISTINCT(n)) as controlled 
 WHERE name IS NOT NULL
-RETURN type, name, number 
-ORDER BY number DESC 
+RETURN type, name, controlled 
+ORDER BY controlled DESC 
 LIMIT 10
+```
+
+- Pulls Kerberoastable users and returns their **Outbound Control Rights** --> **First Degree Object Control** in domain:
+```
+MATCH (u:User {hasspn: True}), p=(u)-[r1]->(n)
+WHERE NOT u.name starts with 'KRBTGT' AND r1.isacl=true
+WITH u.name as name, LABELS(u)[1] as type, 
+COUNT(DISTINCT(n)) as controlled 
+WHERE name IS NOT NULL 
+RETURN type, name, controlled 
+ORDER BY controlled DESC 
+```
+
+- Pulls Kerberoastable users and returns their **Outbound Control Rights** --> **Group Delegated Object Control** in domain and whether that object is member of high privileged group (such a `Domain Admins` or `Domain Controllers`):
+```
+MATCH (u:User {hasspn: True}), p=(u)-[r1:MemberOf*1..]->(g:Group)-[r2]->(n) 
+WHERE NOT u.name starts with 'KRBTGT' AND r2.isacl=true
+WITH u.name as name, LABELS(u)[1] as type, g.highvalue as highly_privileged,
+COUNT(DISTINCT(n)) as controlled 
+WHERE name IS NOT NULL 
+RETURN type, name, highly_privileged, controlled 
+ORDER BY controlled DESC 
+```
+
+- Pulls Kerberoastable users and returns their **Outbound Control Rights** --> **Transitive Object Control** in domain (TAKES ENORMOUS TIME TO COMPUTE! You were warned):
+```
+MATCH (u:User {hasspn: True}), p=shortestPath((u)-[r1:MemberOf|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n))
+WHERE NOT u.name starts with 'KRBTGT' AND u<>n
+WITH u.name as name, LABELS(u)[1] as type, 
+COUNT(DISTINCT(n)) as controlled 
+WHERE name IS NOT NULL
+RETURN type, name, controlled 
+ORDER BY controlled DESC 
 ```
 
 - Returns username and number of computers where it has admin rights to for top 10 users (author: [jeffmcjunkin](https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12) ):
