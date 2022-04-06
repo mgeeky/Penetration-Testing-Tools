@@ -23,18 +23,24 @@ MATCH (o:OU)-[:Contains]->(c) RETURN o.name,o.guid, COUNT(c) ORDER BY COUNT(c) D
 MATCH (c {hasspn: True}) RETURN c.name as name, c.allowedtodelegate as AllowedToDelegate, c.unconstraineddelegation as UnconstrainedDelegation, c.admincount as AdminCount, c.serviceprincipalnames as SPNs
 ```
 
-- Counts various Active Directory weaknesses such as users with Password Not Required of a domain named `contoso.com` (leave `ENDS WITH ""` to run through all the domains collected):
+- Counts various Active Directory statistics and weaknesses. (Change `ENDS WITH ""` to `ENDS WITH "contoso.com"` to limit results to specified domain):
 ```
-MATCH (u {pwdneverexpires: True})                  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Never Expires" AS what, count(u) AS number UNION ALL
-MATCH (u {passwordnotreqd: True})                  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Not Required" AS what, count(u) AS number UNION ALL
-MATCH (u {dontreqpreauth: true})                   WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Pre-Authentication Not Required" AS what, count(u) AS number UNION ALL
-MATCH (u:User {hasspn: True})                      WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable" AS what, count(u) AS number UNION ALL
-MATCH (u:User {dontreqpreauth: true})              WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "ASREProastable" AS what, count(u) AS number UNION ALL
-MATCH (u {admincount: True})                       WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "adminCount=1" AS what, count(u) AS number UNION ALL
-MATCH (u)                                          WHERE toLower(u.name) ENDS WITH "contoso.com" AND u.userpassword =~ ".+" RETURN "userPassword Not Empty" AS what, count(u) AS number UNION ALL
-MATCH (u:Computer {unconstraineddelegation: true}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
-MATCH (u {owned: true})                            WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Owned Principals" AS what, count(u) AS number UNION ALL
-MATCH (u {highvalue: true})                        WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "High Value" AS what, count(u) AS number
+MATCH (u:User)                        WHERE toLower(u.name) ENDS WITH "" RETURN "Users in total" AS what, count(u) AS number UNION ALL
+MATCH (u:Computer)                    WHERE toLower(u.name) ENDS WITH "" RETURN "Computers in total" AS what, count(u) AS number UNION ALL
+MATCH (u:Group)                       WHERE toLower(u.name) ENDS WITH "" RETURN "Groups in total" AS what, count(u) AS number UNION ALL
+MATCH (u:Domain)                      WHERE toLower(u.name) ENDS WITH "" RETURN "Domains in total" AS what, count(u) AS number UNION ALL
+MATCH (u:OU)                          WHERE toLower(u.name) ENDS WITH "" RETURN "OUs in total" AS what, count(u) AS number UNION ALL
+MATCH (u:GPO)                         WHERE toLower(u.name) ENDS WITH "" RETURN "GPOs in total" AS what, count(u) AS number UNION ALL
+MATCH (u {pwdneverexpires: True})     WHERE toLower(u.name) ENDS WITH "" RETURN "Password Never Expires" AS what, count(u) AS number UNION ALL
+MATCH (u {passwordnotreqd: True})     WHERE toLower(u.name) ENDS WITH "" RETURN "Password Not Required" AS what, count(u) AS number UNION ALL
+MATCH (u {dontreqpreauth: true})      WHERE toLower(u.name) ENDS WITH "" RETURN "Pre-Authentication Not Required" AS what, count(u) AS number UNION ALL
+MATCH (u:User {hasspn: True})         WHERE toLower(u.name) ENDS WITH "" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable" AS what, count(u) AS number UNION ALL
+MATCH (u:User {dontreqpreauth: true}) WHERE toLower(u.name) ENDS WITH "" RETURN "ASREProastable" AS what, count(u) AS number UNION ALL
+MATCH (u {admincount: True})          WHERE toLower(u.name) ENDS WITH "" RETURN "adminCount=1" AS what, count(u) AS number UNION ALL
+MATCH (u)                             WHERE toLower(u.name) ENDS WITH "" AND u.userpassword =~ ".+" RETURN "userPassword Not Empty" AS what, count(u) AS number UNION ALL
+MATCH (u:Computer {unconstraineddelegation: True}), (g:Group) WHERE toLower(u.name) ENDS WITH "" AND g.name starts with 'DOMAIN CONTROLLERS' MATCH (u) WHERE (u)-[:MemberOf]->(g) RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
+MATCH (u {owned: true})               WHERE toLower(u.name) ENDS WITH "" RETURN "Owned Principals" AS what, count(u) AS number UNION ALL
+MATCH (u {highvalue: true})           WHERE toLower(u.name) ENDS WITH "" RETURN "High Value" AS what, count(u) AS number
 ```
 
 - Pulls users eligible for ASREP roasting
