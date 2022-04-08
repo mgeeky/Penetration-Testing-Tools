@@ -25,7 +25,7 @@ MATCH (u {highvalue: true})           WHERE toLower(u.name) ENDS WITH "" RETURN 
 MATCH (c {hasspn: True}) RETURN c.name as name, c.allowedtodelegate as AllowedToDelegate, c.unconstraineddelegation as UnconstrainedDelegation, c.admincount as AdminCount, c.serviceprincipalnames as SPNs
 ```
 
-- Returns Top 20 **Outbound Control Rights** --> **First Degree Object Control** principals in domain:
+- Returns Top 100 **Outbound Control Rights** --> **First Degree Object Control** principals in domain:
 ```
 MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true 
 WITH u.name as name, LABELS(u)[1] as type, 
@@ -33,10 +33,10 @@ COUNT(DISTINCT(n)) as controlled
 WHERE name IS NOT NULL 
 RETURN type, name, controlled 
 ORDER BY controlled DESC 
-LIMIT 20
+LIMIT 100
 ```
 
-- Returns Top 20 **Outbound Control Rights** --> **Group Delegated Object Control** principals in domain and whether that object is member of high privileged group (such a `Domain Admins` or `Domain Controllers`):
+- Returns Top 100 **Outbound Control Rights** --> **Group Delegated Object Control** principals in domain and whether that object is member of high privileged group (such a `Domain Admins` or `Domain Controllers`):
 ```
 MATCH p=(u)-[r1:MemberOf*1..]->(g:Group)-[r2]->(n) WHERE r2.isacl=true
 WITH u.name as name, LABELS(u)[1] as type, g.highvalue as highly_privileged,
@@ -44,10 +44,10 @@ COUNT(DISTINCT(n)) as controlled
 WHERE name IS NOT NULL 
 RETURN type, name, highly_privileged, controlled 
 ORDER BY controlled DESC 
-LIMIT 20
+LIMIT 100
 ```
 
-- Returns Top 10 **Outbound Control Rights** --> **Transitive Object Control** in domain (TAKES ENORMOUS TIME TO COMPUTE! You were warned):
+- Returns Top 50 **Outbound Control Rights** --> **Transitive Object Control** in domain (TAKES ENORMOUS TIME TO COMPUTE! You were warned):
 ```
 MATCH p=shortestPath((u)-[r1:MemberOf|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n))
 WHERE u<>n
@@ -56,7 +56,7 @@ COUNT(DISTINCT(n)) as controlled
 WHERE name IS NOT NULL
 RETURN type, name, controlled 
 ORDER BY controlled DESC 
-LIMIT 10
+LIMIT 50
 ```
 
 ### Users
