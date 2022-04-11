@@ -311,21 +311,9 @@ MATCH (o:OU)-[:Contains]->(c) RETURN o.name,o.guid, COUNT(c) ORDER BY COUNT(c) D
 ### Other
 
 
-- Retrieves nodes having particular juicy keywords in their description properties:
+- Retrieves nodes having particular juicy keywords in their name or description properties:
 ```
-MATCH (n) WHERE n.description CONTAINS 'pass' RETURN n.name, n.description UNION 
-MATCH (n) WHERE n.description CONTAINS 'secret' RETURN n.name, n.description UNION 
-MATCH (n) WHERE n.description CONTAINS 'admin' RETURN n.name, n.description UNION
-MATCH (n) WHERE n.description CONTAINS 'sensitive' RETURN n.name, n.description
-```
-
-- Show only owned nodes of the above ones:
-```
-MATCH (n) WHERE n.description CONTAINS 'pass' and n.owned = TRUE RETURN n.name, n.description UNION 
-MATCH (n) WHERE n.description CONTAINS 'secret' and n.owned = TRUE RETURN n.name, n.description UNION 
-MATCH (n) WHERE n.description CONTAINS 'admin' and n.owned = TRUE RETURN n.name, n.description UNION
-MATCH (n) WHERE n.description CONTAINS 'sensitive' and n.owned = TRUE RETURN n.name, n.description UNION
-MATCH (n) WHERE n.description CONTAINS '\\' and n.owned = TRUE RETURN n.name, n.description
+UNWIND ["admin", "amministratore", "contrase", "empfidlich", "geheim", "hasło", "important", "azure", "MSOL", "Kennwort", "parol", "parola", "pass", "passe", "secret", "secreto", "segreto", "sekret", "sensibil", "sensibile", "sensible", "sensitive", "wrażliw"] AS word MATCH (n) WHERE (toLower(n.name) CONTAINS toLower(word)) OR (toLower(n.description) CONTAINS toLower(word)) RETURN word, n.name, n.description ORDER BY n.name
 ```
 
 - Retrieves nodes that contain UNC paths to SMB shares in their description fields:
