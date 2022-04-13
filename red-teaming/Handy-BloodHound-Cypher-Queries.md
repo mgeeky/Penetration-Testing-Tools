@@ -25,7 +25,7 @@ MATCH (u:OU)                                          WHERE toLower(u.name) ENDS
 MATCH (u:GPO)                                         WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "GPOs in total" AS what, count(u) AS number UNION ALL
 MATCH (u {admincount: True})                          WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "adminCount=1" AS what, count(u) AS number UNION ALL
 MATCH (u)                                             WHERE toLower(u.name) ENDS WITH "contoso.com" AND u.userpassword =~ ".+" RETURN "userPassword Not Empty" AS what, count(u) AS number UNION ALL
-MATCH (u:Computer {unconstraineddelegation: True}), (g:Group) WHERE toLower(u.name) ENDS WITH "contoso.com" AND g.name starts with 'DOMAIN CONTROLLERS' MATCH (u) WHERE (u)-[:MemberOf]->(g) RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
+MATCH (u:Computer {unconstraineddelegation: True})-[:MemberOf]->(g:Group) WHERE toLower(u.name) ENDS WITH "contoso.com" AND (NOT g.name STARTS WITH 'DOMAIN CONTROLLERS') AND (NOT u.distinguishedname CONTAINS "Domain Controllers") RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
 MATCH (u {owned: true})                               WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Owned Principals" AS what, count(u) AS number UNION ALL
 MATCH (u {highvalue: true})                           WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "High Value" AS what, count(u) AS number
 ```
@@ -352,7 +352,7 @@ MATCH (c:Computer) WHERE c.operatingsystem is not null MATCH (n:Computer {operat
 
 - Returns non-DC computers that enable unconstrained delegation along with their LDAP DN paths and operating systems.:
 ```
-MATCH (c:Computer {unconstraineddelegation: True}), (g:Group) WHERE g.name starts with 'DOMAIN CONTROLLERS' MATCH (c) WHERE NOT (c)-[:MemberOf]->(g) RETURN c.name, c.distinguishedname, c.operatingsystem
+MATCH (c:Computer {unconstraineddelegation: True})-[:MemberOf]->(g:Group) WHERE (NOT g.name STARTS WITH 'DOMAIN CONTROLLERS') AND (NOT c.distinguishedname CONTAINS "Domain Controllers") RETURN c.name, c.distinguishedname, c.operatingsystem
 ```
 
 - Riccardo Ancarani's cypher queries (src: [GPOPowerParser](https://github.com/RiccardoAncarani/GPOPowerParser)) useful for any lateral movement insights:
