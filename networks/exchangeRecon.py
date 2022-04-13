@@ -348,7 +348,7 @@ class ExchangeRecon:
     MAX_RECONNECTS = 3
     MAX_REDIRECTS = 10
     HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
@@ -788,24 +788,25 @@ class ExchangeRecon:
         if resp['code'] in [301, 302, 303] and followRedirect:
             Logger.dbg(f'Following redirect. Depth: {redirect}...')
 
-            location = urlparse(resp['headers']['location'])
-            port = 80 if location.scheme == 'http' else 443
-            host = location.netloc
-            if not host: host = self.hostname
-            if ':' in location.netloc: 
-                port = int(location.netloc.split(':')[1])
-                host = location.netloc.split(':')[0]
+            if 'location' in resp['headers'].keys():
+                location = urlparse(resp['headers']['location'])
+                port = 80 if location.scheme == 'http' else 443
+                host = location.netloc
+                if not host: host = self.hostname
+                if ':' in location.netloc: 
+                    port = int(location.netloc.split(':')[1])
+                    host = location.netloc.split(':')[0]
 
-            if self.connect(host, port):
-                pos = resp['headers']['location'].find(location.path)
-                return self.http(
-                    method = 'GET', 
-                    url = resp['headers']['location'][pos:], 
-                    host = host,
-                    data = '',
-                    headers = headers,
-                    followRedirect = redirect < ExchangeRecon.MAX_REDIRECTS,
-                    redirect = redirect + 1)
+                if self.connect(host, port):
+                    pos = resp['headers']['location'].find(location.path)
+                    return self.http(
+                        method = 'GET', 
+                        url = resp['headers']['location'][pos:], 
+                        host = host,
+                        data = '',
+                        headers = headers,
+                        followRedirect = redirect < ExchangeRecon.MAX_REDIRECTS,
+                        redirect = redirect + 1)
 
         return resp, raw
 
@@ -1148,6 +1149,7 @@ class ExchangeRecon:
         except Exception:
             server = ExchangeRecon._smtpconnect(host, port, _ssl)
             if not server:
+                Logger.info('Could not interact with SMTP.')
                 return None
             code, msg = server.ehlo()
 

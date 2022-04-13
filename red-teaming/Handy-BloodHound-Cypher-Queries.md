@@ -25,6 +25,8 @@ MATCH (u {highvalue: true})           WHERE toLower(u.name) ENDS WITH "" RETURN 
 MATCH (c {hasspn: True}) RETURN c.name as name, c.allowedtodelegate as AllowedToDelegate, c.unconstraineddelegation as UnconstrainedDelegation, c.admincount as AdminCount, c.serviceprincipalnames as SPNs
 ```
 
+### Principals with most Outbound Controlled objects
+
 - Returns Top 100 **Outbound Control Rights** --> **First Degree Object Control** principals in domain:
 ```
 MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true 
@@ -57,6 +59,37 @@ WHERE name IS NOT NULL
 RETURN type, name, controlled 
 ORDER BY controlled DESC 
 LIMIT 50
+```
+
+- Returns principals having more than 1000 **Outbound Control Rights** --> **First Degree Object Control** controlled:
+```
+MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true 
+WITH u.name as name, LABELS(u)[1] as type, 
+COUNT(DISTINCT(n)) as controlled 
+WHERE name IS NOT NULL AND controlled > 1000
+RETURN type, name, controlled 
+ORDER BY controlled DESC 
+```
+
+- Returns principals having more than 1000 **Outbound Control Rights** --> **Group Delegated Object Control** controlled and whether that object is member of high privileged group (such a `Domain Admins` or `Domain Controllers`):
+```
+MATCH p=(u)-[r1:MemberOf*1..]->(g:Group)-[r2]->(n) WHERE r2.isacl=true
+WITH u.name as name, LABELS(u)[1] as type, g.highvalue as highly_privileged,
+COUNT(DISTINCT(n)) as controlled 
+WHERE name IS NOT NULL AND controlled > 1000
+RETURN type, name, highly_privileged, controlled 
+ORDER BY controlled DESC 
+```
+
+- Returns principals having more than 1000 **Outbound Control Rights** --> **Transitive Object Control** controlled (TAKES ENORMOUS TIME TO COMPUTE! You were warned):
+```
+MATCH p=shortestPath((u)-[r1:MemberOf|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n))
+WHERE u<>n
+WITH u.name as name, LABELS(u)[1] as type, 
+COUNT(DISTINCT(n)) as controlled 
+WHERE name IS NOT NULL AND controlled > 1000
+RETURN type, name, controlled 
+ORDER BY controlled DESC 
 ```
 
 ### Users
