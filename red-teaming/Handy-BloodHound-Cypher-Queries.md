@@ -1,23 +1,29 @@
 ### General
 
-- Counts various Active Directory statistics and weaknesses. (Change `ENDS WITH ""` to `ENDS WITH "contoso.com"` to limit results to specified domain):
+- Counts various Active Directory statistics and weaknesses. (Change `contoso.com` to your own domain or change it to empty for all domains):
 ```
-MATCH (u:User)                        WHERE toLower(u.name) ENDS WITH "" RETURN "Users in total" AS what, count(u) AS number UNION ALL
-MATCH (u:Computer)                    WHERE toLower(u.name) ENDS WITH "" RETURN "Computers in total" AS what, count(u) AS number UNION ALL
-MATCH (u:Group)                       WHERE toLower(u.name) ENDS WITH "" RETURN "Groups in total" AS what, count(u) AS number UNION ALL
-MATCH (u:Domain)                      WHERE toLower(u.name) ENDS WITH "" RETURN "Domains in total" AS what, count(u) AS number UNION ALL
-MATCH (u:OU)                          WHERE toLower(u.name) ENDS WITH "" RETURN "OUs in total" AS what, count(u) AS number UNION ALL
-MATCH (u:GPO)                         WHERE toLower(u.name) ENDS WITH "" RETURN "GPOs in total" AS what, count(u) AS number UNION ALL
-MATCH (u {pwdneverexpires: True})     WHERE toLower(u.name) ENDS WITH "" RETURN "Password Never Expires" AS what, count(u) AS number UNION ALL
-MATCH (u {passwordnotreqd: True})     WHERE toLower(u.name) ENDS WITH "" RETURN "Password Not Required" AS what, count(u) AS number UNION ALL
-MATCH (u {dontreqpreauth: true})      WHERE toLower(u.name) ENDS WITH "" RETURN "Pre-Authentication Not Required" AS what, count(u) AS number UNION ALL
-MATCH (u:User {hasspn: True})         WHERE toLower(u.name) ENDS WITH "" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable" AS what, count(u) AS number UNION ALL
-MATCH (u:User {dontreqpreauth: true}) WHERE toLower(u.name) ENDS WITH "" RETURN "ASREProastable" AS what, count(u) AS number UNION ALL
-MATCH (u {admincount: True})          WHERE toLower(u.name) ENDS WITH "" RETURN "adminCount=1" AS what, count(u) AS number UNION ALL
-MATCH (u)                             WHERE toLower(u.name) ENDS WITH "" AND u.userpassword =~ ".+" RETURN "userPassword Not Empty" AS what, count(u) AS number UNION ALL
-MATCH (u:Computer {unconstraineddelegation: True}), (g:Group) WHERE toLower(u.name) ENDS WITH "" AND g.name starts with 'DOMAIN CONTROLLERS' MATCH (u) WHERE (u)-[:MemberOf]->(g) RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
-MATCH (u {owned: true})               WHERE toLower(u.name) ENDS WITH "" RETURN "Owned Principals" AS what, count(u) AS number UNION ALL
-MATCH (u {highvalue: true})           WHERE toLower(u.name) ENDS WITH "" RETURN "High Value" AS what, count(u) AS number
+MATCH (u:User)                                   WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Users in total" AS what, count(u) AS number UNION ALL
+MATCH (u:Computer)                               WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Computers in total" AS what, count(u) AS number UNION ALL
+MATCH (u:Group)                                  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Groups in total" AS what, count(u) AS number UNION ALL
+MATCH (u:Domain)                                 WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Domains in total" AS what, count(u) AS number UNION ALL
+MATCH (u:OU)                                     WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "OUs in total" AS what, count(u) AS number UNION ALL
+MATCH (u:GPO)                                    WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "GPOs in total" AS what, count(u) AS number UNION ALL
+MATCH (u {pwdneverexpires: True})                WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Never Expires" AS what, count(u) AS number UNION ALL
+MATCH (u {pwdneverexpires: True, enabled: True}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Never Expires and Enabled" AS what, count(u) AS number UNION ALL
+MATCH (u {passwordnotreqd: True})                WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Not Required" AS what, count(u) AS number UNION ALL
+MATCH (u {passwordnotreqd: True, enabled: True}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Password Not Required and Enabled" AS what, count(u) AS number UNION ALL
+MATCH (u {dontreqpreauth: true})                 WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Pre-Authentication Not Required" AS what, count(u) AS number UNION ALL
+MATCH (u {dontreqpreauth: true, enabled: true})  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Pre-Authentication Not Required and Enabled" AS what, count(u) AS number UNION ALL
+MATCH (u:User {hasspn: True})                    WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable" AS what, count(u) AS number UNION ALL
+MATCH (u:User {enabled: true, hasspn: True})     WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable & Enabled Users" AS what, count(u) AS number UNION ALL
+MATCH (u:User {dontreqpreauth: true})            WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "ASREProastable" AS what, count(u) AS number UNION ALL
+MATCH (u {admincount: True})                     WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "adminCount=1" AS what, count(u) AS number UNION ALL
+MATCH (u)                                        WHERE toLower(u.name) ENDS WITH "contoso.com" AND u.userpassword =~ ".+" RETURN "userPassword Not Empty" AS what, count(u) AS number UNION ALL
+MATCH (u {unconstraineddelegation: true})        WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Users with Unconstrained Delegation" AS what, count(u) AS number UNION ALL
+MATCH (u {unconstraineddelegation: true, enabled: true}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Enabled Users with Unconstrained Delegation" AS what, count(u) AS number UNION ALL
+MATCH (u:Computer {unconstraineddelegation: True}), (g:Group) WHERE toLower(u.name) ENDS WITH "contoso.com" AND g.name starts with 'DOMAIN CONTROLLERS' MATCH (u) WHERE (u)-[:MemberOf]->(g) RETURN "Unconstrained Delegation Computers" AS what, count(u) AS number UNION ALL
+MATCH (u {owned: true})                          WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Owned Principals" AS what, count(u) AS number UNION ALL
+MATCH (u {highvalue: true})                      WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "High Value" AS what, count(u) AS number```
 ```
 
 - Returns all objects that have SPNs set and checks whether they are allowed to delegate, have admincount set or can be used for unconstrained delegation:
@@ -93,6 +99,33 @@ ORDER BY controlled DESC
 ```
 
 ### Users
+
+- Enabled Users with Password Last Set > 90 days and Last Logon < 7 days:
+```
+MATCH (u:User {enabled: true}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0
+WITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds:toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds:toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset, datetime({ epochSeconds:toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds:toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon
+WHERE days_since_pwdlastset > 90 AND days_since_lastlogon < 7
+RETURN name, description, days_since_lastlogon, days_since_pwdlastset, pwdlastset, lastlogon
+ORDER BY days_since_pwdlastset DESC
+```
+
+- Enabled Users with Last Logon earlier than 90 days ago:
+```
+MATCH (u:User {enabled: true}) WHERE u.lastlogon > 0 
+WITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds:toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds:toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon
+WHERE days_since_lastlogon > 90
+RETURN name, description, days_since_lastlogon, lastlogon 
+ORDER BY days_since_lastlogon DESC 
+```
+
+- Enabled Users with Password Last Set earlier than 90 days ago:
+```
+MATCH (u:User {enabled: true}) WHERE u.pwdlastset > 0 
+WITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds:toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds:toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset
+WHERE days_since_pwdlastset > 90
+RETURN name, description, days_since_pwdlastset, pwdlastset 
+ORDER BY days_since_pwdlastset DESC 
+```
 
 - Pulls users eligible for ASREP roasting
 ```
@@ -293,6 +326,15 @@ MATCH (u)-[:MemberOf*1..]->(g:Group) WHERE g.name starts with "DISTRIBUTED COM U
 ```
 
 ### Computers
+
+- Returns enabled computers with PwdLastSet > 30 days and LastLogon < 30 days:
+```
+MATCH (u:Computer {enabled: true}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0
+WITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds:toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds:toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset, datetime({ epochSeconds:toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds:toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon
+WHERE days_since_pwdlastset > 30 AND days_since_lastlogon < 30
+RETURN name, description, days_since_lastlogon, days_since_pwdlastset, pwdlastset, lastlogon
+ORDER BY days_since_pwdlastset DESC
+```
 
 - Returns computer names and their operating system for statistics purposes
 ```
