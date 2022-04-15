@@ -35,19 +35,19 @@ config = {
 # ===========================================
 #
 
-nodesToCheckPerStep = 5
+nodesToCheckPerStep = 10
 
 columns1 = 'name,outbound_first_degree'
-columns2 = 'name,outbound_first_degree,outbount_group_delegated'
+columns2 = 'name,outbound_first_degree,outbound_group_delegated'
 
 query_first_degree_outbound = '''
-MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true AND (CONDITION)
+MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true AND (__CONDITION__)
 WITH u.name as name, COUNT(DISTINCT(n)) as controlled 
 RETURN name, controlled 
 '''
 
 query_group_delegated_outbound = '''
-MATCH p=(u)-[r1:MemberOf*1..]->(g:Group)-[r2]->(n) WHERE r2.isacl=true AND (CONDITION)
+MATCH p=(u)-[r1:MemberOf*1..]->(g:Group)-[r2]->(n) WHERE r2.isacl=true AND (__CONDITION__)
 WITH u.name as name, COUNT(DISTINCT(n)) as controlled
 RETURN name, controlled 
 '''
@@ -80,7 +80,7 @@ def checkNodes(tx, nodes):
         }
     
     # first-degree
-    query = query_first_degree_outbound.replace('CONDITION', condition).strip().replace('\t', ' ').replace('\n', ' ')
+    query = query_first_degree_outbound.replace('__CONDITION__', condition).strip().replace('\t', ' ').replace('\n', ' ')
     result1 = list(tx.run(query))
 
     for result in result1:
@@ -88,7 +88,7 @@ def checkNodes(tx, nodes):
 
     if config['include_group_delegated']:
         # group delegated
-        query = query_group_delegated_outbound.replace('CONDITION', condition).strip().replace('\t', ' ').replace('\n', ' ')
+        query = query_group_delegated_outbound.replace('__CONDITION__', condition).strip().replace('\t', ' ').replace('\n', ' ')
         result2 = list(tx.run(query))
 
         for result in result2:
