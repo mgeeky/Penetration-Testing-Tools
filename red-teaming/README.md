@@ -4,6 +4,8 @@
 
 - **`backdoor-drop.js`** - Internet Explorer - JavaScript trojan/backdoor dropper template, to be used during Penetration Testing assessments. ([gist](https://gist.github.com/mgeeky/b0aed7c1e510560db50f96604b150dac))
 
+- **`bloodhound`** - bunch of BloodHound utilities & scripts
+
 - **`Bypass-ConstrainedLanguageMode`** - Tries to bypass AppLocker Constrained Language Mode via custom COM object (as documented by @xpn in: https://www.mdsec.co.uk/2018/09/applocker-clm-bypass-via-com/ )
 The way it does so is by registering a custom COM object (`InProcServer32` DLL) that will act as a native *.NET CLR4* host. This host is then going to load up a managed assembly within it's current AppDomain. That assembly finally will switch `SessionData.LanguageMode` variable determining whether Constrained Language Mode shall be used within current Runspace. More details in the tool directory itself.
 
@@ -286,24 +288,6 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 - **`Handy-BloodHound-Cypher-Queries.md`** - A list of Bloodhound Cypher queries that I came up with during my various Active Directory security assessments (the list also includes some of my colleagues queries). ([gist](https://gist.github.com/mgeeky/3ce3b12189a6b7ee3c092df61de6bb47))
 
 - **`Invoke-Command-Cred-Example.ps1`** - Example of using PSRemoting with credentials passed directly from command line. ([gist](https://gist.github.com/mgeeky/de4ecf952ddce774d241b85cfbf97faf))
-
-- **`markOwnedNodesInNeo4j.py`** - This script takes an input file containing Node names to be marked in Neo4j database as owned = True. The strategy for working with neo4j and Bloodhound becomes fruitful during complex Active Directory Security Review assessments or Red Teams. Imagine you've kerberoasted a number of accounts, access set of workstations or even cracked userPassword hashes. Using this script you can quickly instruct Neo4j to mark that principals as owned, which will enrich your future use of BloodHound.
-
-```bash
-$ ./markOwnedNodesInNeo4j.py kerberoasted.txt
-[.] Connected to neo4j instance.
-[.] Marking nodes (0..10) ...
-[+] Marked 10 nodes in 4.617 seconds. Finish ETA: in 16.622 seconds.
-[.] Marking nodes (10..20) ...
-[+] Marked 10 nodes in 4.663 seconds. Finish ETA: in 12.064 seconds.
-[.] Marking nodes (20..30) ...
-[+] Marked 10 nodes in 4.157 seconds. Finish ETA: in 7.167 seconds.
-[.] Marking nodes (30..40) ...
-[+] Marked 10 nodes in 4.365 seconds. Finish ETA: in 2.670 seconds.
-[.] Marking nodes (40..46) ...
-[+] Marked 6 nodes in 2.324 seconds. Finish ETA: in 0 seconds.
-[+] Nodes marked as owned successfully in 20.246 seconds.
-```
 
 - **`msbuild-powershell-msgbox.xml`** - Example of Powershell execution via MSBuild inline task XML file. On a simple Message-Box script.
  ([gist](https://gist.github.com/mgeeky/617c54a23f0c4e99e6f475e6af070810))

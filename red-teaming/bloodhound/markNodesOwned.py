@@ -13,6 +13,9 @@
 import sys
 import os
 import time
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
 try:
     from neo4j import GraphDatabase
 except ImportError:
@@ -22,14 +25,12 @@ except ImportError:
 # ===========================================
 #
 
-# Specify neo4j connection details
-NEO4J_CONNECTION_DETAILS = \
-{
-    'Host': '127.0.0.1',    # neo4j listening address.
-    'Port': 7687,           # Bolt port
-    'User': 'neo4j',
-    'Pass': 'neo4j1'
+config = {
+    'host': 'bolt://localhost:7687',
+    'user': 'neo4j',
+    'pass': 'neo4j1',
 }
+
 
 #
 # ===========================================
@@ -53,32 +54,54 @@ def markNodes(tx, nodes):
 
     tx.run(query)
 
+
+def opts(args):
+    global config
+    parser = ArgumentParser(description = 'markNodesOwned.py - collects first-degree and group-delegated outbound controlled objects number based on input node names list.', formatter_class = ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-H', '--host', dest = 'host', help = 'Neo4j BOLT URI', default = 'bolt://localhost:7687')
+    parser.add_argument('-u', '--user', dest = 'user', help = 'Neo4j User', default = 'neo4j')
+    parser.add_argument('-p', '--password', dest = 'pass', help = 'Neo4j Password', default = 'neo4j1')
+
+    parser.add_argument('nodesList', help = 'Path to file containing list of node names to check. Lines starting with "#" will be skipped.')
+    
+    arguments = parser.parse_args()
+    config.update(vars(arguments))
+
+    return arguments
+
 def main(argv):
     if len(argv) != 2:
         print('''
     Takes a file containing node names on input and marks them as Owned in specified neo4j database.     
 
-Usage:  ./markOwnedNodesInNeo4j.py <nodes-file>
+Usage:  ./markNodesOwned.py <nodes-file>
 ''')
         return False
 
-    nodesFile = argv[1]
+    nodesFile = args.nodesList
+
     programStart = time.time()
 
     if not os.path.isfile(nodesFile):
-        print(f'[!] Input file containing nodes does not exist: "{nodesFile}"!')
+        log(f'[!] Input file containing nodes does not exist: "{nodesFile}"!')
         return False
 
     nodes = []
-    with open(nodesFile) as f: nodes = [x.strip() for x in f.readlines()]
+    with open(nodesFile) as f: 
+        for x in f.readlines():
+            if x.strip().startswith('#'):
+                continue
+
+            if not '@' in x:
+                raise Exception('Node names must include "@" and be in form: NAME@DOMAIN !')
+            nodes.append(x.strip())
 
     try:
         driver = GraphDatabase.driver(
-            f"bolt://{NEO4J_CONNECTION_DETAILS['Host']}:{NEO4J_CONNECTION_DETAILS['Port']}",
-            auth = (NEO4J_CONNECTION_DETAILS['User'], NEO4J_CONNECTION_DETAILS['Pass']),
+            config['host'],
+            auth = (config['user'], config['pass']),
             encrypted = False,
             connection_timeout = 10,
-            max_retry_time = 5,
             keep_alive = True
         )
     except Exception as e:
