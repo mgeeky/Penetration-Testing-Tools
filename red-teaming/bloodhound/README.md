@@ -13,6 +13,8 @@ $ py ./getOutboundControlled.py -o affected-users-outbound.csv affected-users.tx
 ...
 ```
 
+- **`Handy-BloodHound-Cypher-Queries.md`** - A list of Bloodhound Cypher queries that I came up with during my various Active Directory security assessments (the list also includes some of my colleagues queries). ([gist](https://gist.github.com/mgeeky/3ce3b12189a6b7ee3c092df61de6bb47))
+
 - **`markNodesOwned.py`** - This script takes an input file containing Node names to be marked in Neo4j database as owned = True. The strategy for working with neo4j and Bloodhound becomes fruitful during complex Active Directory Security Review assessments or Red Teams. Imagine you've kerberoasted a number of accounts, access set of workstations or even cracked userPassword hashes. Using this script you can quickly instruct Neo4j to mark that principals as owned, which will enrich your future use of BloodHound.
 
 ```bash
