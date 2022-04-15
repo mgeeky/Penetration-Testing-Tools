@@ -11,6 +11,15 @@ $ py ./getOutboundControlled.py -o affected-users-outbound.csv affected-users.tx
 [+] Checked 20/1282 nodes in 7.152 seconds. Finish ETA: in 1703.490 seconds.
 [+] Checked 25/1282 nodes in 6.109 seconds. Finish ETA: in 1664.574 seconds.
 ...
+[+] Checked 1265/1282 nodes in 8.735 seconds. Finish ETA: in 26.959 seconds.
+[+] Checked 1270/1282 nodes in 8.951 seconds. Finish ETA: in 19.040 seconds.
+[+] Checked 1275/1282 nodes in 8.798 seconds. Finish ETA: in 11.111 seconds.
+[+] Checked 1280/1282 nodes in 8.311 seconds. Finish ETA: in 3.175 seconds.
+[+] Checked 1282/1282 nodes in 7.937 seconds. Finish ETA: in 0.000 seconds.
+
+[+] Nodes checked in 2040.370 seconds.
+[+] Finished. Results written to file:
+        affected-users-outbound.csv
 ```
 
 - **`Handy-BloodHound-Cypher-Queries.md`** - A list of Bloodhound Cypher queries that I came up with during my various Active Directory security assessments (the list also includes some of my colleagues queries). ([gist](https://gist.github.com/mgeeky/3ce3b12189a6b7ee3c092df61de6bb47))
