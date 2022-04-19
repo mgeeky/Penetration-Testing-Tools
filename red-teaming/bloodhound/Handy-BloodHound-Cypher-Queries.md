@@ -136,6 +136,7 @@ ORDER BY days_since_pwdlastset DESC
 MATCH (u:User {hasspn: True})-[r:MemberOf*1..]->(n:Group) 
 WHERE (n.objectid =~ "(?i)S-1-5-.*-512") OR (n.objectid =~ "(?i)S-1-5-.*-516") OR (n.objectid =~ "(?i)S-1-5-.*-518") OR (n.objectid =~ "(?i)S-1-5-.*-519") OR (n.objectid =~ "(?i)S-1-5-.*-520") OR (n.objectid =~ "(?i)S-1-5-.*-544") OR (n.objectid =~ "(?i)S-1-5-.*-548") OR (n.objectid =~ "(?i)S-1-5-.*-549") OR (n.objectid =~ "(?i)S-1-5-.*-551")
 RETURN u.name AS UserName, n.name AS GroupName, u.displayname As DisplayName, u.description As Descrition
+ORDER BY GroupName
 ```
 
 - Pulls users eligible for ASREP roasting
