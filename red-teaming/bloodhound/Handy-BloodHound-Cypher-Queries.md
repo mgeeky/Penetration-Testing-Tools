@@ -131,6 +131,13 @@ RETURN name, description, days_since_pwdlastset, pwdlastset
 ORDER BY days_since_pwdlastset DESC 
 ```
 
+- Pulls kerberoastable Users belonging to critical groups such as Domain Admins, Schema Admins, Domain Controllers, Enterprise Admins:
+```
+MATCH (u:User {hasspn: True})-[r:MemberOf*1..]->(n:Group) 
+WHERE (n.objectid =~ "(?i)S-1-5-.*-512") OR (n.objectid =~ "(?i)S-1-5-.*-516") OR (n.objectid =~ "(?i)S-1-5-.*-518") OR (n.objectid =~ "(?i)S-1-5-.*-519") OR (n.objectid =~ "(?i)S-1-5-.*-520") OR (n.objectid =~ "(?i)S-1-5-.*-544") OR (n.objectid =~ "(?i)S-1-5-.*-548") OR (n.objectid =~ "(?i)S-1-5-.*-549") OR (n.objectid =~ "(?i)S-1-5-.*-551")
+RETURN u.name AS UserName, n.name AS GroupName, u.displayname As DisplayName, u.description As Descrition
+```
+
 - Pulls users eligible for ASREP roasting
 ```
 MATCH (u:User {dontreqpreauth: true}) RETURN u.name, u.displayname, u.description, u.objectid
