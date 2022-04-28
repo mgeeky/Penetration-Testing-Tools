@@ -118,7 +118,7 @@ def opts(args):
     parser.add_argument('-u', '--user', dest = 'user', help = 'Neo4j User', default = 'neo4j')
     parser.add_argument('-p', '--password', dest = 'pass', help = 'Neo4j Password', default = 'neo4j1')
     parser.add_argument('-g', '--include-group-delegated', dest = 'include_group_delegated', action='store_true', help = 'To optimize time the script by default only computes number of first-degree outbound controlled objects. Use this option to include in final results also group-delegated numbers (takes considerable time to evaluate!)')
-    parser.add_argument('-o', '--output', dest = 'output', help = 'Write output to CSV file specified by this path.', default = '<stdout>')
+    parser.add_argument('-o', '--output', default = '', dest = 'output', help = 'Write output to CSV file specified by this path.')
 
     parser.add_argument('nodesList', help = 'Path to file containing list of node names to check. Lines starting with "#" will be skipped.')
     
@@ -172,6 +172,8 @@ Usage:  ./getOutboundControlled.py [options] <nodes-file>
     totalTime = 0.0
     runs = 0
 
+    columns = ''
+
     try:
         with driver.session() as session:
 
@@ -179,12 +181,13 @@ Usage:  ./getOutboundControlled.py [options] <nodes-file>
             output = ''
 
             if config['include_group_delegated']:
-                output = columns2 + '\n'
+                columns = columns2
             else:
-                output = columns1 + '\n'
+                columns = columns1
 
-            with open(config['output'], 'w') as f:
-                f.write(output)
+            if config['output'] != '':
+                with open(config['output'], 'w') as f:
+                    f.write(columns + '\n')
 
             for a in range(0, len(nodes), nodesToCheckPerStep):
                 b = a + min(nodesToCheckPerStep, len(nodes) - a)
@@ -214,6 +217,8 @@ Usage:  ./getOutboundControlled.py [options] <nodes-file>
     log(f'\n[+] Nodes checked in {programStop - programStart:.3f} seconds.')
 
     if config['output'] == '':
+        print(columns)
+
         for k, v in results.items():
             if config['include_group_delegated']:
                 output += f"{v['name']},{v['first-degree']},{v['group-delegated']}\n"
