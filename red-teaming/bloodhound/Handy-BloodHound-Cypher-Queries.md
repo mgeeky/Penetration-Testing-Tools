@@ -8,7 +8,7 @@ MATCH (u:User {enabled: true, allowedtodelegate: true}) WHERE toLower(u.name) EN
 MATCH (u:User {enabled: true, unconstraineddelegation: true}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Enabled Users with Unconstrained Delegation" AS what, count(u) AS number UNION ALL
 MATCH (u:User {enabled: true, admincount: true})      WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Enabled Users with Admin Count = 1" AS what, count(u) AS number UNION ALL
 MATCH (u:User {enabled: true,  hasspn: True})         WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable & Enabled Users" AS what, count(u) AS number UNION ALL
-MATCH (u:User {enabled: false, hasspn: True})         WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable Users" AS what, count(u) AS number UNION ALL
+MATCH (u:User {enabled: false, hasspn: True})         WHERE toLower(u.name) ENDS WITH "contoso.com" AND NOT u.name STARTS WITH 'KRBTGT' RETURN "Kerberoastable & Disabled Users" AS what, count(u) AS number UNION ALL
 MATCH (u:User {enabled: true, passwordnotreqd: true}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Enabled Users with Password Not Required" AS what, count(u) AS number UNION ALL
 MATCH (u:User {enabled: true, pwdneverexpires: true}) WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Enabled Users with Password Never Expires" AS what, count(u) AS number UNION ALL
 MATCH (u:User {enabled: true, dontreqpreauth: true})  WHERE toLower(u.name) ENDS WITH "contoso.com" RETURN "Enabled Users with Dont Require Pre-Authentication (ASREP roastable)" AS what, count(u) AS number UNION ALL
