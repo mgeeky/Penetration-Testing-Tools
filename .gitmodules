@@ -61,3 +61,6 @@
 [submodule "file-formats/PackMyPayload"]
 	path = file-formats/PackMyPayload
 	url = https://github.com/mgeeky/PackMyPayload
+[submodule "red-teaming/OfficePurge"]
+	path = red-teaming/OfficePurge
+	url = https://github.com/mgeeky/OfficePurge

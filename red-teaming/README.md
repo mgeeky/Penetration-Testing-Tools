@@ -292,6 +292,8 @@ PS E:\PowerSploit\Recon> Get-DomainOU | Get-DomainOUTree
 
 - **`muti-stage-1.md`** - Multi-Stage Penetration-Testing / Red Teaming Malicious Word document creation process. ([gist](https://gist.github.com/mgeeky/6097ea56e0f541aa7d98161e2aa76dfb))
 
+- [**`OfficePurge`**](https://github.com/mgeeky/OfficePurge) - my fork of [original Mandiant's OfficePurge](https://github.com/mandiant/OfficePurge) enhanced with support for Office 2007+ and a [few other features](https://github.com/mandiant/OfficePurge/pull/1)
+
 - [**`RedWarden`**](https://github.com/mgeeky/RedWarden) - A Cobalt Strike C2 Reverse proxy fending off Blue Teams, AVs, EDRs, scanners through packet inspection and malleable profile correlation.
 
 - [**`rogue-dot-net`**](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/rogue-dot-net) - Set of scripts, requirements and instructions for generating .NET Assemblies valid for **Regasm**/**Regsvcs**/**InstallUtil** code execution primitives. 
