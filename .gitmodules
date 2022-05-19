@@ -64,3 +64,6 @@
 [submodule "red-teaming/OfficePurge"]
 	path = red-teaming/OfficePurge
 	url = https://github.com/mgeeky/OfficePurge
+[submodule "red-teaming/EvilClippy"]
+	path = red-teaming/EvilClippy
+	url = https://github.com/mgeeky/EvilClippy

@@ -163,6 +163,8 @@ Loaded $StealthUserHunterShowAll results.
 Loaded $UserHunterShowAll results.
 ```
 
+- [**`EvilClippy`**](https://github.com/mgeeky/EvilClippy) - my fork of [original Stan Hegt's](https://github.com/outflanknl/EvilClippy) enhanced with support for Office pre-2007 and Office 2007+ file formats (PowerPoint, Publisher, Excel, Word)
+
 - **`Find-GPODelegatedUsers.ps1`** - One-liner for finding GPO Delegated users that can Edit Settings of that GPO and thus could be used to Abuse GPO Permissions (https://www.harmj0y.net/blog/redteaming/abusing-gpo-permissions/). [gist](https://gist.github.com/mgeeky/5843df09607123772a61e782a6406d54)
 
 - **`Get-UserPasswordEntries.ps1`** - a simple script for finding and decoding `userPassword` properties stored by some legacy SAMBA/linux kerberos implementations.
