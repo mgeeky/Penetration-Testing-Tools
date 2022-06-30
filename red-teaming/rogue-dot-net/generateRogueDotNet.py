@@ -34,7 +34,7 @@
 #        cmd> %WINDIR%\Microsoft.NET\Framework64\v2.0.50727\InstallUtil.exe /logfile= /logtoconsole=false /U rogue.dll
 #        cmd> %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /logtoconsole=false /U rogue.dll
 #
-# Mariusz Banach / mgeeky, <mb@binary-offensive.com>
+# Mariusz B. / mgeeky, <mb@binary-offensive.com>
 #
 
 import re
@@ -519,7 +519,7 @@ def getSourceFileContents(
 
 /*
     Author: Casey Smith, Twitter: @subTee
-    Customized by: Mariusz Banach / mgeeky, <mb@binary-offensive.com>
+    Customized by: Mariusz B. / mgeeky, <mb@binary-offensive.com>
     License: BSD 3-Clause
 
     Step 1: Create Your Strong Name Key -> key.snk
@@ -806,7 +806,7 @@ def main(argv):
     sys.stderr.write('''
         :: Rogue .NET Source Code Generation Utility
         Comes with a few hardcoded C# code templates and an easy wrapper around csc.exe compiler
-        Mariusz Banach / mgeeky, <mb@binary-offensive.com>
+        Mariusz B. / mgeeky, <mb@binary-offensive.com>
 
 ''')
     if len(argv) < 2:
@@ -860,14 +860,21 @@ def main(argv):
       _type = args.type
     )
 
+    print(f'''Generated .NET assembly will expose:
+
+    Namespace   : {args.namespace}
+    Classname   : {args.module}
+    Method name : {args.method}
+''')
+
     management = ' /r:System.Management.Automation.dll /r:Microsoft.Build.Framework.dll'
+    srcfile = ''
 
     if args.compile != 'nocompile':
         if not args.output:
             print('[!] --output must be specified to compile file.')
             sys.exit(1)
 
-        srcfile = ''
         with tempfile.NamedTemporaryFile() as f:
             srcfile = f.name + '.cs'
 
@@ -907,6 +914,7 @@ def main(argv):
         if os.path.isfile(args.output):
             print('[+] Success')
         else:
+            if os.path.isfile(srcfile): os.remove(srcfile)
             return 1
 
     else:
@@ -952,6 +960,8 @@ Step 3: Execute your payload!
     elif args.type in ['exec', 'run-command']:
 
       sys.stderr.write('[?] Generated command line executing assembly\'s source code/executable.\n')
+
+    if os.path.isfile(srcfile): os.remove(srcfile)
 
 if __name__ == '__main__':
     main(sys.argv)
