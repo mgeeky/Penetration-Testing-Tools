@@ -10,7 +10,7 @@ Script was shamelessly borrowed from [Matt Graeber, @mattifestation](https://twi
 
 ### Effectiveness
 
-As of 13/07/2022 this **dumb trick** still gets off the shelf malware evade detection of at least 8 modern security scanners.
+As of [13/07/2022](https://twitter.com/mariuszbit/status/1547320418821980160) this **dumb trick** still gets off the shelf malware evade detection of at least 8 modern security scanners.
 
 | What                                                                         | Result    |
 |------------------------------------------------------------------------------|-----------|
