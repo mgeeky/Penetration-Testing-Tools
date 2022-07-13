@@ -1,6 +1,6 @@
 ## Code Signing Certificate Cloning Attack 
 
-A Powershell script that signs input Executable file with fake Microsoft code-signing certificate to demonstrate risks of Code Signing attacks.
+A Powershell script that signs input Executable file with fake Microsoft code-signing certificate to demonstrate risks of cloned-certificate sign attacks.
 
 Script was shamelessly borrowed from [Matt Graeber, @mattifestation](https://twitter.com/mattifestation) and his research titled:
 - [_Code Signing Certificate Cloning Attacks and Defenses_](https://posts.specterops.io/code-signing-certificate-cloning-attacks-and-defenses-6f98657fc6ec) 
