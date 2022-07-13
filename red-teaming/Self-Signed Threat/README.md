@@ -5,7 +5,7 @@ A Powershell script that signs input Executable file with fake Microsoft code-si
 Script was shamelessly borrowed from [Matt Graeber, @mattifestation](https://twitter.com/mattifestation) and his research titled:
 - [_Code Signing Certificate Cloning Attacks and Defenses_](https://posts.specterops.io/code-signing-certificate-cloning-attacks-and-defenses-6f98657fc6ec) 
 
-**All credits go to Matt** - this directory contains a copy of his code (_bit tweaked by me_) for preserverance purposes.
+**All credits go to Matt** - this directory contains a copy of his code (_a little tweaked by me_) for preserverance purposes.
 
 
 ### Effectiveness
