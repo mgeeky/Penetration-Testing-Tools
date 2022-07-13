@@ -1,4 +1,4 @@
-## Easy-to-use test-it-yourself sign-your-malware 
+## Code Signing Certificate Cloning Attack 
 
 A Powershell script that signs input Executable file with fake Microsoft code-signing certificate to demonstrate risks of Code Signing attacks.
 
