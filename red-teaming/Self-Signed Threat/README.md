@@ -2,9 +2,10 @@
 
 A Powershell script that signs input Executable file with fake Microsoft code-signing certificate to demonstrate risks of Code Signing attacks.
 
-Script was borrowed from [Matt Graeber, @mattifestation](https://twitter.com/mattifestation) and his [_Code Signing Certificate Cloning Attacks and Defenses_](https://posts.specterops.io/code-signing-certificate-cloning-attacks-and-defenses-6f98657fc6ec) and **all credits are his**.
+Script was shamelessly borrowed from [Matt Graeber, @mattifestation](https://twitter.com/mattifestation) and his research titled [_Code Signing Certificate Cloning Attacks and Defenses_](https://posts.specterops.io/code-signing-certificate-cloning-attacks-and-defenses-6f98657fc6ec) 
+**All credits go to Matt** - I merely copied it preserverance purposes.
 
-As of 13/07/2022 this dumb trick still gets off the shelf malware evade detection of at least 8 modern security scanners.
+As of 13/07/2022 this **dumb trick** still gets off the shelf malware evade detection of at least 8 modern security scanners.
 
 | What                                                                         | Result    |
 |------------------------------------------------------------------------------|-----------|
