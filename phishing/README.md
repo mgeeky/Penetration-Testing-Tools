@@ -1,6 +1,8 @@
 ## Phishing and Social-Engineering related scripts, tools and CheatSheets
 
 
+- **`CustomXMLPart`** - Proof of Concept for hiding malware payloads in MS Office [`Custom XML parts`](https://mgeeky.tech/payload-crumbs-in-custom-parts/) storage structure
+
 - **`DancingRightToLeft.py`** - A script abusing Right-To-Left Override unicode byte to rename phishing payloads.
 
 ```
