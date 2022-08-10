@@ -400,7 +400,7 @@ MATCH (o:OU)-[:Contains]->(c) RETURN o.name,o.guid, COUNT(c) ORDER BY COUNT(c) D
 
 - Retrieves nodes having particular juicy keywords in their name or description properties:
 ```
-UNWIND ["admin", "amministratore", "contrase", "empfidlich", "geheim", "hasło", "important", "azure", "MSOL", "Kennwort", "parol", "parola", "pass", "passe", "secret", "secreto", "segreto", "sekret", "sensibil", "sensibile", "sensible", "sensitive", "wrażliw"] AS word MATCH (n) WHERE (toLower(n.name) CONTAINS toLower(word)) OR (toLower(n.description) CONTAINS toLower(word)) RETURN word, n.name, n.description ORDER BY n.name
+UNWIND ["admin", "amministratore", "contrase", "empfindlich", "geheim", "hasło", "important", "azure", "MSOL", "Kennwort", "parol", "parola", "pass", "passe", "secret", "secreto", "segreto", "sekret", "sensibil", "sensibile", "sensible", "sensitive", "wrażliw"] AS word MATCH (n) WHERE (toLower(n.name) CONTAINS toLower(word)) OR (toLower(n.description) CONTAINS toLower(word)) RETURN word, n.name, n.description ORDER BY n.name
 ```
 
 - Retrieves nodes that contain UNC paths to SMB shares in their description fields:
