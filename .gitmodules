@@ -67,3 +67,6 @@
 [submodule "red-teaming/EvilClippy"]
 	path = red-teaming/EvilClippy
 	url = https://github.com/mgeeky/EvilClippy
+[submodule "phishing/CustomXMLPart"]
+	path = phishing/CustomXMLPart
+	url = https://github.com/mgeeky/CustomXMLPart
