@@ -6,7 +6,12 @@ import os, sys
 
 
 def tamperUpx(outfile):
-    pe = pefile.PE(outfile)
+    pe = None
+    try:
+        pe = pefile.PE(outfile)
+    except:
+        print('[!] Input PE file corrupted. Unable to proceed.')
+        return False
 
     newSectionNames = (
         '.text',
@@ -144,6 +149,8 @@ def main(argv):
 
     if tamperUpx(outfile):
         print('[+] Success. UPX should have some issues decompressing output artifact now.')
+    else:
+        print('[-] FAILED: Could not tamper input file.')
 
 if __name__ == '__main__':
     main(sys.argv)
