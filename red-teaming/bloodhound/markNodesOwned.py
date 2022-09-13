@@ -78,6 +78,7 @@ Usage:  ./markNodesOwned.py <nodes-file>
 ''')
         return False
 
+    args = opts(argv)
     nodesFile = args.nodesList
 
     programStart = time.time()
