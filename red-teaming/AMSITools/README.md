@@ -10,7 +10,7 @@ The script provided in this directory, [again](https://github.com/mgeeky/Penetra
 
 ## Pulling AMSI Events
 
-We can pull AMSI events to review more closely what happened thanks to Matt's [AMSITools.ps1]](https://gist.github.com/mgraeber-rc/1eb42d3ec9c2f677e70bb14c3b7b5c9c).
+We can pull AMSI events to review more closely what happened thanks to Matt's [AMSITools.ps1](https://gist.github.com/mgraeber-rc/1eb42d3ec9c2f677e70bb14c3b7b5c9c).
 
 Follow these steps:
 
