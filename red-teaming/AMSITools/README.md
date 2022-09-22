@@ -5,7 +5,7 @@ This is the typical error message indicating AMSI killed our maldoc:
 
 ![amsi.png](amsi.png)
 
-The script provided in this directory, [again](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/Self-Signed%20Threat), uses splendid work of [Matt Graeber, @mattifestation](https://twitter.com/mattifestation), namely his [AMSITools.ps1]](https://gist.github.com/mgraeber-rc/1eb42d3ec9c2f677e70bb14c3b7b5c9c) script, that pulls AMSI events from Windows' event-log.
+The script provided in this directory, [again](https://github.com/mgeeky/Penetration-Testing-Tools/tree/master/red-teaming/Self-Signed%20Threat), uses splendid work of [Matt Graeber, @mattifestation](https://twitter.com/mattifestation), namely his [AMSITools.ps1](https://gist.github.com/mgraeber-rc/1eb42d3ec9c2f677e70bb14c3b7b5c9c) script, that pulls AMSI events from Windows' event-log.
 
 
 ## Pulling AMSI Events
@@ -77,4 +77,4 @@ The very last line of `Content` entry tells us, which was the last VBA line of c
 
 ## Credits
 
-**All credits go to Matt** - this directory contains HIS script, mirrored for preserverance purposes.
+**All credits go to [Matt](https://twitter.com/mattifestation)** - this directory contains **HIS** script _AMSITools.ps1_, mirrored for preserverance purposes.
