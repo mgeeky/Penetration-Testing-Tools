@@ -1,6 +1,7 @@
 ## Red Teaming and Social-Engineering related scripts, tools and CheatSheets
 
 
+- **`AMSITools`** - Script using [Matt Graeber's](https://twitter.com/mattifestation) [AMSITools.ps1]](https://gist.github.com/mgraeber-rc/1eb42d3ec9c2f677e70bb14c3b7b5c9c) to pull triggered AMSI events for closer inspection.
 
 - **`backdoor-drop.js`** - Internet Explorer - JavaScript trojan/backdoor dropper template, to be used during Penetration Testing assessments. ([gist](https://gist.github.com/mgeeky/b0aed7c1e510560db50f96604b150dac))
 
