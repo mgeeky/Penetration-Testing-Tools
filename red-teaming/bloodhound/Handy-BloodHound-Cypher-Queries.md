@@ -370,6 +370,12 @@ MATCH (u1:Computer)-[:AdminTo]->(c1:Computer {signing: false}) RETURN u1.name, c
 MATCH (u2)-[:MemberOf*1..]->(g:Group)-[:AdminTo]->(c2 {signing: false}) RETURN u2.name, c2.name
 ```
 
+- PrivExchange audit: Finds computers that are members of "Exchange Trusted Subsystem" group, which has admin rights over all its members. This way, we could execute authentication coercion attack against one exchange server and relay it to another, thus obtaining SYSTEM over that another Exchange server:
+```
+MATCH p=(c:Computer)-[r1:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(n:Computer) RETURN p
+```
+
+
 ### GPOs
 
 - Print GPO names and their container paths:
