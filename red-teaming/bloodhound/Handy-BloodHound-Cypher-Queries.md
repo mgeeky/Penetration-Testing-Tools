@@ -424,9 +424,14 @@ MATCH p=(m:Group)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWri
 
 - Mark nodes as Owned:
 ```
-MATCH (u) WHERE toLower(u.name) = "user1@contoso.com" SET u.owned RETURN 1 UNION
-MATCH (u) WHERE toLower(u.name) = "group2@contoso.com" SET u.owned RETURN 1 UNION
-MATCH (u) WHERE toLower(u.name) = "computer3@contoso.com" SET u.owned RETURN 1
+MATCH (u) WHERE toLower(u.name) = "user1@contoso.com" SET u.owned=True RETURN 1 UNION
+MATCH (u) WHERE toLower(u.name) = "group2@contoso.com" SET u.owned=True RETURN 1 UNION
+MATCH (u) WHERE toLower(u.name) = "computer3@contoso.com" SET u.owned=True RETURN 1
+```
+
+- Mark users with non-empty UserPassword field as Owned:
+```
+MATCH (u:User) WHERE u.userpassword =~ ".+" SET u.owned=True
 ```
 
 - Mark High Value all members of High Value groups:
