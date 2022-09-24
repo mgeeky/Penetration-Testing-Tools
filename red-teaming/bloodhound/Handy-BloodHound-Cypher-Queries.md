@@ -431,7 +431,7 @@ MATCH (u) WHERE toLower(u.name) = "computer3@contoso.com" SET u.owned=True RETUR
 
 - Mark users with non-empty UserPassword field as Owned:
 ```
-MATCH (u:User) WHERE u.userpassword =~ ".+" SET u.owned=True
+MATCH (u:User) WHERE u.userpassword =~ ".+" SET u.owned = true RETURN u.name
 ```
 
 - Mark High Value all members of High Value groups:
