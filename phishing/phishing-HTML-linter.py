@@ -7,7 +7,12 @@ import yaml
 import textwrap
 import json
 from urllib import parse
-from bs4 import BeautifulSoup
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    print('[!] You need to install bs4:\n\t\tcmd> pip install bs4')
+    sys.exit(1)
 
 options = {
     'format' : 'text',
@@ -470,6 +475,74 @@ class PhishingMailParser:
         )
     }
 
+    #
+    # This list is imperfect - it was gathered from multiple sources all around the internet.
+    # By no means it represents actual HTML tags whitelist used by any vendor
+    #
+    # https://help.zapier.com/hc/en-us/articles/8496101927181-What-HTML-tags-are-supported-in-Gmail-#supported-html-tags-0-0
+    # https://helpdesk.bitrix24.com/open/14099114/
+    # https://www.outlook-apps.com/html-ignored-by-outlook/
+    # https://www.caniemail.com/search/
+    #
+    SupportedHTMLTags = (
+        'a', 'b', 'br', 'big', 'blockquote', 'caption', 'code', 'del', 'div', 'dt', 'dd', 'font', 'h1', 'h2', 'h3', 'h4', 'h5', 
+        'h6', 'hr', 'i', 'img', 'ins', 'li', 'map', 'ol', 'p', 'pre', 's', 'small', 'strong', 'span', 'sub', 'sup', 'table', 
+        'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'u', 'ul', 'php', 'html', 'head', 'body', 'meta', 'title', 'style', 'link', 
+        'abbr', 'acronym', 'address', 'area', 'bdo',
+    )
+
+    # Based on the following:
+    #   https://medium.com/@ranadeepbhuyan/supported-html-tags-in-common-email-clients-2cc11e1ae283
+    SupportedHTMLTagsAndRelatedAttribs = {
+        'a': ('href', 'title', 'name', 'style', 'id', 'class', 'shape', 'coords', 'alt', 'target'),
+        'b': ('style', 'id', 'class'),
+        'br': ('style', 'id', 'class'),
+        'big': ('style', 'id', 'class'),
+        'blockquote': ('title', 'style', 'id', 'class'),
+        'caption': ('style', 'id', 'class'),
+        'code': ('style', 'id', 'class'),
+        'del': ('title', 'style', 'id', 'class'),
+        'div': ('title', 'style', 'id', 'class', 'align'),
+        'dt': ('style', 'id', 'class'),
+        'dd': ('style', 'id', 'class'),
+        'font': ('color', 'size', 'face', 'style', 'id', 'class'),
+        'h1': ('style', 'id', 'class', 'align'),
+        'h2': ('style', 'id', 'class', 'align'),
+        'h3': ('style', 'id', 'class', 'align'),
+        'h4': ('style', 'id', 'class', 'align'),
+        'h5': ('style', 'id', 'class', 'align'),
+        'h6': ('style', 'id', 'class', 'align'),
+        'hr': ('style', 'id', 'class'),
+        'i': ('style', 'id', 'class'),
+        'img': ('style', 'id', 'class', 'src', 'alt', 'height', 'width', 'title'),
+        'ins': ('title', 'style', 'id', 'class'),
+        'li': ('style', 'id', 'class'),
+        'map': ('shape', 'coords', 'href', 'alt', 'title', 'style', 'id', 'class', 'name'),
+        'ol': ('style', 'id', 'class'),
+        'p': ('style', 'id', 'class', 'align'),
+        'pre': ('style', 'id', 'class'),
+        's': ('style', 'id', 'class'),
+        'small': ('style', 'id', 'class'),
+        'strong': ('style', 'id', 'class'),
+        'span': ('title', 'style', 'id', 'class', 'align'),
+        'sub': ('style', 'id', 'class'),
+        'sup': ('style', 'id', 'class'),
+        'table': ('border', 'width', 'style', 'id', 'class', 'cellspacing', 'cellpadding'),
+        'tbody': ('align', 'valign', 'style', 'id', 'class'),
+        'td': ('width', 'height', 'style', 'id', 'class', 'align', 'valign', 'colspan', 'rowspan'),
+        'tfoot': ('align', 'valign', 'style', 'id', 'class', 'align', 'valign'),
+        'th': ('width', 'height', 'style', 'id', 'class', 'colspan', 'rowspan'),
+        'thead': ('align', 'valign', 'style', 'id', 'class'),
+        'tr': ('align', 'valign', 'style', 'id', 'class'),
+        'u': ('style', 'id', 'class'),
+        'ul': ('style', 'id', 'class'),
+        'php': ('id', ),
+        'html': ('xmlns', ),
+        'meta': ('content', 'name', 'http-equiv'),
+        'style': ('Editor::STYLIST_TAG_ATTR', 'type'),
+        'link': ('type', 'rel', 'href'),
+    }
+
     def __init__(self, options):
         self.options = options
         self.results = {}
@@ -487,18 +560,29 @@ class PhishingMailParser:
         self.results['<a href="..."> URL contained GET parameter with URL']     = self.testLinksWithGETParamsBeingURLs()
         self.results['<a href="..."> URL pointed to an executable file']        = self.testLinksWithDangerousExtensions()
         self.results['Mail message contained suspicious words']                 = self.testSuspiciousWords()
+        self.results['Mail message contained unsupported HTML tags']            = self.testUnsupportedHtmlTags()
+        self.results['Mail message contained unsupported HTML attributes']      = self.testUnsupportedHtmlAttribs()
 
         return {k: v for k, v in self.results.items() if v}
 
     @staticmethod
-    def context(tag):
+    def context(tag, part=''):
         s = str(tag)
 
-        if len(s) < 100:
+        if len(s) < 200:
             return s
 
-        beg = s[:50]
-        end = s[-50:]
+        if part == '':
+            beg = s[:100]
+            end = s[-100:]
+        else:
+            pos = s.find(part)
+            if pos != -1:
+                a = pos - 100
+                if a < 0: a = 0 
+                b = pos + len(part) + 100
+                if b > len(s): b = -1
+                return f'... {s[a:b]} ...'
 
         return f'{beg}...{end}'
 
@@ -624,6 +708,54 @@ Therefore you will have better chances of delivering your phishing e-mail when y
         if num > 0:
             result += f'- Found {num} <a> tags that contained HTML code inside!\n'
             result +=  '\t  Links conveying HTML code within <a> ... </a> may greatly increase message Spam score!\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'description' : desc,
+            'context' : context,
+            'analysis' : result
+        }
+
+    def testLinksWithGETParams(self):
+        links = self.soup('a')
+
+        desc = 'Links in URLs contained potentially suspicious GET parameters that are known from Phishing platforms or other TA campaigns. They might be noticed by anti-spam filters.'
+        context = ''
+        result = ''
+        num = 0
+        embed = ''
+
+        for link in links:
+            try:
+                href = link['href']
+            except:
+                continue
+        
+            text = link.getText().replace('\n', '').strip()
+            params = dict(parse.parse_qsl(parse.urlsplit(href).query))
+
+            if len(params) > 0:
+                num += 1
+
+                if num < 5:
+                    context += PhishingMailParser.context(link) + '\n\n'
+                    hr = href
+                    pos = hr.find('?')
+                    if pos != -1:
+                        hr = hr[:pos] + logger.colored(hr[pos:], 'yellow')
+
+                    hr = hr.replace('\n', '').strip()
+                    context += f'\thref = "{hr}"\n\n'
+                    f = ''
+                    for k, v in params.items():
+                        f += f'{k}={v[:5]}..., '
+
+                    context += f'\tparams = {f}\n\n'
+
+        if num > 0:
+            result += f'- Found {logger.colored(num, "red")} links that contained {logger.colored("potentially dodgy GET parameters", "yellow")}.\n'
 
         if len(result) == 0:
             return []
@@ -922,6 +1054,92 @@ Therefore you will have better chances of delivering your phishing e-mail when y
             'analysis' : result
         }
 
+    def testUnsupportedHtmlTags(self):
+        tags = self.soup.find_all()
+
+        desc = f'Mail clients are using HTML rendering engines which might not support certain HTML tags (they strip them for security reasons).'
+        context = ''
+        result = ''
+        num = 0
+        embed = ''
+        found = set()
+
+        for tag in tags:
+            if tag.name.lower() not in PhishingMailParser.SupportedHTMLTags:
+                ctx = PhishingMailParser.context(tag)
+                pos = ctx.lower().find(f'<{tag.name.lower()}')
+                pos2 = ctx.find(' ', pos+1)
+
+                if pos2 == -1:
+                    pos2 = ctx.find('>', pos+1)
+
+                ctx = logger.colored(ctx[:pos], 'yellow') + logger.colored(ctx[pos:pos2], 'red') + logger.colored(ctx[pos2:], 'yellow')
+
+                context += ctx + '\n'
+                if tag.name.lower() not in found:
+                    num += 1
+                    found.add(tag.name.lower())
+
+        if num > 0:
+            result += f'- Found {logger.colored(num, "red")} potentially unsupported HTML tags in your phishing email.\n'
+            result +=  '\t  Be sure to redesign your email so that it doesnt contain these tags.\n\n'
+            result +=  '- You can check if these suspicious tags can be used against your target email client by looking here:\n'
+
+            for f in found:
+                result += f'\t  - {logger.colored(f, "red")} - https://www.caniemail.com/search/?s={f}\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'description' : desc,
+            'context' : context,
+            'analysis' : result
+        }
+    
+    def testUnsupportedHtmlAttribs(self):
+        tags = self.soup.find_all()
+
+        desc = f'Mail clients are using HTML rendering engines which might not support certain HTML attributes on specific tags (they strip them for security reasons).'
+        context = ''
+        result = ''
+        num = 0
+        embed = ''
+        found = set()
+
+        for tag in tags:
+            if tag.name.lower() in PhishingMailParser.SupportedHTMLTagsAndRelatedAttribs:
+                for k, v in tag.attrs.items():
+                    if k.lower() not in PhishingMailParser.SupportedHTMLTagsAndRelatedAttribs[tag.name.lower()]:
+                        ctx = PhishingMailParser.context(tag)
+                        pos = ctx.lower().find(k.lower())
+                        pos2 = pos + len(k.lower())
+
+                        ctx = logger.colored(ctx[:pos], 'yellow') + logger.colored(ctx[pos:pos2], 'red') + logger.colored(ctx[pos2:], 'yellow')
+                        #ctx = str(tag)
+
+                        context += ctx + '\n'
+
+                        if k.lower() not in found:
+                            num += 1
+                            found.add(k.lower())
+
+        if num > 0:
+            result += f'- Found {logger.colored(num, "red")} potentially unsupported HTML attributes in your phishing email.\n'
+            result +=  '\t  Be sure to redesign your email so that it doesnt contain these attributes.\n\n'
+            result +=  '- You can check if these suspicious attributes can be used against your target email client by looking here:\n'
+
+            for f in found:
+                result += f'\t  - {logger.colored(f, "red")} - https://www.caniemail.com/search/?s={f}\n'
+
+        if len(result) == 0:
+            return []
+
+        return {
+            'description' : desc,
+            'context' : context,
+            'analysis' : result
+        }
 
 def printOutput(out):
     if options['format'] == 'text':
