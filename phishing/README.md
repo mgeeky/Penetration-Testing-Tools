@@ -132,6 +132,8 @@ OUTPUT:
   - `<a href="..."> URL contained GET parameter with URL`
   - `<a href="..."> URL pointed to an executable file`
   - `Mail message contained suspicious words`
+  - `Mail message contained unsupported HTML tags`
+  - `Mail message contained unsupported HTML attributes`
   
   Such characteristics are known bad smells that will let your e-mail blocked.
 
