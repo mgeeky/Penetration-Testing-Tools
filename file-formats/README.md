@@ -1,5 +1,7 @@
 ## File-Formats Penetration Testing related scripts, tools and Cheatsheets
 
+- [**`msi-shenanigans`**] - Proof of Concept code and samples presenting emerging threat of MSI installer files. Based on my [MSI Shenanignas 1 - Offensive Capabilities Overview](https://mgeeky.tech/msi-shenanigans-part-1/) research conducted.
+
 - [**`PackMyPayload`**](https://github.com/mgeeky/PackMyPayload) - A script that takes file/directory on input and creates a new (or backdoors existing) container file with input ones embedded. Some of the formats (ISO, IMG, VHD, VHDX) could be used to bypass Mark-of-the-Web (MOTW) file taint flag. Supported formats: 
   1. `ZIP` (+password)
   2. `7zip` (+password)
