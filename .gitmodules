@@ -70,3 +70,6 @@
 [submodule "phishing/CustomXMLPart"]
 	path = phishing/CustomXMLPart
 	url = https://github.com/mgeeky/CustomXMLPart
+[submodule "file-formats/msi-shenanigans"]
+	path = file-formats/msi-shenanigans
+	url = https://github.com/mgeeky/msi-shenanigans
