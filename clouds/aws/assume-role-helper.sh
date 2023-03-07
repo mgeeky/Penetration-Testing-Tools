@@ -72,6 +72,12 @@ else
     out=$(aws --profile $PROFILE_NAME sts assume-role --serial-number $SERIAL_MFA --role-arn $ROLE_ARN --role-session-name $ROLE_NAME --duration-seconds $DURATION --token-code $code 2>&1)
 fi
 
+if echo "$out" | grep -q -i 'error occurred' ; then
+    echo -e "[!] Assume role failed:\n"
+    echo "$out"
+    exit 1
+fi
+
 rolename=$PROFILE_NAME-$SESSION_NAME
 
 if [[ "$OUTPUT_ROLE_NAME" != "" ]]; then
